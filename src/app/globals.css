@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-navy text-white font-sans;
+  }
+
+  ::selection {
+    @apply bg-cyan text-navy;
+  }
+}
+
+@layer components {
+  .neon-text {
+    text-shadow: 0 0 10px #00e5ff, 0 0 40px #00e5ff33;
+  }
+
+  .neon-text-subtle {
+    text-shadow: 0 0 8px #00e5ff88, 0 0 20px #00e5ff22;
+  }
+
+  .neon-border {
+    box-shadow: 0 0 15px #00e5ff55;
+    border-color: #00e5ff;
+  }
+
+  .neon-button {
+    @apply bg-cyan text-navy font-semibold px-8 py-3 rounded-lg transition-all duration-300;
+    box-shadow: 0 0 15px #00e5ff55;
+  }
+
+  .neon-button:hover {
+    box-shadow: 0 0 25px #00e5ff88, 0 0 50px #00e5ff44;
+    transform: translateY(-2px);
+  }
+
+  .placeholder-box {
+    @apply bg-navy-light border-2 border-dashed border-cyan/30 rounded-xl flex items-center justify-center text-muted text-sm text-center p-4;
+  }
+}
