@@ -11,8 +11,7 @@ export default function Footer() {
             <img
               src="/images/logo.png"
               alt="COCO Local"
-              className="h-10 w-auto object-contain mb-4"
-              style={{ filter: "drop-shadow(0 0 8px #00e5ff88)" }}
+              className="h-10 w-auto object-contain rounded-md mb-4"
             />
             <p className="text-muted text-sm leading-relaxed">
               Your neighbourhood convenience store on High Road, Benfleet. Quality products, hot food, and friendly service — every single day.

@@ -25,8 +25,7 @@ export default function Navbar() {
           <img
             src="/images/logo.png"
             alt="COCO Local"
-            className="h-10 sm:h-12 w-auto object-contain"
-            style={{ filter: "drop-shadow(0 0 8px #00e5ff88)" }}
+            className="h-10 sm:h-12 w-auto object-contain rounded-md"
           />
         </Link>
 
