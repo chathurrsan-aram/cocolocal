@@ -49,8 +49,7 @@ export default function HomePage() {
             <img
               src="/images/logo.png"
               alt="COCO Local"
-              className="h-20 sm:h-24 md:h-28 w-auto object-contain mx-auto mb-6"
-              style={{ filter: "drop-shadow(0 0 12px #00e5ff88)" }}
+              className="h-20 sm:h-24 md:h-28 w-auto object-contain rounded-lg mx-auto mb-6"
             />
           </AnimateOnScroll>
 
