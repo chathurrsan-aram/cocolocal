@@ -49,7 +49,8 @@ export default function HomePage() {
             <img
               src="/images/logo.png"
               alt="COCO Local"
-              className="h-20 sm:h-24 md:h-28 w-auto object-contain rounded-lg mx-auto mb-6"
+              className="w-auto object-contain mx-auto mb-6"
+              style={{ maxWidth: '400px', maxHeight: '150px', width: '80%' }}
             />
           </AnimateOnScroll>
 

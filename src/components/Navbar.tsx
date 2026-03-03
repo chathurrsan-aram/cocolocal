@@ -25,7 +25,8 @@ export default function Navbar() {
           <img
             src="/images/logo.png"
             alt="COCO Local"
-            className="h-10 sm:h-12 w-auto object-contain rounded-md"
+            className="w-auto object-contain"
+            style={{ maxHeight: '45px' }}
           />
         </Link>
 
