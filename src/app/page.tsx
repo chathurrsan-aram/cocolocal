@@ -33,15 +33,15 @@ export default function HomePage() {
     <>
       {/* ===== HERO SECTION ===== */}
       <section className="relative w-full h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
-        {/* Hero Image / Video Placeholder */}
-        <div className="absolute inset-0 bg-navy-light flex items-center justify-center border-b-2 border-dashed border-cyan/20">
-          <span className="text-muted/40 text-sm uppercase tracking-widest">
-            HERO IMAGE / VIDEO PLACEHOLDER — Replace with shop hero photo or video
-          </span>
-        </div>
+        {/* Hero Image */}
+        <img
+          src="/images/hero.jpg"
+          alt="COCO Local shopfront at night"
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
 
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/70 via-navy/50 to-navy" />
+        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 via-navy/40 to-navy" />
 
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
@@ -113,10 +113,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <AnimateOnScroll>
-              <PlaceholderImage
-                label="SHOPFRONT PHOTO — Replace with photo of COCO Local exterior"
-                src="/images/shopfront.jpg"
-                className="w-full h-64 sm:h-80 lg:h-96"
+              <img
+                src="/images/hero.jpg"
+                alt="COCO Local shopfront"
+                className="w-full h-64 sm:h-80 lg:h-96 object-cover object-top rounded-2xl border border-cyan/20"
               />
             </AnimateOnScroll>
 
