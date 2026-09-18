@@ -39,7 +39,7 @@ All nine selected images visually reviewed; CCTV still rejected. Browser-format 
 - Confirmed private payload SHA-256 unchanged, password form and noindex present, private guide absent from sitemap.
 - Browser visual/interaction checks blocked by administrator-policy verification failure. Desktop/mobile rendering, gallery interaction and map destination still require visual review.
 - Dependency audit found 27 advisories including a critical Next.js advisory. Manifest and lockfile upgraded to Next 15.5.24, React/React DOM 19.3.0, matching Next lint config, current PostCSS and Sharp 0.35.4. Lockfile resolution reports 7 remaining advisories (1 low, 1 moderate, 5 high), requiring follow-up applicability review.
-- Full patched dependency installation could not complete locally because disk space is exhausted; temporary installation/cache removed. Patched build must pass remotely before publication.
+- Full patched dependency installation could not complete locally because disk space is exhausted; temporary installation/cache removed. Patched Next/React build subsequently passed on Vercel (deployment 2SvSkx57isvSmsUhhZHiN6Zut6av).
 
 ## Pending business content
 - Delivery operation, WhatsApp service and hot-food offering.
@@ -48,4 +48,7 @@ All nine selected images visually reviewed; CCTV still rejected. Browser-format 
 - Verified Google business place ID and map embed/review link; directions currently use the confirmed street address.
 - Family portrait/story and real tour video.
 
-This is a review draft. Do not merge/publish until the patched build and visual checks are complete.
+Preview: https://cocolocal-git-website-improvements-chathurrsan-arams-projects.vercel.app
+Draft review: https://github.com/chathurrsan-aram/cocolocal/pull/6
+
+This is a review draft. The patched remote build passed. Do not merge/publish until visual checks and remaining dependency-advisory review are complete.
