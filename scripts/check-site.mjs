@@ -2,7 +2,7 @@ import { readFile, access } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 // Validate the actual production output, including links produced from shared data.
-const routes = ['/', '/products', '/about', '/contact', '/delivery', '/property-guide'];
+const routes = ['/', '/products', '/about', '/contact', '/delivery', '/property-guide', '/spin'];
 const pages = new Map(await Promise.all(routes.map(async route => [route,
   await readFile(`.next/server/app/${route === '/' ? 'index' : route.slice(1)}.html`, 'utf8')
 ])));
@@ -40,5 +40,7 @@ const guide = pages.get('/property-guide');
 assert(guide.includes('noindex') && guide.includes('guide-password'), 'Guide must remain private and password gated');
 assert(!guide.includes('srcdoc='), 'Guide must not ship decrypted in server-rendered output');
 const sitemap = await readFile('.next/server/app/sitemap.xml.body', 'utf8');
+assert(!sitemap.includes('/spin'), 'Private wheel must not be in sitemap');
+assert(pages.get('/spin').includes('noindex') && pages.get('/spin').includes('wheel-password'), 'Wheel must remain password gated and noindex');
 assert(!sitemap.includes('property-guide'), 'Private guide must not be in sitemap');
 console.log(`Site checks passed: ${pages.size} routes, ${checkedLinks} internal links, image files, canonical URLs and private-guide safeguards.`);
