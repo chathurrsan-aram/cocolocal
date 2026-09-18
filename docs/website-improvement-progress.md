@@ -59,3 +59,11 @@ This is a review draft. The patched remote build passed. Do not merge/publish un
 - Fixed the mobile menu remaining visible after widening to desktop. Improved gallery enlargement resolution and reduced unnecessary card-image downloads. Made the skip-link target explicitly focusable.
 - Delivery page now clearly states no current delivery and planned Deliveroo/Just Eat launch, based on the owner’s response in this task. No unverified ordering links or launch dates.
 - Browser review retried but remains blocked by administrator-policy verification. No visual-review claim is made.
+
+## Parking and offers — 18 September
+- Added a full-width cyan customer-parking banner directly beneath homepage navigation, linking to side-access guidance. It does not add a free-parking claim.
+- Added an in-store-offers section below visit essentials, plus a hero jump link. Five intact recent Canva exports: YAZOO Inspired 300ml BOGOF, £6.50 four-can packs, £7.50 four pint cans, selected wine offers, £9.49 35cl spirits.
+- Text content checked live against Canva designs DAHVGTo-2SM, DAHVMOvvTC8, DAHVMa895NQ and DAHVMiglpuQ; saved exports visually compared. No changes made to original Canva designs.
+- Prices, product choices and terms repeated as accessible webpage text; full designs enlarge in a native dialog without cropping.
+- YAZOO artwork's 9 Sep–6 Oct 2026 period is enforced with Europe/London-equivalent timestamps, hourly page revalidation and minute-by-minute client expiry checks. Undated offers remain subject to availability and require normal shop price review.
+- Original YAZOO artwork retains its existing free-parking line; website parking text makes only the confirmed on-site-parking statement.

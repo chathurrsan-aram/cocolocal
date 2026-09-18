@@ -925,3 +925,39 @@ button:disabled {
 @media (max-width: 700px) {
   .mobile-nav:not([hidden]) { display: block; }
 }
+
+.parking-banner { display:block; background:var(--cyan); color:var(--navy); }
+.parking-banner:hover { background:#a6f6ff; color:var(--navy); }
+.parking-banner-inner { display:flex; align-items:center; gap:18px; padding-block:18px; }
+.parking-symbol { width:46px; height:46px; flex-shrink:0; display:grid; place-items:center; border:2px solid var(--navy); border-radius:7px; font-size:30px; font-weight:800; line-height:1; }
+.parking-banner-inner strong { display:block; font-size:1.28rem; line-height:1.25; }
+.parking-banner-inner strong + span { display:block; font-size:.85rem; margin-top:3px; }
+.parking-banner-link { margin-left:auto; display:flex; align-items:center; gap:8px; font-weight:700; font-size:.9rem; }
+.hero-offers-link { display:inline-block; color:var(--cyan); font-weight:650; font-size:.9rem; margin-top:18px; padding-block:5px; text-decoration:underline; text-underline-offset:5px; }
+.offers-section { background:#141446; border-bottom:1px solid var(--line); }
+.offers-intro { font-size:.92rem; }
+.offers-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+.offer-card { overflow:hidden; background:var(--navy); border:1px solid var(--line); border-radius:12px; }
+.offer-art { display:block; width:100%; aspect-ratio:4/5; position:relative; padding:0; background:#0d0d43; border:0; }
+.offer-art img,.offer-full img { object-fit:contain; }
+.offer-enlarge { position:absolute; right:12px; bottom:12px; background:#fff; color:var(--navy); font-size:.74rem; font-weight:700; border-radius:4px; padding:6px 10px; box-shadow:0 2px 12px #0004; }
+.offer-art:hover .offer-enlarge { background:var(--cyan); }
+.offer-copy { padding:24px; }
+.offer-copy h3 { font-size:1.16rem; }
+.offer-copy p { font-size:.9rem; margin-top:12px; }
+.offer-copy .offer-price { color:var(--cyan); font-size:1.25rem; font-weight:700; line-height:1.35; }
+.offer-copy .offer-terms { font-size:.76rem; border-top:1px solid var(--line); padding-top:14px; margin-top:18px; }
+.offers-footnote { margin-top:24px; font-size:.82rem; }
+.offer-full { position:relative; height:72vh; margin-top:12px; }
+@media (max-width:1000px) { .offers-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:700px) {
+ .parking-banner-inner { gap:12px; padding-block:14px; }
+ .parking-banner-inner strong { font-size:1.04rem; }
+ .parking-banner-inner strong + span { font-size:.73rem; }
+ .parking-symbol { width:38px; height:38px; font-size:25px; }
+ .parking-banner-link { font-size:0; gap:0; }
+ .parking-banner-link svg { width:20px; }
+ .offers-intro { margin-top:18px; }
+ .offers-grid { grid-template-columns:1fr; gap:24px; }
+ .offer-copy { padding:22px; }
+}
