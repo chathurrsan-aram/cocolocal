@@ -21,12 +21,17 @@ const offers = [
     terms: "Selected packs shown. 18+ · Please drink responsibly.",
   },
   {
-    id: "wine", title: "Wine offers", price: "£7 / £8.49 per bottle",
-    detail: "McGuigan Black Label Merlot or Red (75cl): £7. La Vieille Ferme White or Rosé: £8.49.",
+    id: "wine849", title: "La Vieille Ferme", price: "£8.49 per bottle",
+    detail: "White or Rosé · 75cl.",
     terms: "Selected bottles shown. 18+ · Please drink responsibly.",
   },
   {
-    id: "spirits", title: "A little local value", price: "£9.49 each · 35cl",
+    id: "wine700", title: "McGuigan Black Label", price: "£7 per bottle",
+    detail: "Merlot or Red · 75cl.",
+    terms: "Selected bottles shown. 18+ · Please drink responsibly.",
+  },
+  {
+    id: "spirits", title: "Familiar favourites", price: "£9.49 each · 35cl",
     detail: "Captain Morgan Spiced Gold or Gordon’s Gin. £1 below the £10.49 marked price.",
     terms: "Selected bottles shown. 18+ · Please drink responsibly.",
   },

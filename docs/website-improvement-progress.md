@@ -83,3 +83,8 @@ This is a review draft. The patched remote build passed. Do not merge/publish un
 - Ten equal segments: coffee and slushie 20% each, try tomorrow 20%, crisps/chocolate/£1 off/sweet treat 10% each. Additional rewards are demo ideas, not redeemable. Original six indexes retain their meaning so saved draws survive the update. Password unchanged.
 - Removed embedded horizontal lines from beer £6.50/£7.50 and wine website artwork using built-in ImageGen. Prompt for each: remove only the thin horizontal line, preserve prices, wording, products, branding and composition. Website assets: `public/images/offers/beer650.webp`, `beer750.webp`, `wine.webp`. Canva originals unchanged.
 - Validation: rendered wheel SVG inspected; private script parses; UK midnight, concurrent-entry, persistence, randomness and encrypted-gate tests pass. Browser interaction review remains unavailable due to browser-tool policy verification failure.
+
+### Matching Canva offers and hero wheel link — 18 September 2026
+- Replaced beer and spirits images with current Canva Colour Splash artwork; split wine into matching £8.49 and £7 portrait cards. Yazoo unchanged. Six cards now share the existing grid.
+- Source Canva designs: Beer-Instagram-A `DAHVMO7TUvM` (two pages), Wine-Instagram-B `DAHVMfm4GUY` (two pages), Spirits Colour Splash `DAHVgR7sDMo`. Retrieved current page artwork through Canva; available page images are 400×500. No generated redesigns used in these cards.
+- Added prominent gold “Spin the wheel” hero button linking to the existing password-protected demo.
