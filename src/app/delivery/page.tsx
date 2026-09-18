@@ -1,3 +1,19 @@
 import Link from "next/link";
-import { shop } from "@/lib/shop";
-export default function Delivery() { return <section className="wrap page-intro delivery-intro"><p className="eyebrow">CONTACT COCO LOCAL</p><h1>Delivery enquiries</h1><p className="intro">Please call the shop to check whether delivery is available for your address and to discuss any minimum spend, charges and timings before ordering.</p><p>Online ordering is not available on this website.</p><div className="actions"><a className="button" href={shop.telephone}>Call {shop.phone}</a><Link className="button secondary" href="/contact">Visit the shop</Link></div></section>; }
+
+export default function Delivery() {
+  return (
+    <section className="wrap page-intro delivery-intro">
+      <p className="eyebrow">WHAT’S NEXT FOR COCO LOCAL</p>
+      <h1>Delivery is on its way.</h1>
+      <p className="intro">
+        We’re planning to join Deliveroo and Just Eat. Delivery isn’t available
+        yet, but we’ll add the ordering links here when it launches.
+      </p>
+      <p>In the meantime, pop in and see us at 210 High Road, South Benfleet.</p>
+      <div className="actions">
+        <Link className="button" href="/contact">Plan your visit ↗</Link>
+        <Link className="button secondary" href="/products">Explore our range</Link>
+      </div>
+    </section>
+  );
+}

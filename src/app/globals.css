@@ -149,6 +149,7 @@ button:disabled {
   color:white
 }
 .mobile-nav {
+  display: none;
   position:absolute;
   top:100%;
   left:0;
@@ -920,3 +921,7 @@ button:disabled {
 
 }
 
+
+@media (max-width: 700px) {
+  .mobile-nav:not([hidden]) { display: block; }
+}

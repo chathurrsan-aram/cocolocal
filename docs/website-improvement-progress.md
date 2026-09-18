@@ -42,7 +42,7 @@ All nine selected images visually reviewed; CCTV still rejected. Browser-format 
 - Full patched dependency installation could not complete locally because disk space is exhausted; temporary installation/cache removed. Patched Next/React build subsequently passed on Vercel (deployment 2SvSkx57isvSmsUhhZHiN6Zut6av).
 
 ## Pending business content
-- Delivery operation, WhatsApp service and hot-food offering.
+- Owner confirmed 18 September: no delivery currently; Deliveroo and Just Eat planned. Delivery page now states this explicitly. WhatsApp service and hot-food offering remain unconfirmed.
 - Offer pack sizes, periods and stock; promotion cards remain absent until complete.
 - Parking restrictions/free-parking terms/accessibility; no unsupported claims added.
 - Verified Google business place ID and map embed/review link; directions currently use the confirmed street address.
@@ -51,4 +51,11 @@ All nine selected images visually reviewed; CCTV still rejected. Browser-format 
 Preview: https://cocolocal-git-website-improvements-chathurrsan-arams-projects.vercel.app
 Draft review: https://github.com/chathurrsan-aram/cocolocal/pull/6
 
-This is a review draft. The patched remote build passed. Do not merge/publish until visual checks and remaining dependency-advisory review are complete.
+This is a review draft. The patched remote build passed. Do not merge/publish until visual checks are complete.
+
+## Follow-up batch — 18 September
+- Dependency remediation now reports **0 known vulnerabilities**. Next resolved to 15.5.25; vulnerable transitive build dependencies updated, with PostCSS consistently using patched 8.5.28 through an override.
+- Added production-output validation to every build: six routes, internal navigation/anchor targets, image existence, canonical URLs, contact links, and private-guide/noindex/sitemap safeguards. Passed against the existing local output; fresh output will be checked by the remote build.
+- Fixed the mobile menu remaining visible after widening to desktop. Improved gallery enlargement resolution and reduced unnecessary card-image downloads. Made the skip-link target explicitly focusable.
+- Delivery page now clearly states no current delivery and planned Deliveroo/Just Eat launch, based on the owner’s response in this task. No unverified ordering links or launch dates.
+- Browser review retried but remains blocked by administrator-policy verification. No visual-review claim is made.
