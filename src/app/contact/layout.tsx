@@ -1,11 +1,5 @@
 import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Get in touch with COCO Local at 210 High Road, Benfleet, Essex. Contact us by phone, email, or visit us in-store.",
-};
-
-export default function ContactLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+export const metadata: Metadata = { title: 'Find us', description: 'Visit Coco Local at 210 High Road, South Benfleet, SS7 5LD. Find confirmed opening hours, on-site parking and shop contact details.', alternates: { canonical: "/contact" } };
+export default function Layout({ children }: {
+    children: React.ReactNode;
+}) { return <>{children}</>; }
