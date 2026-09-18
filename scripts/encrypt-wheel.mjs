@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+const [sourcePath, accessPath] = process.argv.slice(2);
+if (!sourcePath || !accessPath) throw new Error('Pass the private HTML source and private access JSON paths. Keep both outside the public repository.');
+const {password} = JSON.parse(fs.readFileSync(accessPath, 'utf8'));
+if (typeof password !== 'string' || password.length < 16) throw new Error('Use a strong preview password.');
+const salt=crypto.randomBytes(16), iv=crypto.randomBytes(12), iterations=310000;
+const key=crypto.pbkdf2Sync(password,salt,iterations,32,'sha256');
+const cipher=crypto.createCipheriv('aes-256-gcm',key,iv);
+const plaintext=fs.readFileSync(sourcePath);
+const ciphertext=Buffer.concat([cipher.update(plaintext),cipher.final(),cipher.getAuthTag()]);
+fs.writeFileSync('public/wheel-preview.enc.json',JSON.stringify({salt:salt.toString('base64'),iv:iv.toString('base64'),iterations,ciphertext:ciphertext.toString('base64')}));
+console.log('Encrypted private wheel updated.');

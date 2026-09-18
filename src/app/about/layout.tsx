@@ -1,11 +1,5 @@
 import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "About Us",
-  description:
-    "Learn about COCO Local — a family-run convenience store on High Road, Benfleet, Essex. Open 7 days, hot food, groceries, and more.",
-};
-
-export default function AboutLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+export const metadata: Metadata = { title: 'About us', description: 'Meet Coco Local, your family-run neighbourhood shop on High Road in South Benfleet. Take a look inside our shop gallery.', alternates: { canonical: "/about" } };
+export default function Layout({ children }: {
+    children: React.ReactNode;
+}) { return <>{children}</>; }
