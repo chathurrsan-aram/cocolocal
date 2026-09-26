@@ -39,11 +39,16 @@ DR = [  # file stem, title, description, Drive folder — newest first
     ("coco-wheel-lose-v2-navy-dark-1080x1920", "Coco Wheel: Lose v2 · 9:16", "Reels/Stories version.", WH),
     ("coco-wheel-howto-navy-dark-1080x1920", "Coco Wheel: How to enter · 9:16", "Reels/Stories version.", WH),
     ("coco-offers-reel-v2-navy-1080x1920", "Drinks offers reel v2 · 9:16", "Reels/Stories version.", M5),
+    ("coco-follow-v2-navy-dark-1080x1080", "Follow Us v2 · 1:1", "Square version.", M4),
+    ("coco-wheel-win-v2-navy-dark-1080x1080", "Coco Wheel: Win v2 · 1:1", "Square version.", WH),
+    ("coco-wheel-lose-v2-navy-dark-1080x1080", "Coco Wheel: Lose v2 · 1:1", "Square version.", WH),
+    ("coco-wheel-howto-navy-dark-1080x1080", "Coco Wheel: How to enter · 1:1", "Square version.", WH),
+    ("coco-offers-reel-v2-navy-1080x1080", "Drinks offers reel v2 · 1:1", "Square version.", M5),
     ("coco-follow-draft-navy-dark-1080x1350", "Follow Us v1 (alternative)", "9.5 s. The first version with the Follow pill and wheel ending.", M4),
     ("coco-offer-yazoo-draft-navy-1080x1350", "Weekly offer v1 (Yazoo)", "8 s. Single-offer card from offers.json.", M5)]
 up = []; drafts = []
 for stem, title, desc, folder in DR:
-    sheet = f"drafts/{stem}-contact-sheet.png" if stem.endswith("1080x1920") else "drafts/" + stem.replace("-navy-dark-1080x1350", "").replace("-navy-1080x1350", "") + "-contact-sheet.png"
+    sheet = f"drafts/{stem}-contact-sheet.png" if stem.endswith(("1080x1920", "1080x1080")) else "drafts/" + stem.replace("-navy-dark-1080x1350", "").replace("-navy-1080x1350", "") + "-contact-sheet.png"
     up += [{"src": f"drafts/{stem}.mp4", "folder": folder, "mime": "video/mp4"}, {"src": sheet, "folder": folder, "mime": "image/png"}]
     drafts.append({"file": f"drafts/{stem}.mp4", "sheet": sheet, "title": title, "desc": desc})
 for sh, piece in [("coco-signature", "m1-signature"), ("coco-outros", "m2-outros"), ("coco-outro-tails", "m2-outros"), ("coco-sting", "m3-sting")]:
