@@ -27,3 +27,22 @@
 ## Out of scope
 
 Click-and-collect, the motion kit, rendered videos, SMS and email, customer-list export, production deploy and merge.
+
+## Motion upgrade (owner's follow-up, 26 Sep 2026)
+
+The owner asked for a much livelier wheel, closer to the Higgsfield artwork. This overrides the earlier "no confetti, glows or bouncy easing" direction. Their choices: a big win celebration, a close-to-Higgsfield look, a punchy spin, sound off by default with a toggle, a pull lever, a reveal picture per outcome, and mouse-reactive motion.
+
+| beat | time | what happens |
+|---|---|---|
+| idle | loop | Bulbs twinkle, props float, and the machine tilts towards the mouse with a following spotlight. The SPIN hub pulses and the lever hint bobs |
+| pull | 0 | Drag the lever knob down, or tap it: it ratchets down, then springs back with a bounce. The SPIN hub does the same job |
+| wind-up | +0.1–0.4 s | Wheel pulls back 14°; bulbs chase |
+| spin | → 4.7 s | Fast launch with motion blur on the labels, and the pointer clacks on every peg (tick sound). A cubic ease-out gives a slow, tense crawl over the last slices |
+| land | ~4.7 s | 2.6° overshoot, then a bounce (spring ζ 0.42). The winning slice glows gold, the result pops up under the wheel, bulbs flash (win) or dim (lose), and confetti fires from behind the wheel on a win |
+| reveal | +0.45 s | The wheel shrinks away. A gift box drops in and shakes. On a win the lid flies off with star confetti and the prize pops out over a sunburst; on a loss the basket peeks out. The copy and code chip then stagger in |
+
+- The spin is a pure function of time (`src/lib/wheel/motion.ts`, tested in `scripts/wheel-motion.test.mjs`), sampled every frame.
+- Sounds are synthesised with the code-motion-design audio module (`scripts/make-wheel-sfx.py` → `public/wheel/sfx/`, 28 KB).
+- Prize props are cut from `Introducing-wheel-poster.png` with rembg (u2net) into `public/wheel/props/`. Coins and crisps are drawn in SVG.
+- Each outcome's `reveal` in `src/data/wheel.ts` picks its picture and line.
+- Reduced motion turns off tilt, blur, confetti, bounce and floats, and results appear at once.

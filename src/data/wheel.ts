@@ -11,6 +11,9 @@ export type OutcomeId =
   | 'pound-off-10' | 'free-slushie' | 'snacks-50p' | 'free-coffee' | 'free-hot-chocolate'
   | 'sweet-treat' | 'free-crisps' | 'spin-again' | 'not-this-time';
 
+/** Picture shown when the result opens. Photos live in public/wheel/props/; the rest are drawn in Reveal.tsx. */
+export type RevealArt = 'slushie' | 'coffee' | 'hot-chocolate' | 'sweets' | 'crisps' | 'pound-coin' | 'fifty-coin' | 'basket';
+
 export type Outcome = {
   id: OutcomeId;
   kind: 'prize' | 'spin-again' | 'lose';
@@ -23,29 +26,31 @@ export type Outcome = {
   claim?: string;
   /** Extra conditions for the terms page. */
   conditions?: string;
+  /** The reveal when the result opens: which picture pops out of the gift box, and a short line. */
+  reveal?: { art: RevealArt; line: string };
 };
 
 // Prizes first, then spin again, then not this time. pickOutcome relies on this order only
 // for readability of the tests; any order works.
 export const outcomes: Outcome[] = [
-  { id: 'pound-off-10', kind: 'prize', label: '£1 off a £10 spend', wheel: ['£1 OFF', '£10'], percent: 3,
+  { id: 'pound-off-10', kind: 'prize', label: '£1 off a £10 spend', wheel: ['£1 OFF', '£10'], percent: 3, reveal: { art: 'pound-coin', line: 'Money off your shop.' },
     claim: '£1 off when you spend £10 or more in one transaction.',
     conditions: 'The £10 spend excludes tobacco, vapes, alcohol, lottery, gift cards, top-ups and bill payments.' },
-  { id: 'free-slushie', kind: 'prize', label: 'Free slushie', wheel: ['FREE', 'SLUSHIE'], percent: 3,
+  { id: 'free-slushie', kind: 'prize', label: 'Free slushie', wheel: ['FREE', 'SLUSHIE'], percent: 3, reveal: { art: 'slushie', line: 'Brain freeze incoming.' },
     claim: 'One free Coco’s slushie.', conditions: '[Size to confirm — e.g. regular.] Flavours subject to availability.' },
-  { id: 'snacks-50p', kind: 'prize', label: '50p off snacks', wheel: ['50p OFF', 'SNACKS'], percent: 2,
+  { id: 'snacks-50p', kind: 'prize', label: '50p off snacks', wheel: ['50p OFF', 'SNACKS'], percent: 2, reveal: { art: 'fifty-coin', line: 'Snack attack, sorted.' },
     claim: '50p off any crisps, chocolate or sweets.', conditions: 'Item must cost 50p or more.' },
-  { id: 'free-coffee', kind: 'prize', label: 'Free coffee', wheel: ['FREE', 'COFFEE'], percent: 2,
+  { id: 'free-coffee', kind: 'prize', label: 'Free coffee', wheel: ['FREE', 'COFFEE'], percent: 2, reveal: { art: 'coffee', line: 'Your next coffee’s on us.' },
     claim: 'One free hot coffee.', conditions: '[Size to confirm — e.g. regular.]' },
-  { id: 'free-hot-chocolate', kind: 'prize', label: 'Free hot chocolate', wheel: ['FREE HOT', 'CHOCOLATE'], percent: 2,
+  { id: 'free-hot-chocolate', kind: 'prize', label: 'Free hot chocolate', wheel: ['FREE HOT', 'CHOCOLATE'], percent: 2, reveal: { art: 'hot-chocolate', line: 'Warm hands, happy heart.' },
     claim: 'One free hot chocolate.', conditions: '[Size to confirm — e.g. regular.]' },
-  { id: 'sweet-treat', kind: 'prize', label: 'Sweet treat', wheel: ['SWEET', 'TREAT'], percent: 2,
+  { id: 'sweet-treat', kind: 'prize', label: 'Sweet treat', wheel: ['SWEET', 'TREAT'], percent: 2, reveal: { art: 'sweets', line: 'A little something sweet.' },
     claim: 'A free sweet treat from our selection.', conditions: '[Selection and maximum value to confirm — e.g. up to £1.]' },
   // On the poster but not in the original odds list; split from 50p off snacks so prizes stay at 15%.
-  { id: 'free-crisps', kind: 'prize', label: 'Free crisps', wheel: ['FREE', 'CRISPS'], percent: 1,
+  { id: 'free-crisps', kind: 'prize', label: 'Free crisps', wheel: ['FREE', 'CRISPS'], percent: 1, reveal: { art: 'crisps', line: 'Crunch time.' },
     claim: 'One free standard bag of crisps.', conditions: '[Range to confirm — e.g. any standard single bag.]' },
   { id: 'spin-again', kind: 'spin-again', label: 'Spin again', wheel: ['SPIN', 'AGAIN'], percent: 10 },
-  { id: 'not-this-time', kind: 'lose', label: 'Not this time', wheel: ['NOT', 'THIS', 'TIME'], percent: 75 },
+  { id: 'not-this-time', kind: 'lose', label: 'Not this time', wheel: ['NOT', 'THIS', 'TIME'], percent: 75, reveal: { art: 'basket', line: 'So close. Try again next week.' } },
 ];
 
 // Clockwise from the pointer, exactly as on Introducing-wheel-poster.png.
