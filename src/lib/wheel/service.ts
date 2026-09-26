@@ -205,7 +205,7 @@ export async function lookupPrize(ctx: WheelContext, raw: string): Promise<Prize
 
 export async function redeemPrize(ctx: WheelContext, raw: string) {
   const found = await lookupPrize(ctx, raw);
-  if (found.status === 'not-found' || found.status === 'expired') return { status: found.status, ...found };
+  if (found.status === 'not-found' || found.status === 'expired') return found;
   if (found.status === 'redeemed') return { ...found, status: 'already-redeemed' as const };
   const at = ctx.now().toISOString();
   const ttl = (wheelConfig.prizeValidDays + wheelConfig.prizeRecordGraceDays) * DAY;
