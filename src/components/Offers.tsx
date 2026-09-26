@@ -26,7 +26,7 @@ export default function Offers() {
         </div>
         <ul className="promo-row" aria-label="Every week">
           {standing.map(p => (
-            <li key={p.id} className={`promo promo-${p.id}`}>
+            <li key={p.id} className={`promo`}>
               <p className="promo-title">{p.title}</p>
               <p className="promo-headline">{p.headline}</p>
               <p className="promo-detail">{p.detail}{p.terms && <> {p.terms}</>}</p>
