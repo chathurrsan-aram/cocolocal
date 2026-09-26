@@ -60,6 +60,111 @@ def pluck(m):
     for k in range(1, 7): x += (0.6 ** k) * np.sin(2 * np.pi * f * k * t) * np.exp(-t * (7 + k * 5))
     return x * np.minimum(t / 0.002, 1)
 
+
+# ---- extra instruments for the per-piece styles
+def snare():
+    t = tt(0.3); n = bp(rng.standard_normal(len(t)), 1200, 7000) * np.exp(-t * 28)
+    return (n * 0.7 + np.sin(2 * np.pi * 190 * t) * np.exp(-t * 30) * 0.5) * 0.8
+
+def openhat():
+    t = tt(0.35); return hp(rng.standard_normal(len(t)), 6500, 3) * np.exp(-t * 11) * 0.5
+
+def crash():
+    t = tt(1.6); return hp(rng.standard_normal(len(t)), 4000, 2) * np.exp(-t * 2.4) * 0.45
+
+def shaker():
+    t = tt(0.09); return bp(rng.standard_normal(len(t)), 5000, 11000) * np.sin(np.pi * np.clip(t / 0.09, 0, 1)) ** 2 * 0.35
+
+def marimba(m, dec=9):
+    t = tt(0.6); f = mtof(m)
+    x = np.sin(2 * np.pi * f * t) * np.exp(-t * dec) + 0.3 * np.sin(2 * np.pi * f * 4 * t) * np.exp(-t * dec * 4)
+    return x * np.minimum(t / 0.0015, 1)
+
+def keys(m, dur):   # soft electric-piano tone
+    t = tt(dur); f = mtof(m)
+    x = np.sin(2 * np.pi * f * t + 0.8 * np.sin(2 * np.pi * f * t) * np.exp(-t * 4)) * np.exp(-t * 2.2)
+    return x * np.minimum(t / 0.004, 1) * np.clip((dur - t) / 0.05, 0, 1)
+
+def stab(ms, dur=0.16):   # short filtered saw chord (disco/funk offbeats)
+    t = tt(dur + 0.04); x = np.zeros_like(t)
+    for m in ms:
+        f = mtof(m)
+        for c in (-6, 6): x += ss.sawtooth(2 * np.pi * f * 2 ** (c / 1200) * t)
+    x = lp(x, 2600) * np.minimum(t / 0.003, 1) * np.exp(-t * 9) * np.clip((dur + 0.04 - t) / 0.03, 0, 1)
+    return x / max(1, len(ms))
+
+def obass(m, dur=0.2):   # plucky octave bass
+    t = tt(dur + 0.02); f = mtof(m); env = np.minimum(t / 0.003, 1) * np.exp(-t * 9)
+    return np.tanh((ss.sawtooth(2 * np.pi * f * t) * 0.6 + np.sin(2 * np.pi * f * t)) * env * 1.3) * np.clip((dur + 0.02 - t) / 0.02, 0, 1)
+
+STYLES = {
+    # chords (MIDI), bass roots, per style; arrangement per bar comes from --arr
+    "pop":     dict(ch=[[60, 64, 67, 72], [55, 59, 62, 67], [57, 60, 64, 69], [53, 57, 60, 65]], root=[36, 43, 45, 41]),
+    "drive":   dict(ch=[[52, 55, 59, 64], [48, 52, 55, 60], [55, 59, 62, 67], [50, 54, 57, 62]], root=[40, 36, 43, 38]),
+    "playful": dict(ch=[[62, 66, 69, 74], [67, 71, 74, 79], [64, 67, 71, 76], [69, 73, 76, 81]], root=[38, 43, 40, 45]),
+    "light":   dict(ch=[[53, 57, 60, 64], [52, 55, 59, 62], [50, 53, 57, 60], [48, 52, 55, 59]], root=[41, 40, 38, 36]),
+    "disco":   dict(ch=[[57, 60, 64, 67], [50, 53, 57, 60], [55, 59, 62, 65], [48, 52, 55, 59]], root=[45, 38, 43, 36]),
+}
+
+def synth_style(bpm, bars, style, arr):
+    """Arrangement per bar: 0 = breakdown (chords only), 1 = light groove, 2 = full, 3 = full + crash/extra energy."""
+    st = STYLES[style]; beat = 60 / bpm; T = bars * 4 * beat; N = int(round(T * SR)); total = N + 2 * SR
+    L = np.zeros(total); R = np.zeros(total)
+    def add(sig, t0, g, pan=0.0):
+        i = int(round(t0 * SR))
+        if i < 0: sig = sig[-i:]; i = 0
+        j = min(total, i + len(sig)); x = sig[: j - i] * g
+        L[i:j] += x * np.sqrt(1 - pan); R[i:j] += x * np.sqrt(1 + pan)
+    K = kick(); arr = (arr + [arr[-1]] * bars)[:bars] if arr else [2] * bars
+    for bar in range(bars):
+        lv = arr[bar]; b0 = bar * 4 * beat; ch = st["ch"][bar % 4]; rt = st["root"][bar % 4]
+        if lv >= 3: add(crash(), b0, 0.5, 0.2)
+        for bt in range(4):
+            tb = b0 + bt * beat
+            if style == "pop":
+                if lv >= 1: add(K, tb, 0.8)
+                if lv >= 2 and bt in (1, 3): add(clap(), tb, 0.4, 0.05); add(snare(), tb, 0.25)
+                if lv >= 1: add(hat(60, 0.14), tb + beat / 2, 1.0, 0.25)
+                if lv >= 2: add(bass(rt, 0.18), tb + beat / 2, 0.4); add(bass(rt + 12, 0.1), tb + 0.75 * beat, 0.18)
+                for k, m in enumerate([ch[0] + 12, ch[2] + 12]):   # 8th-note pluck arp
+                    add(pluck(m), tb + k * beat / 2, 0.08, -0.3 if k else 0.3)
+            elif style == "drive":
+                if lv >= 1: add(K, tb, 0.95)
+                if lv >= 2 and bt in (1, 3): add(clap(), tb, 0.45)
+                if lv >= 1:
+                    for s16 in range(4): add(hat(90, 0.12 if s16 % 2 else 0.07), tb + s16 * beat / 4, 1.0, 0.3)
+                if lv >= 2:
+                    for e in (0, 0.5): add(obass(rt, 0.18), tb + e * beat, 0.35)
+                if lv == 0:   # tension: pulsing high note on 16ths
+                    for s16 in range(4): add(pluck(ch[3] + 12), tb + s16 * beat / 4, 0.05 + 0.05 * (bt / 4))
+            elif style == "playful":
+                if lv >= 1 and bt in (0, 2): add(K, tb, 0.7)
+                if lv >= 1 and bt == 2: add(K, tb + 0.75 * beat, 0.4)
+                if lv >= 1 and bt in (1, 3): add(clap(), tb, 0.3)
+                if lv >= 2: add(bass(rt, 0.12), tb, 0.4); add(bass(rt + 7, 0.1), tb + beat / 2, 0.3)
+                add(marimba(ch[(bt * 2) % 4] + 12), tb, 0.12, 0.3); add(marimba(ch[(bt * 2 + 1) % 4] + 12), tb + beat / 2, 0.09, -0.3)
+            elif style == "light":
+                if lv >= 1 and bt in (0, 2): add(K, tb, 0.55)
+                if lv >= 1:
+                    for s16 in range(4): add(shaker(), tb + s16 * beat / 4, 0.5 if s16 % 2 else 0.3, 0.2)
+                if lv >= 2 and bt in (1, 3): add(clap(), tb, 0.22)
+                if lv >= 2 and bt in (0, 2): add(bass(rt, 0.4), tb, 0.35)
+                if bt in (0, 2): add(marimba(ch[3] + 12, 6), tb + beat * 0.5, 0.06, 0.4)
+            elif style == "disco":
+                if lv >= 1: add(K, tb, 0.9)
+                if lv >= 2 and bt in (1, 3): add(clap(), tb, 0.42); add(snare(), tb, 0.2)
+                if lv >= 1: add(openhat(), tb + beat / 2, 0.35, 0.3)
+                if lv >= 2:
+                    for e, m in ((0, rt), (0.5, rt + 12)): add(obass(m, 0.16), tb + e * beat, 0.38)
+                if lv >= 1: add(stab([m + 12 for m in ch[1:]]), tb + beat / 2, 0.18, -0.25)
+        # chord bed per bar
+        for m in ch:
+            add(keys(m, 4 * beat), b0, 0.05 if lv else 0.2, -0.4 if m % 2 else 0.4)
+    ph = np.mod(np.arange(total) / SR, beat)
+    x = np.stack([L[:N], R[:N]])
+    f = np.ones(N); nf = int(0.35 * SR); f[-nf:] = np.linspace(1, 0, nf) ** 2; x *= f
+    return x, beat, T
+
 CHORDS = [[53, 57, 60, 64], [55, 57, 60, 64], [53, 57, 60, 62], [52, 55, 59, 60],
           [53, 57, 60, 64], [55, 57, 60, 64], [55, 59, 62, 64], [52, 55, 59, 62]]
 ROOTS = [41, 45, 38, 40, 41, 43, 43, 40]
@@ -185,8 +290,26 @@ def ui_impact():
     x = np.sin(ph) * np.exp(-t * 3.5) + lp(rng.standard_normal(len(t)), 1500) * np.exp(-t * 25) * 0.5
     return np.tanh(x * 1.5) * 0.5
 
+def ui_lever():   # ratchet: quick clicks over 0.3 s, peak on the last (release) click
+    t = tt(0.36); x = np.zeros_like(t)
+    for k, d in enumerate(np.linspace(0, 0.3, 7)):
+        e = np.clip(t - d, 0, None); x += (t >= d) * hp(rng.standard_normal(len(t)), 2500) * np.exp(-e * 900) * (0.3 + 0.1 * k)
+    return x * 0.6
+def ui_womp():    # descending "womp womp", peak at its start
+    t = tt(0.9); f = np.where(t < 0.4, 330 - 60 * t / 0.4, 250 - 90 * np.clip((t - 0.42) / 0.45, 0, 1)) * (1 + 0.01 * np.sin(2 * np.pi * 6 * t))
+    ph = 2 * np.pi * np.cumsum(f) / SR; env = np.where(t < 0.4, np.minimum(t / 0.01, 1) * np.exp(-t * 2), np.minimum((t - 0.42).clip(0) / 0.01, 1) * np.exp(-(t - 0.42).clip(0) * 3)) * (np.abs(t - 0.41) > 0.01)
+    return lp(ss.sawtooth(ph) * env, 1800) * 0.35
+def ui_till():    # shop till "ding"
+    t = tt(1.0); x = np.zeros_like(t)
+    for f in (2093, 2637): x += np.sin(2 * np.pi * f * t) * np.exp(-t * 4)
+    return (x * 0.18 + hp(rng.standard_normal(len(t)), 3000) * np.exp(-t * 60) * 0.12) * np.minimum(t / 0.001, 1)
+def ui_crash(): return crash() * 0.8
+def ui_snap():
+    t = tt(0.08); return bp(rng.standard_normal(len(t)), 1500, 5000) * np.exp(-t * 120) * 0.6
+
 UI = dict(click=ui_click, tick=ui_tick, whoosh=ui_whoosh, whoosh_s=lambda: ui_whoosh(0.28, 0.6), chime=ui_chime,
-          pop=ui_pop, key=ui_key, enter=lambda: ui_key(1.4), thunk=ui_thunk, stretch=ui_stretch, riser=ui_riser, impact=ui_impact)
+          pop=ui_pop, key=ui_key, enter=lambda: ui_key(1.4), thunk=ui_thunk, stretch=ui_stretch, riser=ui_riser, impact=ui_impact,
+          lever=ui_lever, womp=ui_womp, till=ui_till, crash=ui_crash, snap=ui_snap)
 
 def env_peak(sig):
     e = np.convolve(np.abs(ss.hilbert(sig)), np.ones(48) / 48, "same"); return int(np.argmax(e))
@@ -217,7 +340,7 @@ def write_wav(path, x):
 
 def main():
     ap = argparse.ArgumentParser(); sub = ap.add_subparsers(dest="mode", required=True)
-    s = sub.add_parser("synth"); s.add_argument("--bpm", type=float, default=120); s.add_argument("--style", default="house")
+    s = sub.add_parser("synth"); s.add_argument("--bpm", type=float, default=120); s.add_argument("--style", default="house"); s.add_argument("--arr", default="", help="per-bar levels for the new styles, e.g. 1,2,2,0,3")
     g = sub.add_parser("song"); g.add_argument("--in", dest="inp", required=True); g.add_argument("--start-bar", type=int, default=0)
     g.add_argument("--fade", type=float, default=0.6)
     for p in (s, g):
@@ -228,7 +351,10 @@ def main():
     events = json.load(open(a.events)) if a.events else []
 
     if a.mode == "synth":
-        mus, period, T = synth_music(a.bpm, a.bars, a.style, a.loop)
+        if a.style in STYLES:
+            mus, period, T = synth_style(a.bpm, a.bars, a.style, [int(v) for v in a.arr.split(',') if v.strip()])
+        else:
+            mus, period, T = synth_music(a.bpm, a.bars, a.style, a.loop)
         info = analyze(mus, periodic=a.loop)
         # rotate/shift so the measured kick peak on the downbeat is exactly t=0
         sh = info["first_downbeat"]; sh = sh if sh < 2 * period else sh - 4 * period

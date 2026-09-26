@@ -1,0 +1,126 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+html,body{margin:0;background:var(--final);overflow:hidden}
+svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
+</style></head><body>
+<svg id="sv" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="stc"><rect id="stcr"/></clipPath>
+  <clipPath id="rodc"><rect id="rodcr"/></clipPath>
+  <clipPath id="cardc"><rect id="cardcr"/></clipPath>
+  <filter id="shw" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".4"/></filter>
+  <filter id="csh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+<rect id="bg" fill="var(--bg)"/>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
+<g id="cam">
+  <g id="stage" filter="url(#shw)"><g clip-path="url(#stc)">
+    <image id="lBg" href="__L_BG__"/>
+    <image id="lRimB" href="__L_RIMB__"/>
+    <image id="lDisc" href="__L_DISC__"/>
+    <image id="lRimF" href="__L_RIMF__"/>
+    <image id="lPtr" href="__L_PTR__"/>
+    <image id="lHub" href="__L_HUB__"/>
+    <g clip-path="url(#rodc)"><image id="lRod" href="__L_ROD__"/></g>
+    <image id="lSlot" href="__L_SLOT__"/>
+    <image id="lKnob" href="__L_KNOB__"/>
+  </g></g>
+  <g id="card" filter="url(#shw)"><g clip-path="url(#cardc)"><image id="cardImg" href="__CARD__"/></g></g>
+  <g id="cursor" filter="url(#csh)"><path d="M0,0 L0,34 L9,26 L15,40 L21,37 L15,24 L27,24 Z" fill="#FFFFFF" stroke="#0F1A33" stroke-width="2.4" stroke-linejoin="round"/></g>
+</g>
+<g id="steps"></g>
+<text id="title" fill="var(--ink)" text-anchor="middle"></text>
+<line id="tRule" stroke="var(--peach)" stroke-linecap="round"/>
+<g id="end">
+  <image id="lock" href="__LOCKUP__" preserveAspectRatio="xMidYMid meet"/>
+  <line id="eRule" stroke="var(--peach)" stroke-linecap="round"/>
+  <text id="e1" fill="var(--ink)" text-anchor="middle">One free spin every week</text>
+  <text id="e2" fill="var(--ink)" text-anchor="middle" font-weight="500" opacity=".8">No purchase needed</text>
+  <text id="e3" fill="var(--peach)" text-anchor="middle" font-weight="500">cocolocal.co.uk/wheel</text>
+</g>
+</svg>
+<script>
+"use strict";
+const C=__CONFIG__;   // mode, beat, spin0, land, thetaF, card, steps[[t,text]], end, press, release, knobAt
+const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5,sq=H/W<1.1;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);}, NS='http://www.w3.org/2000/svg';
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:15,z:0.9},lever:{w:18,z:0.8},cam:{w:9,z:0.95},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2, U=v=>v*k;
+const B=C.beat;
+
+// ---------- layout ----------
+const titleY=U(sq?100:150), titleSm=U(sq?52:62), titleBig=U(96);
+const STW=653.2, STH=555, f=(W-U(120))/STW, sx=U(60), sy=U(sq?170:250);        // stage css → px
+const P=(x,y)=>[sx+x*f, sy+y*f];
+A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H}));
+A($('stcr'),{x:sx,y:sy,width:STW*f,height:STH*f,rx:24*f});
+['lBg','lRimB','lDisc','lRimF','lPtr','lHub','lRod','lSlot','lKnob'].forEach(id=>A($(id),{x:sx,y:sy,width:STW*f,height:STH*f}));
+const DC=P(279.59,260), PV=P(279.6,20), KNOB=P(587.2,176.9);
+A($('rodcr'),{x:sx,y:sy,width:STW*f,height:402*f});
+// result card (captured at 2x of the page stage: 653 css wide)
+const CW=653, CH=C.cardH, cf=Math.min(f,(H-sy-U(C.mode==='win'?250:300))/CH), cw=CW*cf, chh=CH*cf, cx=(W-cw)/2, cy=sy;
+A($('cardImg'),{x:cx,y:cy,width:cw,height:chh}); A($('cardcr'),{x:cx,y:cy,width:cw,height:chh,rx:24*cf});
+// steps (redeem / try-again lines) under the card
+const stepY0=cy+chh+U(C.mode==='win'?64:80);
+C.steps.forEach(([t,txt],i)=>{const g=document.createElementNS(NS,'g');g.id='st'+i;
+  if(C.mode==='win'){const c=document.createElementNS(NS,'circle');A(c,{cx:U(118),cy:stepY0+i*U(58)-U(12),r:U(19),fill:'var(--peach)'});g.appendChild(c);
+    const n=document.createElementNS(NS,'text');A(n,{x:U(118),y:stepY0+i*U(58)-U(12),'text-anchor':'middle','dominant-baseline':'central','font-size':U(22),fill:'#0F1A33'});n.textContent=i+1;g.appendChild(n);}
+  const tx=document.createElementNS(NS,'text');A(tx,C.mode==='win'?{x:U(152),y:stepY0+i*U(58),'font-size':U(34),fill:'var(--ink)'}:{x:W/2,y:stepY0+i*U(62),'text-anchor':'middle','font-size':U(i?30:40),'font-weight':i?500:600,fill:i?'var(--ink)':'var(--peach)'});
+  tx.textContent=txt;g.appendChild(tx);$('steps').appendChild(g);});
+$('title').textContent=''; A($('tRule'),{'stroke-width':U(8)});
+const LW=W*(tall?0.62:0.56), LAR=330/2150, eY=H*0.40;
+A($('lock'),{x:W/2-LW/2,y:eY-LW*LAR/2,width:LW,height:LW*LAR}); A($('eRule'),{'stroke-width':U(10)});
+A($('e1'),{'font-size':U(46)}); A($('e2'),{'font-size':U(32)}); A($('e3'),{'font-size':U(38)});
+
+// cursor keyframes: enter → knob → press → drag down → release → leave
+const OFF=[W+U(80),H*0.8], DRAG=125*f;
+const KF=[[C.press-0.75,OFF[0],OFF[1],0],[C.press-0.08,KNOB[0]+U(4),KNOB[1]+U(4),0],[C.press,KNOB[0]+U(4),KNOB[1]+U(4),1],
+  [C.release,KNOB[0]+U(4),KNOB[1]+U(4)+DRAG,1],[C.release+0.1,KNOB[0]+U(4),KNOB[1]+U(4)+DRAG,0],[C.release+0.8,OFF[0],OFF[1]+U(60),0]];
+function cursor(t){ if(t<KF[0][0]||t>KF[KF.length-1][0])return null; let i=0; while(i<KF.length-2&&t>KF[i+1][0])i++;
+  const a=KF[i],b=KF[i+1],u=ease(cl01((t-a[0])/(b[0]-a[0]))); return {x:lerp(a[1],b[1],u),y:lerp(a[2],b[2],u),p:lerp(a[3],b[3],u)}; }
+const theta=t=>C.thetaF*(1-Math.pow(1-cl01((t-C.release)/(C.land-C.release)),3));
+const TITLE='Spin the Coco Wheel';
+
+window.seek=function(t){
+  [['w1',0],['w2',B/4],['w3',B/2]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:18,z:1}))));
+  // title types, then moves up on beat 3
+  const n=Math.max(0,Math.min(TITLE.length,Math.floor((t-B*0.75)/0.035)+1)); $('title').textContent=t<B*0.75?'':TITLE.slice(0,n);
+  const up=S(t-3*B,SP.slide), ty=lerp(H/2+titleBig*0.35,titleY+titleSm*0.35,up), ts=lerp(titleBig,titleSm,up);
+  A($('title'),{x:W/2,y:ty,'font-size':ts});
+  const rw=U(120)*S(t-3*B-0.1,SP.lead); A($('tRule'),{x1:W/2-rw/2,x2:W/2+rw/2,y1:ty+ts*0.34,y2:ty+ts*0.34}); $('tRule').style.opacity=rw>1?1:0;
+  // stage rises, later hands over to the result card
+  const rise=S(t-3*B,SP.slide), out=S(t-C.card,SP.enter);
+  $('stage').setAttribute('transform',`translate(${W/2},${sy+STH*f/2+(1-rise)*(H-sy+U(40))}) scale(${1-0.06*out}) translate(${-W/2},${-(sy+STH*f/2)})`);
+  $('stage').style.opacity=1-cl01(out*1.6);
+  // lever: knob + rod follow the drag, then spring back
+  const c=cursor(t);
+  let pull=0; if(t>=C.press&&t<=C.release) pull=ease(cl01((t-C.press)/(C.release-C.press))); else if(t>C.release) pull=1-S(t-C.release,SP.lever);
+  A($('lKnob'),{transform:`translate(0,${pull*DRAG})`}); A($('lRod'),{transform:`translate(0,${pull*DRAG})`});
+  // wheel spin + pointer kick on slice boundaries
+  const th=theta(t); $('lDisc').setAttribute('transform',`rotate(${th},${DC[0]},${DC[1]})`);
+  const d=(((th+15)%30)+30)%30/30, kick=t>C.release&&t<C.land+0.3?-18*Math.max(0,1-d*4):0;
+  $('lPtr').setAttribute('transform',`rotate(${kick},${PV[0]},${PV[1]})`);
+  // camera: gentle push towards the pointer as it lands
+  const z=1+0.07*(S(t-(C.land-0.5),SP.cam)-S(t-C.card,SP.cam));
+  $('cam').setAttribute('transform',`translate(${PV[0]},${PV[1]+U(120)}) scale(${z}) translate(${-PV[0]},${-(PV[1]+U(120))})`);
+  // result card
+  const ci=S(t-C.card,SP.morph), co=S(t-C.end,SP.enter);
+  $('card').setAttribute('transform',`translate(0,${(1-ci)*U(120)+co*U(60)})`); $('card').style.opacity=cl01(ci*1.5)*(1-cl01(co*1.5));
+  C.steps.forEach(([ts0],i)=>{const q=S(t-ts0,SP.morph),g=$('st'+i); g.setAttribute('transform',`translate(0,${(1-q)*U(30)+co*U(40)})`); g.style.opacity=cl01(q)*(1-cl01(co*1.5));});
+  // cursor
+  if(!c){$('cursor').style.opacity=0;} else {$('cursor').style.opacity=1; $('cursor').setAttribute('transform',`translate(${c.x},${c.y}) scale(${k*1.5*(1-0.12*c.p)})`);}
+  // end card
+  const e0=S(t-C.end-0.05,SP.enter), r1=S(t-C.end-0.25,SP.lead), r2=S(t-C.end-0.25,SP.trail), q1=S(t-C.end-0.4,SP.morph), q2=S(t-C.end-0.55,SP.morph), q3=S(t-C.end-0.7,SP.morph);
+  $('end').style.display=t>C.end?'inline':'none';
+  $('lock').style.opacity=cl01(e0*1.3); $('lock').setAttribute('transform',`translate(0,${(1-e0)*U(50)})`);
+  const ry=eY+LW*LAR/2+U(46), rr=U(75); A($('eRule'),{y1:ry,y2:ry,x1:lerp(-U(40),W/2-rr,r2),x2:lerp(-U(40),W/2+rr,r1)});
+  A($('e1'),{x:W/2,y:ry+U(100)+(1-q1)*U(30)}); $('e1').style.opacity=cl01(q1);
+  A($('e2'),{x:W/2,y:ry+U(156)+(1-q2)*U(30)}); $('e2').style.opacity=cl01(q2)*0.85;
+  A($('e3'),{x:W/2,y:ry+U(236)+(1-q3)*U(30)}); $('e3').style.opacity=cl01(q3);
+};
+const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>

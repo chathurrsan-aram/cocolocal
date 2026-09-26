@@ -12,3 +12,18 @@ m4-follow/assets/
 m5-offers/reference/
 m5-offers/packshots/*.png
 site/
+m5-offers/packshots/*.jpg
+m5-offers/shopfront.webp
+m5-offers/_*.html
+# Follow Us v2: visitor screenshots from a personal account (Drive "Coco-Visitor-Follow") and crops of them
+m6-follow-v2/inputs/
+m6-follow-v2/assets/
+# Wheel: layers + flow screens captured from the /wheel page (reproduce from branch claude/coco-wheel-us9rh2)
+m7-wheel/inputs/
+m7-wheel/layers/
+m7-wheel/flow/
+m7-wheel/_*.html
+# Generated soundtracks (rebuild with tools/audio.py from the events files)
+m5-offers/reel-*.wav
+m6-follow-v2/*.wav
+m7-wheel/*.wav

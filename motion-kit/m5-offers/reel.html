@@ -1,0 +1,134 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--navy:__NAVY__;--final:__FINAL__;--foot:#0A1226;--ink:#FFFFFF;--peach:#FEC091;--yellow:#FFE36B;--lav:#B2C1EE}
+html,body{margin:0;background:var(--navy);overflow:hidden}
+svg{display:block;font-family:Poppins,sans-serif}
+</style></head><body>
+<svg id="sv" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="shopC"><rect id="shopR"/></clipPath>
+  <filter id="shw" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".4"/></filter>
+</defs>
+<rect id="bg" fill="var(--navy)"/>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--navy)"/>
+<g id="intro">
+  <text id="iEyebrow" fill="var(--peach)" font-weight="600" text-anchor="middle"></text>
+  <g id="shopCam"><g id="shop" filter="url(#shw)"><g clip-path="url(#shopC)"><image id="shopImg" href="__IMG_SHOP__" preserveAspectRatio="xMidYMid slice"/><g id="shutter"></g></g></g></g>
+  <g id="iHead"><text id="iH1" fill="var(--ink)" font-weight="700" text-anchor="middle">THIS WEEK'S</text><text id="iH2" fill="var(--yellow)" font-weight="700" text-anchor="middle">DRINKS DEALS.</text>
+    <line id="iRule" stroke="var(--peach)" stroke-linecap="round"/><text id="iSub" fill="var(--lav)" font-weight="500" text-anchor="middle">at Coco Local · 18+ · Please drink responsibly</text></g>
+</g>
+<g id="offers"></g>
+<g id="foot">
+  <rect id="footR" fill="var(--foot)"/><line id="footL" stroke="var(--lav)" stroke-opacity=".35"/>
+  <image id="lockF" href="__LOCKUP__" preserveAspectRatio="xMinYMid meet"/>
+  <text id="f1" fill="var(--ink)" font-weight="500" text-anchor="end">210 High Road, South Benfleet SS7 5LD</text>
+  <text id="f2" fill="var(--lav)" font-weight="500" text-anchor="end">Parking on site</text>
+  <text id="f3" fill="var(--lav)" font-weight="500" text-anchor="end">18+. Please drink responsibly.</text>
+</g>
+<g id="outro">
+  <image id="lockO" href="__LOCKUP__" preserveAspectRatio="xMidYMid meet"/>
+  <line id="oRule" stroke="var(--peach)" stroke-linecap="round"/>
+  <text id="o1" fill="var(--ink)" text-anchor="middle" font-weight="600">210 High Road, South Benfleet</text>
+  <text id="o2" fill="var(--peach)" text-anchor="middle" font-weight="500">Parking on site</text>
+  <text id="o3" fill="var(--lav)" text-anchor="middle" font-weight="500">18+. Please drink responsibly. Subject to availability.</text>
+</g>
+</svg>
+<script>
+"use strict";
+const R=__REEL__;   // {bpm, offers:[{eyebrow, headline_lines, price, unit, detail_line, product_line, img, panel}]}
+const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);}, NS='http://www.w3.org/2000/svg';
+const mk=(tag,attrs,parent,txt)=>{const e=document.createElementNS(NS,tag);A(e,attrs);if(txt!=null)e.textContent=txt;parent.appendChild(e);return e;};
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:15,z:0.9},off:{w:16,z:1},cam:{w:5,z:1},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), U=v=>v*k;
+const B=60/R.bpm, N=R.offers.length, OUT=8+8*N;        // beats: intro 0–8, offer i at 8+8i, outro at OUT
+const M=U(64), footH=U(tall?236:190), footY=H-footH;
+const Y=tall?{eb:230,h1:350,price:780,unit:690,det:734,pan:[850,1500],prod:1545}:{eb:112,h1:222,price:560,unit:476,det:518,pan:[606,1076],prod:1122};
+A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H}));
+// ---- intro: shopfront with a roller shutter
+const sw=U(900), shh=sw*0.75, sx=(W-sw)/2, sy=U(tall?420:270);
+A($('shopR'),{x:sx,y:sy,width:sw,height:shh,rx:U(28)}); A($('shopImg'),{x:sx,y:sy,width:sw,height:shh});
+const SLATS=16, slH=shh/SLATS;
+for(let i=0;i<SLATS;i++){ mk('rect',{id:'sl'+i,x:sx,width:sw,height:slH+1,fill:i%2?'#9AA1AE':'#A9B0BC'},$('shutter')); mk('line',{id:'sll'+i,x1:sx,x2:sx+sw,stroke:'#7D8492','stroke-width':U(2)},$('shutter')); }
+const shutterBar=mk('rect',{x:sx,width:sw,height:U(22),fill:'#5E6573'},$('shutter'));
+A($('iEyebrow'),{x:W/2,y:sy-U(46),'font-size':U(28),'letter-spacing':U(6)});
+A($('iH1'),{'font-size':U(118)}); A($('iH2'),{'font-size':U(118)}); A($('iRule'),{'stroke-width':U(10)}); A($('iSub'),{'font-size':U(30)});
+// ---- offers
+function fit(el,size,maxW){el.setAttribute('font-size',size);const w=el.getComputedTextLength();if(w>maxW)el.setAttribute('font-size',size*maxW/w);return +el.getAttribute('font-size');}
+const OF=R.offers.map((o,i)=>{
+  const g=mk('g',{id:'of'+i},$('offers'));
+  const eb=mk('text',{x:M,y:U(Y.eb),'font-size':U(26),'letter-spacing':U(5),fill:'var(--peach)','font-weight':600},g,'');
+  const c1=mk('clipPath',{id:'h1c'+i},g), c2=mk('clipPath',{id:'h2c'+i},g);
+  const g1=mk('g',{'clip-path':`url(#h1c${i})`},g), g2=mk('g',{'clip-path':`url(#h2c${i})`},g);
+  const h1=mk('text',{x:M,fill:'var(--ink)','font-weight':700},g1,o.headline_lines[0]||''), h2=mk('text',{x:M,fill:'var(--ink)','font-weight':700},g2,o.headline_lines[1]||'');
+  const pan=mk('g',{},g), px0=M, px1=W-M, py0=U(Y.pan[0]), py1=U(Y.pan[1]);
+  const pc=mk('clipPath',{id:'pc'+i},g); mk('rect',{x:px0,y:py0,width:px1-px0,height:py1-py0,rx:U(26)},pc);
+  const pg=mk('g',{'clip-path':`url(#pc${i})`},pan); mk('rect',{x:px0,y:py0,width:px1-px0,height:py1-py0,fill:o.panel},pg);
+  mk('image',{href:o.img,x:px0,y:py0,width:px1-px0,height:py1-py0,preserveAspectRatio:'xMidYMid meet'},pg);
+  const prG=mk('g',{},g), pr=mk('text',{x:M,y:U(Y.price),fill:'var(--yellow)','font-weight':700},prG,o.price);
+  const un=mk('text',{x:W*0.56,y:U(Y.unit),'font-size':U(28),'letter-spacing':U(3),fill:'var(--ink)','font-weight':600},g,o.unit||'');
+  const de=mk('text',{x:W*0.56,y:U(Y.det),'font-size':U(28),fill:'var(--lav)','font-weight':500},g,o.detail_line||'');
+  const pl=mk('text',{x:W/2,y:U(Y.prod),'font-size':U(26),'letter-spacing':U(2),fill:'var(--lav)','font-weight':600,'text-anchor':'middle'},g,(o.product_line||'').toUpperCase());
+  return {g,eb,ebTxt:o.eyebrow||'SPECIAL OFFERS AT COCO LOCAL',c1,c2,h1,h2,pan,prG,pr,un,de,pl};
+});
+function layoutOffers(){ OF.forEach(o=>{
+  const hs=Math.min(fit(o.h1,U(108),W-2*M),fit(o.h2,U(108),W-2*M)); o.h1.setAttribute('font-size',hs); o.h2.setAttribute('font-size',hs); o.hs=hs;
+  o.h1y=U(Y.h1); o.h2y=o.h1y+hs*1.04;
+  mk('rect',{x:0,y:o.h1y-hs*0.9,width:W,height:hs*1.08},o.c1); mk('rect',{x:0,y:o.h2y-hs*0.9,width:W,height:hs*1.08},o.c2);
+  o.ps=fit(o.pr,U(200),W*0.56-M-U(30)); fit(o.pl,U(26),W-2*M); fit(o.un,U(28),W*0.44-M); fit(o.de,U(28),W*0.44-M); }); }
+// footer
+A($('footR'),{x:0,y:footY,width:W,height:footH}); A($('footL'),{x1:0,x2:W,y1:footY,y2:footY,'stroke-width':U(2)});
+const lw=U(300); A($('lockF'),{x:M,y:footY+footH/2-lw*330/2150/2,width:lw,height:lw*330/2150});
+const fs=U(24), fy0=footY+footH/2-fs*1.3+fs*0.35; ['f1','f2','f3'].forEach((id,i)=>A($(id),{x:W-M,y:fy0+i*fs*1.35,'font-size':fs}));
+// outro
+const LW=W*(tall?0.62:0.58), LAR=330/2150, eY=H*0.38;
+A($('lockO'),{x:W/2-LW/2,y:eY-LW*LAR/2,width:LW,height:LW*LAR}); A($('oRule'),{'stroke-width':U(10)});
+A($('o1'),{'font-size':U(44)}); A($('o2'),{'font-size':U(34)}); A($('o3'),{'font-size':U(24)});
+
+window.seek=function(t){
+  const b=t/B;
+  [['w1',0],['w2',B/4],['w3',B/2]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:18,z:1}))));
+  // ---- intro (beats 0–8)
+  const ie='THIS WEEK AT COCO LOCAL', ni=Math.max(0,Math.min(ie.length,Math.floor((b-1)/0.25*2)+1)); $('iEyebrow').textContent=b<1?'':ie.slice(0,ni);
+  const rise=S(t-0.5*B,SP.slide); $('shop').setAttribute('transform',`translate(0,${(1-rise)*(H-sy+U(60))})`);
+  const up=b<2?0:Math.min(1,(1-Math.cos(Math.PI*cl01((b-2)/1.5)))/2);    // shutter rolls up beats 2–3.5
+  for(let i=0;i<SLATS;i++){ const base=sy+i*slH, yy=lerp(base,sy-slH*0.3+i*slH*0.08,up)-up*shh*0.12;
+    A($('sl'+i),{y:yy,height:lerp(slH+1,slH*0.12,up)}); A($('sll'+i),{y1:yy,y2:yy}); }
+  A(shutterBar,{y:lerp(sy+shh-U(22),sy-U(10),up)}); $('shutter').style.opacity=up>0.98?0:1;
+  const push=S(t-4*B,SP.cam), dcx=sx+sw*0.5, dcy=sy+shh*0.62;          // camera pushes through the door on bar 2
+  $('shopCam').setAttribute('transform',`translate(${dcx},${dcy}) scale(${1+2.2*push}) translate(${-dcx},${-dcy})`);
+  $('shopCam').style.opacity=1-cl01((b-4.6)/0.6); $('iEyebrow').style.opacity=1-cl01((b-4.2)/0.4);
+  const q1=S(t-5*B,SP.morph), q2=S(t-5.5*B,SP.morph), iOut=S(t-7.6*B,SP.off), hy=H*0.42;
+  A($('iH1'),{x:W/2,y:hy+(1-q1)*U(80)}); $('iH1').style.opacity=cl01(q1*1.4); A($('iH2'),{x:W/2,y:hy+U(128)+(1-q2)*U(80)}); $('iH2').style.opacity=cl01(q2*1.4);
+  const r1=S(t-6*B,SP.lead), r2=S(t-6*B,SP.trail); A($('iRule'),{y1:hy+U(190),y2:hy+U(190),x1:lerp(-U(40),W/2-U(90),r2),x2:lerp(-U(40),W/2+U(90),r1)});
+  const qs=S(t-6.5*B,SP.morph); A($('iSub'),{x:W/2,y:hy+U(262)+(1-qs)*U(24)}); $('iSub').style.opacity=cl01(qs);
+  $('iHead').setAttribute('transform',`translate(${-iOut*W*1.1},0)`); $('intro').style.display=b<8.6?'inline':'none';
+  // ---- offers
+  OF.forEach((o,i)=>{ const s0=(8+8*i)*B, lb=b-(8+8*i);
+    if(lb<-0.6||lb>8.6){o.g.style.display='none';return;} o.g.style.display='inline';
+    const inK=S(t-s0+0.1*B,SP.off), outK=S(t-s0-7.6*B,SP.off);
+    o.g.setAttribute('transform',`translate(${(1-inK)*W*0.35-outK*W*1.1},0)`); o.g.style.opacity=cl01(inK*1.5);
+    const n=Math.max(0,Math.min(o.ebTxt.length,Math.floor(lb/0.1)+1)); o.eb.textContent=lb<0?'':o.ebTxt.slice(0,n);
+    const a1=S(t-s0-0.5*B,SP.morph), a2=S(t-s0-1*B,SP.morph);
+    o.h1.setAttribute('y',o.h1y+(1-a1)*o.hs*1.1); o.h2.setAttribute('y',o.h2y+(1-a2)*o.hs*1.1);
+    const p=S(t-s0-1.5*B,SP.slide); o.pan.setAttribute('transform',`translate(${(1-p)*U(260)},0)`); o.pan.style.opacity=cl01(p*1.6);
+    const pr=S(t-s0-3.92*B,SP.pop), sc=1+0.12*(1-cl01(pr)), cy=U(Y.price)-o.ps*0.35;     // price lands on beat 4
+    o.prG.setAttribute('transform',`translate(0,${(1-pr)*-U(150)}) translate(${M},${cy}) scale(${sc}) translate(${-M},${-cy})`); o.prG.style.opacity=cl01(pr*3);
+    [[o.un,5],[o.de,5.25],[o.pl,5.5]].forEach(([el,bt])=>{const v=S(t-s0-bt*B,SP.enter); el.setAttribute('transform',`translate(0,${(1-v)*U(22)})`); el.style.opacity=cl01(v);});
+  });
+  // footer: up with the first offer, down for the outro
+  const fu=S(t-7.8*B,SP.slide)-S(t-(OUT-0.3)*B,SP.slide); $('foot').setAttribute('transform',`translate(0,${(1-fu)*(footH+U(10))})`);
+  // ---- outro
+  const ob=b-OUT; $('outro').style.display=ob>-0.2?'inline':'none';
+  const e0=S(t-OUT*B,SP.enter), er1=S(t-(OUT+0.5)*B,SP.lead), er2=S(t-(OUT+0.5)*B,SP.trail), p1=S(t-(OUT+1)*B,SP.morph), p2=S(t-(OUT+1.5)*B,SP.morph), p3=S(t-(OUT+2)*B,SP.morph);
+  $('lockO').style.opacity=cl01(e0*1.3); $('lockO').setAttribute('transform',`translate(0,${(1-e0)*U(50)})`);
+  const ry=eY+LW*LAR/2+U(46); A($('oRule'),{y1:ry,y2:ry,x1:lerp(-U(40),W/2-U(75),er2),x2:lerp(-U(40),W/2+U(75),er1)});
+  A($('o1'),{x:W/2,y:ry+U(100)+(1-p1)*U(30)}); $('o1').style.opacity=cl01(p1);
+  A($('o2'),{x:W/2,y:ry+U(160)+(1-p2)*U(30)}); $('o2').style.opacity=cl01(p2);
+  A($('o3'),{x:W/2,y:ry+U(240)+(1-p3)*U(30)}); $('o3').style.opacity=cl01(p3);
+};
+const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('700 100px Poppins'),document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{layoutOffers();seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>
