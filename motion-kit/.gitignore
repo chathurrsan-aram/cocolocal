@@ -1,0 +1,9 @@
+# Renders and build output live on Drive, not in git
+exports/
+build/
+review-renders/
+*.raw.mp4
+*.log
+# Third-party inputs (Meta logos, admin-view screenshots) — re-fetch from Drive:
+# 05 — Marketing & Content/01 — Photos & Brand/Social Profiles & Official Meta Icons — 2026-09-26/
+m4-follow/inputs/

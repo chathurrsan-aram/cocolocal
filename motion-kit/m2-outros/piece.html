@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}
+:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+svg{display:block;position:absolute;left:0;top:0}
+text{font-family:Poppins;font-weight:600}
+</style></head><body>
+<svg id="sv"><defs>
+  <clipPath id="cw"><rect x="400" y="140" width="1800" height="365"/></clipPath>
+  <clipPath id="ct"><rect x="-500" y="780" width="3200" height="160"/></clipPath>
+</defs>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
+<g id="cam"><g id="lock">
+  <g id="basket" fill="none" stroke="var(--ink)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path id="hl" pathLength="1" d="M120 232 L73 312"/><path id="hr" pathLength="1" d="M246 232 L293 312"/>
+    <g id="slots"><path id="s1" pathLength="1" d="M120 411 V452" stroke-width="26"/><path id="s2" pathLength="1" d="M183 411 V452" stroke-width="26"/><path id="s3" pathLength="1" d="M246 411 V452" stroke-width="26"/></g>
+    <rect id="rim" pathLength="1" x="26" y="324" width="314" height="38" rx="19"/>
+    <path id="body" pathLength="1" d="M183 498 L102 498 Q73 498 67 470 L45 362 M183 498 L264 498 Q293 498 299 470 L321 362"/>
+    
+  </g>
+  <g clip-path="url(#cw)"><g id="word" fill="var(--ink)"></g></g>
+  <line id="rule" x1="1075" x2="1075" y1="690" y2="690" stroke="var(--peach)" stroke-width="14" stroke-linecap="round"/>
+  <g clip-path="url(#ct)"><text id="tag" x="1075" y="905" text-anchor="middle" font-size="__TAGSIZE__" fill="var(--ink)">__TAGLINE__</text></g>
+</g></g>
+<text id="meas" x="493" y="481" font-size="318" opacity="0">coco local</text>
+</svg>
+<script>/*ENGINE*/</script>
+<script>
+"use strict";
+const W=innerWidth,H=innerHeight;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id);
+// closed-form spring step (same as engine S)
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},draw:{w:8.5,z:1},pop:{w:26,z:0.8},grow:{w:7.5,z:1},slide:{w:15,z:0.9}};
+const lerp=(a,b,k)=>a+(b-a)*k, clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+const INK=hex(getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()), NAVY=hex(getComputedStyle(document.documentElement).getPropertyValue('--navy').trim()), PEACH=hex(getComputedStyle(document.documentElement).getPropertyValue('--peach').trim());
+// layout
+const tall=H/W>1.5, LW=W*(tall?0.74:0.62), s=LW/2150;
+const cx=W/2, cy=H/2, GX=1075, GY=__GCY__;          // group centre in lockup units
+const tx=cx-GX*s, ty=cy-GY*s;
+$('lock').setAttribute('transform',`translate(${tx},${ty}) scale(${s})`);
+// per-letter wordmark from measured positions
+const letters=[];
+function buildLetters(){const m=$('meas'), str='coco local';
+ for(let i=0;i<str.length;i++){ if(str[i]===' ')continue;
+  const q=m.getStartPositionOfChar(i); const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',q.x); t.setAttribute('y',481); t.setAttribute('font-size',318); t.textContent=str[i]; $('word').appendChild(t);
+  letters.push({el:t,t0: i<4 ? 0.55+i*0.06 : 0.79+(i-5)*0.06}); } }
+const BC={x:185,y:367};                       // basket centre (units)
+const startOff={x:GX-BC.x,y:GY-BC.y};
+const dash=(el,p)=>{el.style.strokeDasharray='1 1';el.style.strokeDashoffset=String(1-clamp(p,0,1));el.style.opacity=p>0.005?1:0;};
+const R=Math.hypot(W,H)/2+4;
+
+const Sd={lead:{w:30,z:0.84},trail:{w:15,z:0.9},cam:{w:9.5,z:0.92}};
+function snap(t0,t,sp){return S(t-t0,sp);}
+const TAIL=__TAIL__;                           // 1 = tail: lockup already on screen, only rule + line animate
+window.seek=function(t0){
+  const t=TAIL?3:t0, tr=TAIL?t0+0.9:t0;       // tr drives rule + line
+  // two wipes on 8ths: sky, then the final colour carrying the basket in
+  [['w1',-1],['w2',-1],['w3',0.25]].forEach(([id,t0])=>{const e=$(id);e.setAttribute('y',0);e.setAttribute('width',W*1.05);e.setAttribute('height',H);e.setAttribute('x',-W*2);});
+  const k1=S(t-0,{w:18,z:1}), k3=S(t-0.25,{w:18,z:1});
+  $('w1').setAttribute('x',lerp(-W*1.05,0,k1)); $('w3').setAttribute('x',lerp(-W*1.05,0,k3));
+  const cz=1.04-0.04*S(t-0.4,Sd.cam)+0.02*clamp((t-1.5)/1.5,0,1);
+  $('cam').setAttribute('transform',`translate(${cx},${cy}) scale(${cz}) translate(${-cx},${-cy})`);
+  // basket rides in on the wipe edge, tilted, lands at 0.5 with a pop
+  const ride=S(t-0.25,{w:16,z:0.86}), rot=lerp(-18,0,S(t-0.3,{w:12,z:0.8}));
+  const pulse=1+0.07*(S(t-0.5,SP.pop)-S(t-0.62,SP.pop));
+  const ox=lerp(-GX*1.4,0,ride);
+  $('basket').style.opacity=t>0.25?1:0;
+  ['hl','hr','rim','body','s1','s2','s3'].forEach(id=>{const e=$(id);e.style.strokeDasharray='none';e.style.opacity=1;e.removeAttribute('transform');e.style.stroke='';});
+  $('basket').setAttribute('transform',`translate(${ox+BC.x},${BC.y}) rotate(${rot}) scale(${pulse}) translate(${-BC.x},${-BC.y})`);
+  for(const L of letters){ const k=S(t-L.t0,SP.morph); L.el.setAttribute('transform',`translate(0,${(1-k)*360})`); }
+  const lead=S(tr-1.0,Sd.lead), trail=S(tr-1.0,Sd.trail);
+  $('rule').setAttribute('x1',lerp(-200,1075-__RULEW__/2,trail)); $('rule').setAttribute('x2',lerp(-200,1075+__RULEW__/2,lead)); $('rule').style.opacity=tr>1.0?1:0;
+  const tk=S(tr-1.25,SP.morph); $('tag').setAttribute('transform',`translate(0,${(1-tk)*170})`); $('tag').setAttribute('letter-spacing',(1-S(tr-1.25,{w:9,z:1}))*24);
+};
+document.fonts.ready.then(()=>{buildLetters();seek(0);window.READY=true;});
+</script></body></html>
