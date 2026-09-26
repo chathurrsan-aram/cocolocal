@@ -62,8 +62,8 @@ const kick=(t,t0,amt,dec=7)=>t<t0?0:amt*Math.exp(-(t-t0)*dec);
 const shake=(t,t0,amt)=>{if(t<t0)return[0,0];const e=t-t0,a=amt*Math.exp(-e*9);return[a*Math.sin(e*63),a*Math.cos(e*47)];};
 
 // ---------- layout ----------
-const titleY=U(sq?100:150), titleSm=U(sq?52:62), titleBig=U(96);
-const STW=653.2, STH=555, f=(W-U(120))/STW, sx=U(60), sy=U(sq?170:250);
+const STW=653.2, STH=555, f=(W-U(120))/STW, sx=U(60), sy=tall?(H-STH*f)/2-U(40):U(sq?170:250);
+const titleY=tall?sy-U(130):U(sq?100:150), titleSm=U(sq?52:62), titleBig=U(96);
 const P=(x,y)=>[sx+x*f, sy+y*f];
 A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H}));
 A($('stcr'),{x:sx,y:sy,width:STW*f,height:STH*f,rx:24*f});
@@ -75,7 +75,7 @@ const PR=PROPS.map((p,i)=>{const el=mk('image',{href:p.href,x:sx+p.x*f,y:sy+p.y*
   return {el,cx:sx+(p.x+p.w/2)*f,cy:sy+(p.y+p.h/2)*f,ph:i*1.7,id:p.id};});
 A($('dim'),{x:-W,y:-H,width:3*W,height:3*H});
 // reveal layout
-const HX=W/2, HY=H*(tall?0.40:0.44), HW=U(C.mode==='win'?460:330);
+const HX=W/2, HY=H*(tall?0.45:0.44), HW=U(C.mode==='win'?460:330);
 for(let i=0;i<18;i++){const a0=(i*20-4)*Math.PI/180,a1=(i*20+4)*Math.PI/180,R=U(1400);
   mk('path',{d:`M0,0 L${R*Math.cos(a0)},${R*Math.sin(a0)} L${R*Math.cos(a1)},${R*Math.sin(a1)} Z`,fill:'url(#rayG)'},$('rays'));}
 A($('halo'),{cx:HX,cy:HY,r:U(360)});
@@ -149,7 +149,7 @@ window.seek=function(t){
   // badge slam
   const bK=S(t-C.badge,SP.slam), bOut=S(t-C.shrink,SP.enter);
   const bw=$('badgeT').getComputedTextLength()+U(C.mode==='win'?64:0), bh=U(C.mode==='win'?78:0);
-  const by=C.mode==='win'?lerp(U(300),U(270),bOut):U(330);
+  const by=tall?(C.mode==='win'?lerp(titleY+U(130),titleY+U(110),bOut):titleY+U(150)):(C.mode==='win'?lerp(U(300),U(270),bOut):U(330));
   A($('badgeR'),{x:W/2-bw/2,y:by-bh/2,width:bw,height:bh,rx:bh/2,fill:C.mode==='win'?'var(--yellow)':'none'}); A($('badgeT'),{x:W/2,y:by});
   const bs=lerp(2.4,1,bK); $('badge').setAttribute('transform',`translate(${W/2},${by}) scale(${bs}) rotate(${(1-bK)*-8}) translate(${-W/2},${-by})`);
   $('badge').style.opacity=cl01(bK*2)*(1-cl01((t-C.end)/0.25))*(C.mode==='lose'?1-cl01((t-bt(12))/0.3):1);
@@ -158,7 +158,7 @@ window.seek=function(t){
   const hy0=-U(400), land=S(t-C.heroLand,SP.land), squash=kick(t,C.heroLand,0.18,9);
   const shrinkK=S(t-C.shrink,SP.morph);
   let hy=lerp(hy0,HY,fall)-(1-land)*0+0, hs=(1-0.32*shrinkK), rot=0;
-  hy=lerp(hy, H*(tall?0.27:0.27), shrinkK);
+  hy=lerp(hy, tall?H*0.375:H*0.27, shrinkK);
   if(C.mode==='lose'){ const tip=S(t-C.tip,SP.land)*(1-S(t-bt(12),SP.pop)); rot=-24*tip; hy+=U(20)*tip; }
   $('hero').setAttribute('transform',`translate(${HX},${hy}) rotate(${rot}) scale(${hs*(1+squash*0.6)},${hs*(1-squash)})`);
   $('hero').style.opacity=t<C.heroDrop?0:(1-cl01((t-C.end)/0.25)); $('halo').setAttribute('cy',hy);
@@ -170,7 +170,7 @@ window.seek=function(t){
   hT.forEach((e,i)=>{const q=S(t-C.title-i*0.03,SP.morph); e.setAttribute('x',x); x+=hT.w[i]*sc;
     e.setAttribute('y',tY+(1-q)*U(70)); e.style.opacity=cl01(q*1.6)*(1-cl01((t-C.end)/0.25)); e.setAttribute('font-size',U(C.mode==='win'?84:74)*(1-0.25*shrinkK));});
   // code card (win)
-  const cK=S(t-C.code,SP.pop), cw=U(560), ch=U(124), cy=H*(tall?0.52:0.585);
+  const cK=S(t-C.code,SP.pop), cw=U(560), ch=U(124), cy=tall?HY+U(210):H*0.585;
   A($('codeR'),{x:W/2-cw/2,y:cy-ch/2,width:cw,height:ch}); A($('codeT'),{x:W/2,y:cy});
   $('codeG').setAttribute('transform',`translate(${W/2},${cy}) scale(${lerp(0.6,1,cK)}) translate(${-W/2},${-cy})`); $('codeG').style.opacity=C.code?cl01(cK*1.5)*(1-cl01((t-C.end)/0.25)):0;
   // steps

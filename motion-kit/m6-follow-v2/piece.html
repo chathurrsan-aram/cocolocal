@@ -52,8 +52,8 @@ const ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
 
 // ---------- layout (1080-wide design units) ----------
 const U=v=>v*k;
-const titleBigY=H/2, titleY=U(sq?110:150), titleBig=U(150), titleSm=U(sq?60:72);
-const wx=U(60), ww=U(960), wy=U(sq?190:250), wh=H-wy-U(sq?40:60), barH=U(72);
+const titleBigY=H/2, titleY=U(sq?110:tall?380:150), titleBig=U(150), titleSm=U(sq?60:72);
+const wx=U(60), ww=U(960), wy=U(sq?190:tall?470:250), wh=tall?U(1180):H-wy-U(sq?40:60), barH=U(72);
 const cx0=wx, cy0=wy+barH, cw=ww, ch=wh-barH;
 // pages (asset pixel sizes from assets/meta.json)
 const F={w:1008,h:1788,btn:{fb:[504,875],ig:[504,1054.5],wheel:[504,1234]}}, IG={w:820,h:765,btn:[364,344],row:[0,314,820,374]}, FB={w:1100,h:654,btn:[910,460],row:[690,432,1100,494]};

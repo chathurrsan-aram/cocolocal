@@ -54,8 +54,8 @@ function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z
 const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:20,z:0.86},page:{w:20,z:1},scroll:{w:12,z:1},cam:{w:8,z:0.95},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
 const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2, U=v=>v*k;
 // ---------- layout ----------
-const titleY=U(sq?96:130), titleSm=U(sq?46:54), titleBig=U(84), capY=U(sq?160:212);
-const wx=U(60), ww=U(960), wy=U(sq?205:270), wh=H-wy-U(sq?30:50), barH=U(72), cx0=wx, cy0=wy+barH, cw=ww, ch=wh-barH;
+const titleY=U(sq?96:tall?360:130), titleSm=U(sq?46:54), titleBig=U(84), capY=U(sq?160:tall?442:212);
+const wx=U(60), ww=U(960), wy=U(sq?205:tall?500:270), wh=tall?U(1100):H-wy-U(sq?30:50), barH=U(72), cx0=wx, cy0=wy+barH, cw=ww, ch=wh-barH;
 const sI=cw/820, sF=cw/1008, sW=cw/2560, css=cw/1280;         // IG crop px, follow card px, page capture px (2x), page css px
 const fScroll=Math.max(0,1234*sF-ch*0.55);
 const P=(x,y)=>[cx0+x,cy0+y], PC=(x,y)=>[cx0+x*css,cy0+y*css];  // PC: page css → screen
