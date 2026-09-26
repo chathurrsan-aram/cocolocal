@@ -59,6 +59,10 @@ section{padding-block:34px 8px;display:grid;gap:16px}
 .row .btn{padding:7px 14px;font-size:13px}
 .tag{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--muted);margin-right:6px;vertical-align:1px}
 .note{font-size:13px;color:var(--muted)}
+.drive{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px 10px;margin-top:6px}
+.drive a{color:var(--ink);font-weight:500}
+#driveErr{margin:0;padding-left:18px}
+.sheetlink{font-size:13px;color:var(--ink)}
 .empty{color:var(--muted);font-size:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -73,6 +77,17 @@ section{padding-block:34px 8px;display:grid;gap:16px}
     <button class="btn" id="zipAll" type="button">Save everything (.zip)</button>
   </div>
 </header>
+<section class="drive" aria-labelledby="driveH">
+  <div class="shead"><div><h2 id="driveH">Put everything in Google Drive</h2>
+  <p>Uploads every video (with sound and silent), the contact sheets and the two drafts into the folders in <a href="https://drive.google.com/drive/folders/1m8yIoYK-5VUiEc3kP0F9TvTMKdwcWHND">05 — Brand Motion Kit</a>, using your Google Drive connection. Files already there are skipped, so you can run it again if it stops.</p></div>
+  <button class="btn" id="driveGo" type="button">Upload everything to Google Drive</button></div>
+  <p id="driveStatus" class="note" aria-live="polite"></p>
+  <ul id="driveErr" class="note"></ul>
+</section>
+<section id="drafts" aria-labelledby="draftsH">
+  <div class="shead"><div><h2 id="draftsH">Drafts for approval</h2><p>One format each (4:5, dark navy). Once you approve them, I'll render the other formats and themes.</p></div></div>
+  <div class="grid" id="draftGrid"></div>
+</section>
 <div class="bar" role="toolbar" aria-label="Filter renders">
   <div class="group" id="fFormat"><b>Format</b></div>
   <div class="group" id="fTheme"><b>Theme</b></div>
@@ -84,6 +99,8 @@ section{padding-block:34px 8px;display:grid;gap:16px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const M = /*MANIFEST*/null;
+const UPLOADS = /*UPLOADS*/null;
+const DRAFTS = /*DRAFTS*/null;
 const LABEL = {
   "signature-proud":"“Proudly serving South Benfleet”", "signature-more":"“A little more local.”",
   "outro-address":"Address · Parking on site", "outro-website":"cocolocal.co.uk", "outro-wheel":"Spin the Coco Wheel · /wheel", "outro-follow":"Follow us · /follow",
@@ -144,7 +161,7 @@ function card(it){
 
 let dl = null;
 const dlReady = (window.claude && claude.use) ? claude.use("downloads").then(d => { dl = d; if (!d) noSave(); return d; }) : Promise.resolve(null).then(()=>{noSave();return null;});
-function noSave(){ status("Saving isn't available in this view. Open the page on claude.ai to save files."); document.querySelectorAll(".btn").forEach(b=>b.disabled=true); }
+function noSave(){ status("Saving isn't available in this view. Open the page on claude.ai to save files."); document.querySelectorAll(".btn:not(#driveGo)").forEach(b=>b.disabled=true); }
 async function offer(filename, data){
   const d = dl || await dlReady; if (!d) return;
   try { await d.save({filename, data}); status(`Saved ${filename}`); }
@@ -168,4 +185,69 @@ async function zip(items, name, btn){
 }
 $("#zipAll").onclick = e => zip(M.items, "coco-motion-kit-renders.zip", e.currentTarget);
 render();
+
+// Drafts
+for (const d of DRAFTS) {
+  const c = card({file:d.file, silent:d.file, poster:d.sheet, wh:"1080x1350", theme:"navy", variant:d.title, mb:"", piece:"drafts"});
+  c.querySelector(".media img").style.objectFit = "contain";
+  c.querySelector(".meta small").textContent = d.desc;
+  const silentBtn = c.querySelector(".row .btn.ghost"); silentBtn.textContent = "Contact sheet"; silentBtn.onclick = () => saveOne(d.sheet, silentBtn);
+  $("#draftGrid").appendChild(c);
+}
+
+// Google Drive upload through the viewer's own connector
+const DRIVE = "Google Drive";
+const dStatus = t => { $("#driveStatus").textContent = t; };
+const dErr = t => { const li = document.createElement("li"); li.textContent = t; $("#driveErr").appendChild(li); };
+const toB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+const STOP = { needs_reauth: `Reconnect ${DRIVE} in claude.ai Settings → Connectors, then press Upload again.`,
+  server_not_connected: `Add ${DRIVE} in claude.ai Settings → Connectors, then press Upload again.`,
+  selection_required: `Choose which ${DRIVE} connection to use when claude.ai asks, then press Upload again.`,
+  not_in_manifest: `${DRIVE} isn't allowed for this page. Allow it when asked, then press Upload again.`,
+  blocked_by_policy: `Your organisation's policy blocks ${DRIVE} uploads from this page.`,
+  approval_required: `Your organisation requires approval for ${DRIVE} uploads, which this page can't request.`,
+  not_granted: "Connectors aren't available in this view. Open the page on claude.ai.",
+  capability_disabled: "Connectors aren't available in this view. Open the page on claude.ai." };
+async function listFolder(mcp, folder){
+  const titles = new Set(); let tok = null, guard = 0;
+  do {
+    const input = { query: `parentId = '${folder}'`, excludeContentSnippets: true, pageSize: 200 }; if (tok) input.pageToken = tok;
+    const r = await mcp.callTool(DRIVE, "search_files", input, { cache: false });
+    const p = (r && r.payload) || {}; (p.files || []).forEach(f => titles.add(f.title));
+    tok = p.next_page_token || p.nextPageToken || null;
+  } while (tok && ++guard < 10);
+  return titles;
+}
+$("#driveGo").onclick = async e => {
+  const btn = e.currentTarget; btn.disabled = true; $("#driveErr").textContent = "";
+  const mcp = await claude.use("mcp");
+  if (!mcp) { dStatus(STOP.not_granted); btn.disabled = false; return; }
+  let fileArgs = false; try { fileArgs = !!(await mcp.listTools()).fileArgs; } catch (err) {}
+  let done = 0, skipped = 0, failed = 0; const have = {};
+  try {
+    dStatus("Checking what's already in Drive…");
+    for (const f of new Set(UPLOADS.map(u => u.folder))) have[f] = await listFolder(mcp, f);
+    for (const [i, u] of UPLOADS.entries()) {
+      if (have[u.folder].has(u.title)) { skipped++; continue; }
+      dStatus(`Uploading ${i + 1} of ${UPLOADS.length}: ${u.title}`);
+      const r = await fetch(u.src); if (!r.ok) { failed++; dErr(`${u.title}: couldn't read the file (${r.status})`); continue; }
+      const blob = await r.blob();
+      let content;
+      if (fileArgs) content = { $file: { data: blob, name: u.title, type: u.mime } };
+      else if (blob.size < 700000) content = await toB64(blob);
+      else { failed++; dErr(`${u.title}: too big to send from this view (${(blob.size/1e6).toFixed(1)} MB). Use "Save everything (.zip)" for this one.`); continue; }
+      try {
+        await mcp.callTool(DRIVE, "create_file", { title: u.title, parentId: u.folder, base64Content: content, contentMimeType: u.mime, disableConversionToGoogleType: true });
+        done++; have[u.folder].add(u.title);
+      } catch (err) {
+        if (err && STOP[err.code]) throw err;
+        failed++; dErr(`${u.title}: ${err && err.code === "tool_error" ? (err.message || "Drive refused the file") : "the upload may not have finished (" + (err && err.code || "error") + "). Press Upload again to retry; files already in Drive are skipped."}`);
+      }
+    }
+    dStatus(`Finished: ${done} uploaded, ${skipped} already in Drive${failed ? `, ${failed} not uploaded (listed below)` : ""}.`);
+  } catch (err) {
+    dStatus(STOP[err && err.code] || `Stopped: ${err && err.message || "unknown error"}. ${done} uploaded so far; press Upload again to continue.`);
+  }
+  btn.disabled = false;
+};
 </script>
