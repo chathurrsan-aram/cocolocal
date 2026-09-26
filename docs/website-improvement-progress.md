@@ -88,3 +88,11 @@ This is a review draft. The patched remote build passed. Do not merge/publish un
 - Replaced beer and spirits images with current Canva Colour Splash artwork; split wine into matching £8.49 and £7 portrait cards. Yazoo unchanged. Six cards now share the existing grid.
 - Source Canva designs: Beer-Instagram-A `DAHVMO7TUvM` (two pages), Wine-Instagram-B `DAHVMfm4GUY` (two pages), Spirits Colour Splash `DAHVgR7sDMo`. Retrieved current page artwork through Canva; available page images are 400×500. No generated redesigns used in these cards.
 - Added prominent gold “Spin the wheel” hero button linking to the existing password-protected demo.
+
+### Remove wheel password — 26 September 2026
+- `/spin` now loads the wheel directly from `/wheel-demo.html`; removed password form, decryption and lock control. Deleted obsolete encrypted payload; no password or private access file published.
+- Kept demo/non-redeemable labels and noindex. Daily browser limit, UK midnight reset and saved results are unchanged (same script and storage origin/name).
+- Updated production output checks to require the direct iframe and absence of password field. Verified unchanged wheel logic and script/component parsing before preview deployment.
+
+### Coco Wheel — 26 September 2026
+- The live Coco Wheel at `/wheel` replaces the demo: `/spin` redirects there and `/wheel-demo.html` is removed. Plan: `docs/superpowers/plans/2026-09-26-coco-wheel.md`.
