@@ -88,3 +88,13 @@ This is a review draft. The patched remote build passed. Do not merge/publish un
 - Replaced beer and spirits images with current Canva Colour Splash artwork; split wine into matching £8.49 and £7 portrait cards. Yazoo unchanged. Six cards now share the existing grid.
 - Source Canva designs: Beer-Instagram-A `DAHVMO7TUvM` (two pages), Wine-Instagram-B `DAHVMfm4GUY` (two pages), Spirits Colour Splash `DAHVgR7sDMo`. Retrieved current page artwork through Canva; available page images are 400×500. No generated redesigns used in these cards.
 - Added prominent gold “Spin the wheel” hero button linking to the existing password-protected demo.
+
+## Homepage refresh — 26 September 2026 (branch `homepage-refresh`, preview only)
+Plan: `docs/superpowers/plans/2026-09-26-homepage-refresh.md`. Screenshots: `docs/homepage-refresh/`.
+- New homepage order: hero → "Walk through the shop" → offers → Coco’s slushies → visit us → follow us → Coco Wheel "coming soon" (no link; `/spin` unchanged and still private).
+- Owner answers (26 Sep): Instagram stays @cocolocal_; wheel teaser without link, hero Spin button removed; H1 "Your local." with "Your local in South Benfleet" subline.
+- All offer/promo text now lives in `src/data/offers.ts` (tested by `npm test`). September offers end automatically after 6 Oct 2026; standing promos: Tuesdays 10% off over £25 (excl. tobacco), Free Slushie Friday with £3 spend, free on-site parking. 18+ line added automatically to alcohol.
+- Walk-through is CSS scroll-driven (no JS): pinned stage on desktop, simpler stacked reveal on phones, static gallery for reduced motion / unsupported browsers.
+- Photos: audit shortlist only, re-encoded 800/1200/2400 WebP without metadata (`scripts/prepare-homepage-assets.mjs`). Navbar now uses the approved transparent logo. Slushie reel and logo reveal are decorative, < 0.5 MB each, muted, poster frames, labelled "Illustration".
+- Verified locally on the production build: build + site checks, lint, tests; Lighthouse mobile perf 96–98 / a11y 100, desktop 100 / 100, CLS 0; keyboard tab order all visible; no horizontal overflow at 390px.
+- Still missing: daytime car-park/forecourt photo (none usable; CCTV stills only), a real slushie pour clip, more groceries/world-foods shots. Slushie price not shown: window poster says £1.50, older site copy said £1.20 — needs a decision.
