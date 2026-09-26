@@ -7,7 +7,8 @@
     "build": "next build && node scripts/check-site.mjs",
     "start": "next start",
     "lint": "next lint",
-    "check:site": "node scripts/check-site.mjs"
+    "check:site": "node scripts/check-site.mjs",
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.34.4",
