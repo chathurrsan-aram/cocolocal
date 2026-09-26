@@ -25,10 +25,12 @@ const STORAGE_KEY = "coco-wheel-details";
 type SpinResponse =
   | { ok: true; spinType: "free" | "bonus" | "respin"; outcome: string; segment: number; landing: number; firstName: string;
       prize?: { code: string; label: string; claim?: string; expiresAt: string }; respinToken?: string;
-      bonusStillAvailable?: boolean; nextFreeSpinAt: string; demo?: boolean }
+      bonusStillAvailable?: boolean; nextFreeSpinAt: string; at?: string; demo?: boolean }
   | { ok: false; error: string; nextFreeSpinAt?: string; demo?: boolean };
 
 type Phase = "idle" | "loading" | "spinning" | "respin" | "result";
+type Saved = Extract<SpinResponse, { ok: true }> & { redeemed?: boolean };
+type Status = { available: boolean; demo?: boolean; freeSpinUsed?: boolean; nextFreeSpinAt?: string; lastResult?: Saved | null };
 type Card =
   | { kind: "win"; firstName: string; prize: NonNullable<Extract<SpinResponse, { ok: true }>["prize"]>; next: string; bonusStillAvailable?: boolean }
   | { kind: "lose"; firstName: string; next: string; bonusStillAvailable?: boolean }
@@ -58,7 +60,7 @@ export default function WheelExperience() {
   const [error, setError] = useState("");
   const [slow, setSlow] = useState(false);
   const [announce, setAnnounce] = useState("");
-  const [status, setStatus] = useState<{ available: boolean; demo?: boolean; freeSpinUsed?: boolean; nextFreeSpinAt?: string } | null>(null);
+  const [status, setStatus] = useState<Status | null>(null);
   const [details, setDetails] = useState({ firstName: "", contactType: "email" as "email" | "mobile", contact: "", marketingOptIn: false });
   const [bonusCode, setBonusCode] = useState("");
   const [bonusOpen, setBonusOpen] = useState(false);
@@ -66,6 +68,7 @@ export default function WheelExperience() {
   const rotation = useMotionValue(-SLICE / 2);
   const pointer = useMotionValue(0);
   const lastSlice = useRef(0);
+  const lastSavedAt = useRef<string | null>(null);
   const bonusInput = useRef<HTMLInputElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const reveal = () => {
@@ -79,8 +82,30 @@ export default function WheelExperience() {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
       if (saved) setDetails(d => ({ ...d, firstName: saved.firstName ?? "", contactType: saved.contactType === "mobile" ? "mobile" : "email", contact: saved.contact ?? "" }));
     } catch { /* storage blocked */ }
-    fetch("/api/wheel/status", { cache: "no-store" }).then(r => r.json()).then(setStatus).catch(() => setStatus({ available: true }));
+    // Also sets the device cookie, and brings back a prize or re-spin from an earlier visit
+    // (or from a spin whose response never arrived).
+    fetch("/api/wheel/status", { cache: "no-store" }).then(r => r.json()).then((s: Status) => {
+      setStatus(s);
+      const last = s.lastResult;
+      lastSavedAt.current = last?.at ?? null;
+      if (last?.prize && !last.redeemed && Date.parse(last.prize.expiresAt) > Date.now()) {
+        setCard({ kind: "win", firstName: last.firstName, prize: last.prize, next: last.nextFreeSpinAt });
+        setPhase("result");
+      } else if (last?.respinToken) {
+        respinToken.current = last.respinToken;
+        setPhase("respin");
+      }
+    }).catch(() => setStatus({ available: true }));
   }, []);
+
+  /** After a network error: if the server did spin, its result is waiting in the status call. */
+  async function recover(): Promise<SpinResponse> {
+    try {
+      const s: Status = await (await fetch("/api/wheel/status", { cache: "no-store" })).json();
+      if (s.lastResult && s.lastResult.at !== lastSavedAt.current) return s.lastResult;
+    } catch { /* still offline */ }
+    return { ok: false, error: "network" };
+  }
 
   // Pointer nudges as each slice boundary passes it.
   useMotionValueEvent(rotation, "change", value => {
@@ -115,12 +140,14 @@ export default function WheelExperience() {
       const res = await fetch("/api/wheel/spin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       data = await res.json();
     } catch {
-      data = { ok: false, error: "network" };
+      data = await recover();
     } finally {
       clearTimeout(slowTimer);
       setSlow(false);
     }
-    respinToken.current = null;
+    // Keep a re-spin token through retryable errors; drop it once used or refused as used.
+    if (isRespin && (data.ok || data.error === "respin-invalid")) respinToken.current = null;
+    if (data.ok) lastSavedAt.current = data.at ?? lastSavedAt.current;
 
     if (!data.ok) {
       if (data.error === "already-spun" || data.error === "device-used") {
@@ -131,8 +158,7 @@ export default function WheelExperience() {
         return;
       }
       setError(ERRORS[data.error] ?? "Something went wrong. Please try again.");
-      setPhase(isRespin ? "respin" : "idle");
-      if (isRespin && data.error === "respin-invalid") setPhase("idle");
+      setPhase(respinToken.current ? "respin" : "idle");
       return;
     }
 
@@ -327,7 +353,7 @@ function ResultCard({ card, onBack }: { card: Card; onBack: (openBonus?: boolean
         <button className="button secondary" disabled={busy} onClick={() => run(sendToWhatsApp)}>Send to WhatsApp</button>
       </div>
       <p className="wheel-small">Or just take a screenshot. Next free spin: {dayText(card.next)}.</p>
-      {bonusLine}
+      {bonusLine || <button className="bonus-toggle" onClick={() => onBack(true)}>Back to the wheel (bonus code)</button>}
     </>
   );
 }

@@ -24,6 +24,8 @@ export type SpinSuccess = {
   ok: true; spinType: 'free' | 'bonus' | 'respin'; outcome: OutcomeId; segment: number; landing: number;
   prize?: { code: string; label: string; claim?: string; expiresAt: string };
   respinToken?: string; bonusStillAvailable?: boolean; nextFreeSpinAt: string; firstName: string;
+  /** When the result was saved for recovery (see deviceStatus). */
+  at?: string;
 };
 export type SpinResult = SpinSuccess | { ok: false; error: SpinError; nextFreeSpinAt?: string };
 
@@ -41,6 +43,7 @@ const K = {
   wins: 'wheel:wins',
   rate: (name: string, who: string, window: number) => `wheel:rl:${name}:${who}:${window}`,
   staffFail: (ip: string) => `wheel:staff-fail:${ip}`,
+  last: (device: string) => `wheel:last:${device}`,
 };
 
 async function rateLimit(ctx: WheelContext, name: string, who: string, limit: number, windowSec = 60) {
@@ -70,7 +73,7 @@ export async function spin(ctx: WheelContext, input: SpinInput): Promise<SpinRes
     if (!saved || (await ctx.store.del(key)) !== 1) return { ok: false, error: 'respin-invalid' };
     const { firstName } = JSON.parse(saved);
     await stat(ctx, 'spins:respin');
-    return finish(ctx, pickOutcome(ctx.randomInt, { respin: true }), 'respin', firstName, nextFreeSpinAt);
+    return remember(ctx, input.deviceId, await finish(ctx, pickOutcome(ctx.randomInt, { respin: true }), 'respin', firstName, nextFreeSpinAt));
   }
 
   const firstName = String(input.firstName ?? '').trim().replace(/\s+/g, ' ');
@@ -82,12 +85,22 @@ export async function spin(ctx: WheelContext, input: SpinInput): Promise<SpinRes
 
   // Free weekly spin first; a bonus code is only consumed once the free spin is used.
   const freeKey = K.free(week.key, id), deviceKey = K.device(week.key, String(input.deviceId).slice(0, 64));
-  const deviceOwner = await ctx.store.get(deviceKey);
+  // Claim the device exclusively first, then the person's weekly spin, so two people racing
+  // on one device (or one person on two devices) can never both get a free spin.
   const personUsed = Boolean(await ctx.store.get(freeKey));
+  let deviceOwner: string | null = null;
+  let freeClaimed = false;
+  if (!personUsed) {
+    const tookDevice = await ctx.store.set(deviceKey, id, { nx: true, ex: 8 * DAY });
+    deviceOwner = tookDevice ? id : await ctx.store.get(deviceKey);
+    if (deviceOwner === id) {
+      freeClaimed = await ctx.store.set(freeKey, '1', { nx: true, ex: 8 * DAY });
+      if (!freeClaimed && tookDevice) await ctx.store.del(deviceKey); // lost the race on another device
+    }
+  }
   let spinType: 'free' | 'bonus';
   let bonusStillAvailable: boolean | undefined;
-  if (!personUsed && (!deviceOwner || deviceOwner === id) && (await ctx.store.set(freeKey, '1', { nx: true, ex: 8 * DAY }))) {
-    await ctx.store.set(deviceKey, id, { ex: 8 * DAY });
+  if (freeClaimed) {
     spinType = 'free';
     if (bonusCode && BONUS_CODE_RE.test(bonusCode)) bonusStillAvailable = Boolean(await ctx.store.get(K.bonus(bonusCode)));
   } else if (input.bonusCode) {
@@ -99,14 +112,21 @@ export async function spin(ctx: WheelContext, input: SpinInput): Promise<SpinRes
     await stat(ctx, 'bonus:used');
     spinType = 'bonus';
   } else {
-    return { ok: false, error: personUsed || !deviceOwner ? 'already-spun' : 'device-used', nextFreeSpinAt };
+    return { ok: false, error: !personUsed && deviceOwner && deviceOwner !== id ? 'device-used' : 'already-spun', nextFreeSpinAt };
   }
 
   await saveEntrant(ctx, id, { firstName, contactType: input.contactType!, contact, marketingOptIn: Boolean(input.marketingOptIn) });
   await stat(ctx, `spins:${spinType}`);
   const result = await finish(ctx, pickOutcome(ctx.randomInt), spinType, firstName, nextFreeSpinAt);
   if (bonusStillAvailable) result.bonusStillAvailable = true;
-  return result;
+  return remember(ctx, input.deviceId, result);
+}
+
+/** Keeps the latest result for this device so the page can recover it if the response is lost. */
+async function remember(ctx: WheelContext, deviceId: string, result: SpinSuccess) {
+  const saved = { ...result, at: ctx.now().toISOString() };
+  await ctx.store.set(K.last(String(deviceId).slice(0, 64)), JSON.stringify(saved), { ex: wheelConfig.prizeValidDays * DAY });
+  return saved;
 }
 
 async function finish(ctx: WheelContext, outcome: OutcomeId, spinType: SpinSuccess['spinType'], firstName: string, nextFreeSpinAt: string) {
@@ -163,8 +183,13 @@ export async function deleteEntrant(ctx: WheelContext, contactType: 'email' | 'm
 
 export async function deviceStatus(ctx: WheelContext, deviceId: string) {
   const week = londonWeek(ctx.now());
-  const used = Boolean(await ctx.store.get(K.device(week.key, String(deviceId).slice(0, 64))));
-  return { freeSpinUsed: used, nextFreeSpinAt: week.next.toISOString() };
+  const device = String(deviceId).slice(0, 64);
+  const used = Boolean(await ctx.store.get(K.device(week.key, device)));
+  const saved = await ctx.store.get(K.last(device));
+  const lastResult = saved ? (JSON.parse(saved) as SpinSuccess & { redeemed?: boolean }) : null;
+  if (lastResult?.prize) lastResult.redeemed = Boolean(await ctx.store.get(K.redeemed(lastResult.prize.code)));
+  if (lastResult?.respinToken && !(await ctx.store.get(K.respin(lastResult.respinToken)))) delete lastResult.respinToken;
+  return { freeSpinUsed: used, nextFreeSpinAt: week.next.toISOString(), lastResult };
 }
 
 // ---- Staff ----
@@ -237,11 +262,15 @@ export async function winsCsv(ctx: WheelContext) {
 }
 
 export async function checkStaffPin(ctx: WheelContext, pin: string, expected: string, ip: string) {
+  // Reserve the attempt atomically before comparing, so a parallel burst still gets only five guesses.
   const failKey = K.staffFail(ip);
-  if (Number((await ctx.store.get(failKey)) ?? 0) >= 5) return { ok: false, locked: true };
-  if (expected && safeEqual(String(pin ?? ''), expected)) return { ok: true, locked: false };
-  const fails = await ctx.store.incr(failKey, 15 * 60);
-  return { ok: false, locked: fails >= 5 };
+  const attempt = await ctx.store.incr(failKey, 15 * 60);
+  if (attempt > 5) return { ok: false, locked: true };
+  if (expected && safeEqual(String(pin ?? ''), expected)) {
+    await ctx.store.del(failKey);
+    return { ok: true, locked: false };
+  }
+  return { ok: false, locked: attempt >= 5 };
 }
 
 export async function staffRateLimit(ctx: WheelContext, ip: string) {

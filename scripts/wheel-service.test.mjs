@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { MemoryStore } from '../src/lib/wheel/memory-store.ts';
 import {
-  spin, createBonusCodes, lookupPrize, redeemPrize, weeklySummary, winsCsv, checkStaffPin, deleteEntrant,
+  spin, createBonusCodes, lookupPrize, redeemPrize, weeklySummary, winsCsv, checkStaffPin, deleteEntrant, deviceStatus,
 } from '../src/lib/wheel/service.ts';
 
 // A tiny harness: a clock we can move, a memory store that honours expiry on that clock,
@@ -213,4 +213,55 @@ test('deleting an entrant removes their stored details (privacy request)', async
   await spin(ctx, entry({ marketingOptIn: true }));
   assert.equal(await deleteEntrant(ctx, 'email', 'SAM@example.com'), true);
   assert.equal(await deleteEntrant(ctx, 'email', 'sam@example.com'), false);
+});
+
+test('staff PIN lockout holds under a parallel burst of guesses', async () => {
+  const { ctx } = harness();
+  // 49 wrong guesses and the right PIN, all in flight at once: only the first five are
+  // compared, so the right PIN (sent last) must be refused.
+  const guesses = [...Array.from({ length: 49 }, (_, i) => String(100000 + i)), '999999'];
+  const burst = await Promise.all(guesses.map(pin => checkStaffPin(ctx, pin, '999999', '7.7.7.7')));
+  assert.equal(burst.filter(r => r.ok).length, 0);
+  assert.equal(burst.at(-1).locked, true);
+});
+
+test('a correct PIN clears earlier wrong guesses', async () => {
+  const { ctx } = harness();
+  for (let i = 0; i < 4; i++) await checkStaffPin(ctx, '0000', '2468', '6.6.6.6');
+  assert.equal((await checkStaffPin(ctx, '2468', '2468', '6.6.6.6')).ok, true);
+  for (let i = 0; i < 4; i++) assert.equal((await checkStaffPin(ctx, '0000', '2468', '6.6.6.6')).locked, false);
+});
+
+test('two people racing on one fresh device: only one free spin is given', async () => {
+  const { ctx } = harness();
+  const [a, b] = await Promise.all([
+    spin(ctx, entry({ contact: 'a@example.com', deviceId: 'shared' })),
+    spin(ctx, entry({ contact: 'b@example.com', deviceId: 'shared' })),
+  ]);
+  assert.equal([a, b].filter(r => r.ok).length, 1);
+  assert.equal([a, b].find(r => !r.ok).error, 'device-used');
+});
+
+test('the latest result is kept against the device so a lost response can be recovered', async () => {
+  const { ctx, draws } = harness();
+  draws.push(WIN);
+  const win = await spin(ctx, entry());
+  const status = await deviceStatus(ctx, 'dev-1');
+  assert.equal(status.freeSpinUsed, true);
+  assert.equal(status.lastResult.prize.code, win.prize.code);
+  assert.equal(status.lastResult.segment, win.segment);
+  assert.equal((await deviceStatus(ctx, 'dev-2')).lastResult, null); // never shown to another device
+  await redeemPrize(ctx, win.prize.code);
+  assert.equal((await deviceStatus(ctx, 'dev-1')).lastResult.redeemed, true);
+});
+
+test('a saved re-spin is only offered again while its token is unused', async () => {
+  const { ctx, draws } = harness();
+  draws.push(SPIN_AGAIN, LOSE);
+  const first = await spin(ctx, entry());
+  assert.equal((await deviceStatus(ctx, 'dev-1')).lastResult.respinToken, first.respinToken);
+  await spin(ctx, { respinToken: first.respinToken, deviceId: 'dev-1', ip: '1.1.1.1' });
+  const after = (await deviceStatus(ctx, 'dev-1')).lastResult;
+  assert.equal(after.spinType, 'respin');
+  assert.equal(after.respinToken, undefined);
 });

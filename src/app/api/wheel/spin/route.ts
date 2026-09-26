@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { spin } from '@/lib/wheel/service';
-import { wheelRuntime, clientIp, sameOrigin, unavailable, DEVICE_COOKIE } from '@/lib/wheel/runtime';
+import { wheelRuntime, clientIp, sameOrigin, unavailable, deviceCookie, DEVICE_COOKIE } from '@/lib/wheel/runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     deviceId, ip: clientIp(req),
   });
   const res = NextResponse.json({ ...result, demo: rt.demo }, { status: result.ok ? 200 : STATUS[result.error] ?? 400 });
-  res.cookies.set(DEVICE_COOKIE, deviceId, { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 400 * 86400 });
+  res.cookies.set(deviceCookie(deviceId));
   res.headers.set('Cache-Control', 'no-store');
   return res;
 }

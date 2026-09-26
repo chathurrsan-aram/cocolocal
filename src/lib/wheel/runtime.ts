@@ -45,4 +45,7 @@ export function sameOrigin(req: NextRequest) {
   return !origin || origin === req.nextUrl.origin;
 }
 
+/** Long-lived random device ID cookie (the light one-free-spin-per-device check). */
+export const deviceCookie = (value: string) => ({ name: DEVICE_COOKIE, value, httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/', maxAge: 400 * 86400 });
+
 export const unavailable = () => Response.json({ ok: false, error: 'unavailable' }, { status: 503 });
