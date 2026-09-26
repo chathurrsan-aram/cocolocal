@@ -52,8 +52,9 @@ const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), U=v=>v*k;
 const B=60/R.bpm, N=R.offers.length, OUT=8+8*N;
 const kick=(t,t0,amt,dec=7)=>t<t0?0:amt*Math.exp(-(t-t0)*dec);
 const shake=(t,t0,amt)=>{if(t<t0)return[0,0];const e=t-t0,a=amt*Math.exp(-e*10);return[a*Math.sin(e*63),a*Math.cos(e*47)];};
-const M=U(64), footH=U(tall?236:190), footY=H-footH;
-const Y=tall?{eb:230,h1:350,price:780,unit:690,det:734,prod:[870,1560],pl:1600}:{eb:112,h1:222,price:560,unit:476,det:518,prod:[610,1086],pl:1128};
+const M=U(64), footH=U(tall?236:H/W<1.1?170:190), footY=H-footH;
+const sq=H/W<1.1;
+const Y=tall?{eb:230,h1:350,price:780,unit:690,det:734,prod:[870,1560],pl:1600,hs:108,ps:200}:sq?{eb:78,h1:160,price:405,unit:340,det:378,prod:[440,830],pl:862,hs:82,ps:150}:{eb:112,h1:222,price:560,unit:476,det:518,prod:[610,1086],pl:1128,hs:108,ps:200};
 A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H})); A($('flash'),{x:0,y:0,width:W,height:H});
 // ---- intro: shopfront with a roller shutter
 const sw=U(900), shh=sw*0.75, sx=(W-sw)/2, sy=U(tall?420:270);
@@ -110,10 +111,10 @@ const OF=R.offers.map((o,i)=>{
   return {g,eb,ebTxt:o.eyebrow||'SPECIAL OFFERS AT COCO LOCAL',c1,c2,h1,h2,prG,pr,un,de,pl};
 });
 function layoutOffers(){ OF.forEach(o=>{
-  const hs=Math.min(fit(o.h1,U(108),W-2*M),fit(o.h2,U(108),W-2*M)); o.h1.setAttribute('font-size',hs); o.h2.setAttribute('font-size',hs); o.hs=hs;
+  const hs=Math.min(fit(o.h1,U(Y.hs),W-2*M),fit(o.h2,U(Y.hs),W-2*M)); o.h1.setAttribute('font-size',hs); o.h2.setAttribute('font-size',hs); o.hs=hs;
   o.h1y=U(Y.h1); o.h2y=o.h1y+hs*1.04;
   mk('rect',{x:0,y:o.h1y-hs*0.9,width:W,height:hs*1.08},o.c1); mk('rect',{x:0,y:o.h2y-hs*0.9,width:W,height:hs*1.08},o.c2);
-  o.ps=fit(o.pr,U(200),W*0.56-M-U(30)); fit(o.pl,U(26),W-2*M); fit(o.un,U(28),W*0.44-M); fit(o.de,U(28),W*0.44-M); }); }
+  o.ps=fit(o.pr,U(Y.ps),W*0.56-M-U(30)); fit(o.pl,U(26),W-2*M); fit(o.un,U(28),W*0.44-M); fit(o.de,U(28),W*0.44-M); }); }
 A($('footR'),{x:0,y:footY,width:W,height:footH}); A($('footL'),{x1:0,x2:W,y1:footY,y2:footY,'stroke-width':U(2)});
 const lw=U(300); A($('lockF'),{x:M,y:footY+footH/2-lw*330/2150/2,width:lw,height:lw*330/2150});
 const fs=U(24), fy0=footY+footH/2-fs*1.3+fs*0.35; ['f1','f2','f3'].forEach((id,i)=>A($(id),{x:W-M,y:fy0+i*fs*1.35,'font-size':fs}));
