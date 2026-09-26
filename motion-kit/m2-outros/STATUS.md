@@ -1,4 +1,4 @@
-# M2 status
-Draft 4:5 dark navy rendered for review: A address, B website, C wheel line (3 s). Basket rides in on the navy wipe, tilted, lands with a pop; letters rise fast; peach rule streak; line rises and tightens. Same placeholders as M1 (tag sizes: A 112, B 150, C 118).
-WORKFLOW RULE (Chat): draft ONE format (4:5 dark navy) thoroughly, get approval, THEN render the other formats/themes/variants. Never batch-render everything up front.
-NEXT after approval: 1 s tails, indigo variant, light theme, 9:16 + 1:1.
+# M2 status (26 Sep 2026)
+APPROVED (A address, B website, C wheel) + new D follow ("Follow us · cocolocal.co.uk/follow", tag size 126).
+Full set rendered: 4 variants × navy-dark, indigo-dark, light × 3 formats, sound + silent, plus 1.5 s tails of each (72 videos, 144 files).
+Tails: piece.html __TAIL__=1 holds the lockup on screen and only animates the rule + line (1.5 s so the lockup holds ≥ 1 s). Audio m2-tail-1.5s.wav (events-tail.json).

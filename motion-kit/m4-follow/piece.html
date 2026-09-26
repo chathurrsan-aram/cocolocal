@@ -1,0 +1,188 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+html,body{margin:0;background:var(--final);overflow:hidden}
+svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
+</style></head><body>
+<svg id="sv" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="cclip"><rect id="cshape"/></clipPath>
+  <clipPath id="pclip"><rect id="pshape"/></clipPath>
+  <clipPath id="l1c"><rect id="l1r"/></clipPath>
+  <clipPath id="l2c"><rect id="l2r"/></clipPath>
+  <filter id="fsh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#000" flood-opacity=".32"/></filter>
+</defs>
+<rect id="bg" fill="var(--bg)"/>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
+<image id="lock" href="__LOCKUP__" preserveAspectRatio="xMidYMid meet"/>
+<g id="lab">
+  <g id="labIG"><image id="igGlyph" href="__GLYPH_IG__"/><text id="igTxt" fill="var(--ink)">@cocolocal_</text></g>
+  <g id="labFB"><image id="fbLogo" href="__LOGO_FB__"/><text id="fbTxt" fill="var(--ink)">Coco Local</text></g>
+  <text id="wTxt" fill="var(--ink)" text-anchor="middle">Spin the Coco Wheel</text>
+</g>
+<g id="card">
+  <g clip-path="url(#cclip)">
+    <rect id="cbg"/>
+    <image id="igImg" href="__IMG_IG__" preserveAspectRatio="none"/>
+    <image id="fbImg" href="__IMG_FB__" preserveAspectRatio="none"/>
+    <g id="wheel"></g>
+  </g>
+  <circle id="rim" fill="none" stroke="var(--ink)"/>
+</g>
+<path id="pointer" fill="var(--peach)" stroke="var(--navy)" stroke-linejoin="round"/>
+<g id="hub"><circle id="hubC" fill="var(--navy)" stroke="var(--peach)"/><text id="hubT" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">SPIN</text></g>
+<g id="pill">
+  <rect id="pbg"/>
+  <g clip-path="url(#pclip)">
+    <text id="pA" text-anchor="middle" dominant-baseline="central" fill="var(--navy)">Follow</text>
+    <g id="pB"><text id="pBt" text-anchor="middle" dominant-baseline="central" fill="#FFFFFF">Following</text><path id="pchk" fill="none" stroke="var(--peach)" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></g>
+  </g>
+</g>
+<g id="prize"><rect id="przR" fill="#ECEAE7"/><text id="przA" text-anchor="middle" fill="#4A5163" font-weight="500">You landed on</text><text id="przB" text-anchor="middle" fill="#0F1A33">Free slushie</text></g>
+<line id="rule" stroke="var(--peach)" stroke-linecap="round"/>
+<g clip-path="url(#l1c)"><text id="line1" text-anchor="middle" fill="var(--ink)">New offers every week</text></g>
+<g clip-path="url(#l2c)"><text id="line2" text-anchor="middle" fill="var(--ink)" font-weight="500">cocolocal.co.uk/follow</text></g>
+<g id="finger" filter="url(#fsh)"><circle id="fo" fill="#FFFFFF" fill-opacity=".94" stroke="#0F1A33" stroke-opacity=".35"/><circle id="fi" fill="var(--peach)"/></g>
+</svg>
+<script>
+"use strict";
+const W=innerWidth,H=innerHeight,k=W/1080;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);};
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:15,z:0.9},scroll:{w:13,z:1},card:{w:12,z:0.86},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const lerp=(a,b,q)=>a+(b-a)*q, clamp=(x,a,b)=>Math.min(b,Math.max(a,x)), cl01=x=>clamp(x,0,1);
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), mix=(a,b,q)=>`rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*q)).join(',')})`;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const PEACH=hex(css('--peach')), NAVY=hex(css('--navy'));
+const tall=H/W>1.5, sq=H/W<1.1;
+
+// ---------- layout (design units: 1080 wide) ----------
+const topY=(sq?84:110)*k;                                   // small lockup centre
+const LWs=W*(sq?0.34:0.40), LWb=W*(tall?0.74:0.62), LAR=330/2150;
+const labY=(sq?176:222)*k;
+const cx=90*k, cw=900*k, cy=(sq?232:290)*k, ch=H-cy-(sq?40:70)*k;
+const R=Math.min(cw,ch)/2*0.95, WX=W/2, WY=cy+ch/2;        // wheel
+const IGH=cw*1270/816, FBH=cw*1644/1094;                    // screenshot heights at card width
+const igMax=Math.max(0,IGH-ch), fbMax=Math.max(0,FBH-ch);
+const pw0=330*k, pw1=430*k, ph=86*k, px=W/2, py=cy+ch-(sq?80:110)*k;
+const finalCY=H/2-(tall?90:60)*k;
+
+A($('bg'),{x:0,y:0,width:W,height:H});
+['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.05,height:H}));
+A($('igGlyph'),{width:58*k,height:58*k}); A($('fbLogo'),{width:58*k,height:58*k});
+['igTxt','fbTxt','wTxt'].forEach(id=>A($(id),{'font-size':42*k,'dominant-baseline':'central'}));
+A($('cshape'),{x:cx,y:cy,width:cw,height:ch,rx:44*k});
+A($('cbg'),{x:cx,y:cy,width:cw,height:ch});
+A($('igImg'),{x:cx,width:cw,height:IGH}); A($('fbImg'),{width:cw,height:FBH});
+A($('rim'),{cx:WX,cy:WY,r:R,'stroke-width':10*k});
+A($('hubC'),{cx:WX,cy:WY,r:R*0.23,'stroke-width':8*k}); A($('hubT'),{x:WX,y:WY,'font-size':R*0.12});
+A($('pointer'),{d:`M${WX-26*k},${WY-R-22*k} L${WX+26*k},${WY-R-22*k} L${WX},${WY-R+34*k} Z`,'stroke-width':5*k});
+A($('pbg'),{height:ph,rx:ph/2}); A($('pshape'),{height:ph,rx:ph/2});
+A($('pA'),{'font-size':36*k}); A($('pBt'),{'font-size':36*k}); A($('pchk'),{'stroke-width':6*k});
+A($('przR'),{rx:28*k}); A($('przA'),{'font-size':30*k}); A($('przB'),{'font-size':64*k});
+A($('rule'),{'stroke-width':10*k});
+['line1','line2'].forEach((id,i)=>A($(id),{'font-size':(i?38:46)*k}));
+A($('fo'),{r:34*k,'stroke-width':3*k}); A($('fi'),{r:14*k});
+
+// wheel slices (from the Coco Wheel poster, clockwise from the top)
+const SL=[['NOT THIS','TIME'],['FREE','SLUSHIE'],['NOT THIS','TIME'],['FREE','COFFEE'],['SWEET','TREAT'],['NOT THIS','TIME'],['FREE','CRISPS'],['NOT THIS','TIME'],['FREE HOT','CHOCOLATE'],['50p OFF','SNACKS'],['£1 OFF','£10'],['SPIN','AGAIN']];
+const COL=['#ECEAE7','#8EA9DC','#ECEAE7','#FEC091','#FFFFFF','#ECEAE7','#8EA9DC','#ECEAE7','#FEC091','#8EA9DC','#FEC091','#FFFFFF'];
+(function(){const g=$('wheel'),NS='http://www.w3.org/2000/svg';
+ SL.forEach((lines,i)=>{const a0=(i*30-15-90)*Math.PI/180,a1=(i*30+15-90)*Math.PI/180;
+  const p=document.createElementNS(NS,'path');
+  A(p,{d:`M0,0 L${R*Math.cos(a0)},${R*Math.sin(a0)} A${R},${R} 0 0 1 ${R*Math.cos(a1)},${R*Math.sin(a1)} Z`,fill:COL[i],stroke:'#0F1A33','stroke-width':4*k});
+  g.appendChild(p);
+  const t=document.createElementNS(NS,'text'); A(t,{transform:`rotate(${i*30-90}) translate(${R*0.62},0)`,'text-anchor':'middle',fill:'#0F1A33','font-size':R*0.075});
+  lines.forEach((s,j)=>{const ts=document.createElementNS(NS,'tspan');A(ts,{x:0,y:(j-(lines.length-1)/2)*R*0.085,'dominant-baseline':'central'});ts.textContent=s;t.appendChild(ts);});
+  g.appendChild(t);});
+})();
+
+// ---------- helpers ----------
+// finger keyframes: [t, x, y, pressed]
+const fx=W/2, fyLo=cy+ch*0.78, fyHi=cy+ch*0.44;
+const KF=[[1.25,fx+140*k,H+80*k,0],[1.42,fx+60*k,fyLo,0],[1.5,fx+60*k,fyLo,1],[1.66,fx+50*k,fyHi,1],[1.72,fx+50*k,fyHi,0],[1.86,fx+60*k,fyLo,0],[1.875,fx+60*k,fyLo,1],[2.03,fx+50*k,fyHi,1],[2.09,fx+50*k,fyHi,0],[2.35,px,py,0],[2.5,px,py,1],[2.62,px,py,0],[2.9,px+90*k,py+60*k,0],
+ [3.3,fx+60*k,fyLo,0],[3.5,fx+60*k,fyLo,1],[3.66,fx+50*k,fyHi,1],[3.72,fx+50*k,fyHi,0],[3.86,fx+60*k,fyLo,0],[3.875,fx+60*k,fyLo,1],[4.03,fx+50*k,fyHi,1],[4.09,fx+50*k,fyHi,0],[4.35,px,py,0],[4.5,px,py,1],[4.62,px,py,0],[5.0,px+80*k,py+40*k,0],
+ [5.5,WX+60*k,WY+R*0.5,0],[5.7,WX,WY,0],[5.75,WX,WY,1],[5.87,WX,WY,0],[6.3,WX+R*0.6,H+120*k,0]];
+const ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+function finger(t){ if(t<KF[0][0]||t>KF[KF.length-1][0])return null;
+  let i=0; while(i<KF.length-2&&t>KF[i+1][0])i++;
+  const a=KF[i],b=KF[i+1],u=ease(cl01((t-a[0])/(b[0]-a[0])));
+  return {x:lerp(a[1],b[1],u),y:lerp(a[2],b[2],u),p:lerp(a[3],b[3],u)}; }
+const steps=(t,list,sp)=>list.reduce((s,[t0,d])=>s+d*S(t-t0,sp),0);
+// wheel spin: closed-form deceleration, lands on slice 1 (Free slushie)
+const SP0=5.8, SPD=1.55, THF=4*360-30;
+const theta=t=>THF*(1-Math.pow(1-cl01((t-SP0)/SPD),3));
+
+window.seek=function(t){
+  // opener wipes on 8ths
+  const k1=S(t,{w:18,z:1}),k2=S(t-0.125,{w:18,z:1}),k3=S(t-0.25,{w:18,z:1});
+  $('w1').setAttribute('x',lerp(-W*1.06,0,k1)); $('w2').setAttribute('x',lerp(-W*1.06,0,k2)); $('w3').setAttribute('x',lerp(-W*1.06,0,k3));
+  // lockup: lands centre, shrinks to the top, returns for the end card
+  const inK=S(t-0.3,SP.enter), up=S(t-0.55,SP.slide), back=S(t-7.8,SP.slide);
+  const lw=lerp(lerp(LWb,LWs,up),LWb,back), ly=lerp(lerp(finalCY,topY,up),finalCY,back)+(1-inK)*60*k;
+  A($('lock'),{x:W/2-lw/2,y:ly-lw*LAR/2,width:lw,height:lw*LAR,opacity:cl01(inK*1.4)});
+  // label row: IG → FB → wheel
+  const igIn=S(t-0.75,SP.pop), sw=S(t-3.0,SP.slide), wIn=S(t-5.25,SP.enter), fbOut=S(t-4.9,SP.enter), labOut=S(t-7.75,SP.enter);
+  const g=58*k, gap=18*k, igw=$('igTxt').getComputedTextLength(), fbw=$('fbTxt').getComputedTextLength();
+  const igX=W/2-(g+gap+igw)/2-sw*W, fbX=W/2-(g+gap+fbw)/2+(1-sw)*W;
+  A($('igGlyph'),{x:igX,y:labY-g/2}); A($('igTxt'),{x:igX+g+gap,y:labY});
+  $('labIG').setAttribute('transform',`translate(0,${(1-igIn)*30*k})`); $('labIG').style.opacity=cl01(igIn)*(1-cl01(sw*1.5));
+  A($('fbLogo'),{x:fbX,y:labY-g/2}); A($('fbTxt'),{x:fbX+g+gap,y:labY}); $('labFB').style.opacity=cl01(sw)*(1-cl01(fbOut*1.6));
+  A($('wTxt'),{x:W/2,y:labY+(1-wIn)*30*k}); $('wTxt').style.opacity=cl01(wIn)*(1-labOut);
+  $('lab').style.opacity=1-labOut;
+  // card rises, scrolls, swipes, morphs into the wheel
+  const rise=S(t-1.0,SP.card), mo=S(t-5.0,SP.morph), out=S(t-7.75,SP.enter);
+  const x=lerp(cx,WX-R,mo), y=lerp(cy,WY-R,mo), w=lerp(cw,2*R,mo), h=lerp(ch,2*R,mo), rr=lerp(44*k,R,mo);
+  const lift=(1-rise)*(H-cy+40*k)+out*80*k;
+  $('card').setAttribute('transform',`translate(0,${lift})`); $('card').style.opacity=1-cl01(out*1.3);
+  A($('cshape'),{x,y,width:w,height:h,rx:rr});
+  $('cbg').setAttribute('fill',mix([12,16,19],[243,244,248],cl01(sw)));
+  const igOff=steps(t,[[1.5,igMax*0.42],[1.875,igMax*0.58]],SP.scroll);
+  const fbOff=steps(t,[[3.5,fbMax*0.5],[3.875,fbMax*0.5]],SP.scroll);
+  A($('igImg'),{x:cx-sw*cw,y:cy-igOff}); A($('fbImg'),{x:cx+(1-sw)*cw,y:cy-fbOff});
+  const scrFade=1-cl01((mo-0.25)*2.5); $('igImg').style.opacity=scrFade; $('fbImg').style.opacity=scrFade;
+  const wo=cl01((mo-0.35)*2.2), th=theta(t);
+  $('wheel').setAttribute('transform',`translate(${WX},${WY}) rotate(${th})`); $('wheel').style.opacity=wo;
+  $('rim').style.opacity=cl01((mo-0.7)*3.3);
+  // pointer (ticks on slice boundaries) + hub
+  const d=(((th+15)%30)+30)%30/30, kick=t>SP0&&t<SP0+SPD+0.2?-16*Math.max(0,1-d*4):0;
+  const pin=S(t-5.4,SP.pop);
+  $('pointer').setAttribute('transform',`translate(0,${lift-(1-pin)*40*k}) rotate(${kick},${WX},${WY-R-22*k})`); $('pointer').style.opacity=cl01(pin)*(1-cl01(out*1.3));
+  const hub=S(t-5.45,SP.pop), hp=1-0.08*(S(t-5.75,SP.pop)-S(t-5.87,SP.pop));
+  $('hub').setAttribute('transform',`translate(${WX},${WY+lift}) scale(${hub*hp}) translate(${-WX},${-WY})`); $('hub').style.opacity=cl01(hub)*(1-cl01(out*1.3));
+  // Follow pill (our own overlay): Follow → Following ✓, twice
+  const pIn=S(t-1.3,SP.pop), pOut=S(t-4.9,SP.enter);
+  const f1=S(t-2.5,SP.morph)*(1-S(t-3.05,SP.enter)), f2=S(t-4.5,SP.morph), f=clamp(f1+f2,0,1.05);
+  const press=1-0.06*(S(t-2.5,SP.pop)-S(t-2.62,SP.pop))-0.06*(S(t-4.5,SP.pop)-S(t-4.62,SP.pop));
+  const pw=lerp(pw0,pw1,f);
+  A($('pbg'),{x:px-pw/2,y:py-ph/2,width:pw,fill:mix(PEACH,NAVY,cl01(f)),stroke:css('--peach'),'stroke-width':4*k*cl01(f)});
+  A($('pshape'),{x:px-pw/2,y:py-ph/2,width:pw});
+  A($('pA'),{x:px,y:py-cl01(f)*ph}); A($('pBt'),{x:px-26*k,y:py+(1-cl01(f))*ph});
+  const cxk=px+pw1/2-78*k, cyk=py+(1-cl01(f))*ph;
+  A($('pchk'),{d:`M${cxk-14*k},${cyk} L${cxk-3*k},${cyk+11*k} L${cxk+16*k},${cyk-12*k}`});
+  $('pchk').style.strokeDasharray='1 1'; $('pchk').style.strokeDashoffset=String(1-cl01(Math.max(S(t-2.62,SP.enter)*(1-S(t-3.05,SP.enter)),S(t-4.62,SP.enter))));
+  $('pill').setAttribute('transform',`translate(0,${lift+(1-pIn)*60*k+pOut*60*k}) translate(${px},${py}) scale(${press}) translate(${-px},${-py})`); $('pill').style.opacity=cl01(pIn)*(1-cl01(pOut*1.6));
+  // prize card lifts when the wheel lands
+  const pz=S(t-(SP0+SPD+0.02),SP.pop), pzo=S(t-7.75,SP.enter);
+  const zw=560*k, zh=190*k;
+  A($('przR'),{x:WX-zw/2,y:WY-zh/2,width:zw,height:zh}); A($('przA'),{x:WX,y:WY-22*k}); A($('przB'),{x:WX,y:WY+50*k});
+  $('prize').setAttribute('transform',`translate(0,${(1-pz)*50*k+pzo*80*k+lift}) translate(${WX},${WY}) scale(${lerp(0.92,1,pz)}) translate(${-WX},${-WY})`); $('prize').style.opacity=cl01(pz*1.4)*(1-cl01(pzo*1.3));
+  // end card: rule streak + two lines rise
+  const ruleY=finalCY+(tall?110:95)*k, rw=(tall?170:150)*k, lead=S(t-8.1,SP.lead), trail=S(t-8.1,SP.trail);
+  A($('rule'),{y1:ruleY,y2:ruleY,x1:lerp(-40*k,W/2-rw/2,trail),x2:lerp(-40*k,W/2+rw/2,lead)}); $('rule').style.opacity=t>8.1?1:0;
+  const l1Y=ruleY+80*k, l2Y=l1Y+62*k, q1=S(t-8.25,SP.morph), q2=S(t-8.37,SP.morph);
+  A($('l1r'),{x:0,y:l1Y-50*k,width:W,height:66*k}); A($('l2r'),{x:0,y:l2Y-44*k,width:W,height:60*k});
+  A($('line1'),{x:W/2,y:l1Y+(1-q1)*70*k,'letter-spacing':(1-S(t-8.25,{w:9,z:1}))*8*k});
+  A($('line2'),{x:W/2,y:l2Y+(1-q2)*64*k}); $('line2').setAttribute('fill',css('--peach'));
+  // finger
+  const F=finger(t);
+  if(!F){$('finger').style.opacity=0;} else {
+    $('finger').style.opacity=1;
+    $('finger').setAttribute('transform',`translate(${F.x},${F.y+(t>1.0&&t<5.0?0:0)}) scale(${1-0.14*F.p})`);
+    $('fi').setAttribute('opacity',F.p);
+  }
+};
+const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>

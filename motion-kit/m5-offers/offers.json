@@ -1,0 +1,85 @@
+{
+  "_help": "One entry per offer. status: live (renders) or sample (renders only with --samples). price and status are required. alcohol: true adds '18+. Please drink responsibly.' image: a cut-out PNG in packshots/ or null for a neutral placeholder.",
+  "part": 1,
+  "offers": [
+    {
+      "id": "yazoo-bogof",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": ["BUY ONE.", "GET ONE FREE."],
+      "product_line": "Yazoo Inspired 300ml milkshakes",
+      "price": "2 for 1",
+      "unit": "300ML BOTTLES",
+      "detail_line": "Varieties as stocked",
+      "dates": "9 Sep – 6 Oct 2026",
+      "alcohol": false,
+      "image": "packshots/yazoo-inspired-300ml.png",
+      "image_note": "Cut from the Canva artwork YAZOO - Option 1; swap for a clean pack shot when available",
+      "status": "sample"
+    },
+    {
+      "id": "beer-4pack",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": ["FOUR-PACK", "FAVOURITES."],
+      "product_line": "Poretti · Guinness Draught · Red Stripe · Desperados",
+      "price": "£6.50",
+      "unit": "FOUR-CAN PACK",
+      "detail_line": "Price per pack",
+      "dates": null,
+      "alcohol": true,
+      "image": null,
+      "status": "sample"
+    },
+    {
+      "id": "beer-4pints",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": ["BIG BEER", "DEALS."],
+      "product_line": "Heineken · Stella · Budweiser · 1664",
+      "price": "£7.50",
+      "unit": "4 PINT CANS",
+      "detail_line": "Price per pack",
+      "dates": null,
+      "alcohol": true,
+      "image": null,
+      "status": "sample"
+    },
+    {
+      "id": "wine-lvf",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": ["WINE DEALS.", "WORTH A LOOK."],
+      "product_line": "La Vieille Ferme White or Rosé",
+      "price": "£8.49",
+      "unit": "75CL · PER BOTTLE",
+      "detail_line": "Special price",
+      "dates": null,
+      "alcohol": true,
+      "image": null,
+      "status": "sample"
+    },
+    {
+      "id": "wine-mcguigan",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": ["RED WINE", "NIGHTS IN."],
+      "product_line": "McGuigan Black Label Merlot or Red",
+      "price": "£7",
+      "unit": "75CL · PER BOTTLE",
+      "detail_line": "Special price",
+      "dates": null,
+      "alcohol": true,
+      "image": null,
+      "status": "sample"
+    },
+    {
+      "id": "spirits-35cl",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": ["FAMILIAR", "FAVOURITES."],
+      "product_line": "Captain Morgan Spiced Gold or Gordon's Gin",
+      "price": "£9.49",
+      "unit": "35CL · EACH",
+      "detail_line": "£1 below the marked price",
+      "dates": null,
+      "alcohol": true,
+      "image": null,
+      "status": "sample"
+    }
+  ]
+}

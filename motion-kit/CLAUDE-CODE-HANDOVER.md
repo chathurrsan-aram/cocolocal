@@ -80,6 +80,8 @@ ffmpeg -y -i raw.mp4 -c:v copy -an -movflags +faststart out-silent.mp4
 ffmpeg -y -i raw.mp4 -vf "fps=4,scale=216:-2,tile=5x4:padding=3" -frames:v 1 sheet.png
 ```
 Sound names available in audio.py events: click, tick, pop, chime, whoosh, whoosh_s, stretch (see audio.py). Styles: `soft`, `house` (Chat liked house: it's more exciting).
+### 4.3b Linux cloud session
+`pip install playwright numpy pillow scipy soundfile imageio-ffmpeg`, link ffmpeg from imageio-ffmpeg to /usr/local/bin/ffmpeg, `export CHROMIUM_PATH=/opt/pw-browsers/chromium` (render.py reads it). Drive files come through the Google Drive connector (downloads land on disk); it cannot upload videos, so renders go out via the artifact download page. Canva export URLs are blocked by the network policy.
 ### 4.4 Smoke test
 Build and render m3-sting (2 s) in 4:5 and compare it against review-renders/coco-sting-dark-1080x1350.mp4. They should match.
 
@@ -113,15 +115,17 @@ Base: `My Drive/Coco Local/05 — Marketing & Content/`
 
 ---
 ## 7. Status of each piece
+Updated 26 Sep 2026 (cloud session). Renders: private download page https://claude.ai/artifact/EQyCpQRm36mvqnxeLWgk5M → Chat saves the zip into Drive `05 — Marketing & Content / 05 — Brand Motion Kit` (README there). Sources: repo chathurrsan-aram/cocolocal, `motion-kit/`.
 | id | piece | status | next action |
 |---|---|---|---|
 | M0 | Foundation | DONE | — |
-| M1 | Signature reveal, 5 s | 4:5 dark v2 APPROVED (4 variants: navy/indigo × "Proudly serving South Benfleet"/"A little more local."; Chat prefers "Proudly serving" but keep all) | Render the other formats ONLY when Chat says go: dark + light × 1:1, 4:5, 9:16, with sound + silent. The light theme was checked in stills and looks right. |
-| M2 | Outro family, 3 s | 4:5 dark drafts A address / B website / C wheel — Chat said "keep going" (treated as approved) | Confirm with Chat. Then: 1 s tails (lockup on screen, line rises, hold), indigo + light, 9:16 + 1:1. Consider a D variant: "cocolocal.co.uk/follow". |
-| M3 | Intro sting, 2 s | 4:5 dark draft rendered, awaiting approval | On approval: light + indigo, 9:16 + 1:1. Cut frame = 2.0 s (frame 120 at 60 fps). |
-| M4 | Follow-us | NOT STARTED — concept agreed (section 8.1) | Beat plan → approval → 4:5 dark draft |
-| M5 | Weekly offer template | NOT STARTED (section 8.2) | Beat plan → approval → sample render |
-| M6 | Website pieces | NOT STARTED (section 8.3) | Last; in the website repo |
+| M1 | Signature reveal, 5 s | DONE: proud/more × navy, indigo, light × 1:1, 4:5, 9:16, sound + silent | — |
+| M2 | Outro family, 3 s | DONE: A address, B website, C wheel, D follow × 3 themes × 3 formats + 1.5 s tails | — |
+| M3 | Intro sting, 2 s | DONE: 3 themes × 3 formats | — |
+| M4 | Follow-us, 9.5 s | 4:5 navy draft rendered, awaiting approval (see m4-follow/STATUS.md) | On approval: indigo + light, 9:16 + 1:1 |
+| M5 | Weekly offer template | Template + render_offers.py + Yazoo 4:5 draft, awaiting approval | Chat says which offers are live; cover + reel builder |
+| M6 | Website pieces | NOT STARTED | Work on the session branch; note the wheel branch (claude/coco-wheel-us9rh2) redesigns the site palette/type |
+Decisions this session: indigo stays at the #161A5C estimate (Canva background samples as #0D0D43); light theme = cream + navy ink only; M4 end line uses /follow.
 
 What was built for M1 v2 (for reference when extending): sky → peach → navy wipes on 8ths (0, 0.25, 0.5 s); the basket arrives big (1.9×) and tilted −14° and draws fast; three peach slots drop in on 16ths (1.25/1.375/1.5 s) then flip to ink at 1.9 s; the camera pulls back from 1.25× and the basket slides left at 2.0 s; letters rise from 2.3 s (0.08 s stagger); the peach rule streaks in with lead/trail edges at 3.0 s; the tagline rises and tightens its letter-spacing at 3.25 s; slow camera drift to the end. Audio: house bed, whooshes on the wipes, pops on the slots, whoosh on the pull-back, tick on the rule, chime on the tagline.
 

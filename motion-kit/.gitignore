@@ -7,3 +7,8 @@ review-renders/
 # Third-party inputs (Meta logos, admin-view screenshots) — re-fetch from Drive:
 # 05 — Marketing & Content/01 — Photos & Brand/Social Profiles & Official Meta Icons — 2026-09-26/
 m4-follow/inputs/
+m4-follow/assets/
+# Offer artwork pulled from Drive (03 — Campaigns & Exports/04 — September Offers 2026) and pack shots cut from it
+m5-offers/reference/
+m5-offers/packshots/*.png
+site/
