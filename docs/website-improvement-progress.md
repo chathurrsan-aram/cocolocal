@@ -98,3 +98,7 @@ Plan: `docs/superpowers/plans/2026-09-26-homepage-refresh.md`. Screenshots: `doc
 - Photos: audit shortlist only, re-encoded 800/1200/2400 WebP without metadata (`scripts/prepare-homepage-assets.mjs`). Navbar now uses the approved transparent logo. Slushie reel and logo reveal are decorative, < 0.5 MB each, muted, poster frames, labelled "Illustration".
 - Verified locally on the production build: build + site checks, lint, tests; Lighthouse mobile perf 96–98 / a11y 100, desktop 100 / 100, CLS 0; keyboard tab order all visible; no horizontal overflow at 390px.
 - Still missing: daytime car-park/forecourt photo (none usable; CCTV stills only), a real slushie pour clip, more groceries/world-foods shots. Slushie price not shown: window poster says £1.50, older site copy said £1.20 — needs a decision.
+### Remove wheel password — 26 September 2026
+- `/spin` now loads the wheel directly from `/wheel-demo.html`; removed password form, decryption and lock control. Deleted obsolete encrypted payload; no password or private access file published.
+- Kept demo/non-redeemable labels and noindex. Daily browser limit, UK midnight reset and saved results are unchanged (same script and storage origin/name).
+- Updated production output checks to require the direct iframe and absence of password field. Verified unchanged wheel logic and script/component parsing before preview deployment.
