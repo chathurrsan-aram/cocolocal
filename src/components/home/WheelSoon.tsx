@@ -1,4 +1,5 @@
-// Coco Wheel teaser. Deliberately no link: /spin stays a private preview until launch.
+import Link from "next/link";
+// The demo is open; redeemable prizes are still coming soon.
 export default function WheelSoon() {
   return (
     <section className="wrap wheel-soon" aria-labelledby="wheel-title">
@@ -16,7 +17,8 @@ export default function WheelSoon() {
       <div>
         <p className="eyebrow">Coming soon</p>
         <h2 id="wheel-title">The Coco Wheel.</h2>
-        <p>A little spin for a little treat, launching in store soon. Prizes and rules to be confirmed.</p>
+        <p>A little spin for a little treat. Try the demo while we get the in-store prizes ready.</p>
+        <Link href="/spin" className="text-link">Try the wheel demo →</Link>
       </div>
     </section>
   );

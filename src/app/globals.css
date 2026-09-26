@@ -1160,3 +1160,17 @@ h2,h3,p { text-wrap:pretty; }
   .visit-map, .visit-map iframe { min-height:320px; }
 }
 .text-link svg { display:inline-block; vertical-align:-3px; margin-left:4px; }
+
+/* Chill-break campaign: full artwork and user-controlled film. */
+.chill-break-heading { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:32px; }
+.chill-break-heading h2 { font-size:clamp(2.2rem,4.4vw,3.8rem); }
+.chill-break-heading .eyebrow { margin-bottom:14px; }
+.chill-break-heading .text-link { flex-shrink:0; }
+.chill-break-media { display:grid; grid-template-columns:1.2fr 1fr; gap:clamp(24px,5vw,64px); align-items:center; }
+.chill-break-media figure { margin:0; min-width:0; }
+.chill-break-art img { width:100%; height:auto; display:block; border-radius:var(--radius-media); }
+.chill-break-film video { display:block; width:100%; max-height:700px; background:#090927; border-radius:var(--radius-media); }
+.chill-break-film figcaption { margin-top:12px; color:var(--muted); font-size:.8rem; }
+.chill-break-promo { margin-top:32px; border-left:3px solid var(--cyan); padding-left:20px; }
+.chill-break-promo p { margin-top:8px; }
+@media(max-width:700px) { .chill-break-heading { display:block; }.chill-break-heading .text-link { margin-top:20px; }.chill-break-media { grid-template-columns:1fr; }.chill-break-film { width:100%; max-width:400px; justify-self:center; } }

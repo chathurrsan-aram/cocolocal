@@ -102,3 +102,9 @@ Plan: `docs/superpowers/plans/2026-09-26-homepage-refresh.md`. Screenshots: `doc
 - `/spin` now loads the wheel directly from `/wheel-demo.html`; removed password form, decryption and lock control. Deleted obsolete encrypted payload; no password or private access file published.
 - Kept demo/non-redeemable labels and noindex. Daily browser limit, UK midnight reset and saved results are unchanged (same script and storage origin/name).
 - Updated production output checks to require the direct iframe and absence of password field. Verified unchanged wheel logic and script/component parsing before preview deployment.
+
+### Latest homepage media refresh — 26 September 2026
+- Continued the newer `homepage-refresh` layout (PR #8), replacing the old opening-banner hero with the real, bright `chillers-03` interior photo. Added a full-width “Free parking on site” banner above the hero.
+- Replaced the old slushie photo/small loop section with the existing “Take a little chill break” campaign artwork and the 8-second Higgsfield/API counter-landing clip (`coco-local-slushie-120-8s.mp4`). Placed the pair at the bottom of the homepage. Video is user-controlled, retains audio, preloads no video bytes and has a poster.
+- Preserved the previously requested hero wheel link and open demo access in the newer layout. Removed duplicated old-page fragments left after its prior merge so the page compiles.
+- Source poster: 2026-09-13/new-chat-2/outputs/Coco-Local-Chill-Break.png. Source clip: 2026-09-25/referenced-chatgpt-conversation-this-is-an-2/outputs/coco-local-slushie-120-8s.mp4. Video visually reviewed via sampled frames; existing offer tests pass.

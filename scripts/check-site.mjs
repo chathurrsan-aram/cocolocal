@@ -23,6 +23,7 @@ for (const [route, html] of pages) {
     const href = encoded.replaceAll('&amp;', '&');
     if (!href.startsWith('/') && !href.startsWith('#')) continue;
     const target = new URL(href, `https://cocolocal.co.uk${route}`);
+    if (target.pathname.startsWith('/video/')) { await access(`public${target.pathname}`); checkedLinks++; continue; }
     assert(pages.has(target.pathname), `${route}: missing route ${href}`);
     if (target.hash) {
       assert(pages.get(target.pathname).includes(`id="${decodeURIComponent(target.hash.slice(1))}"`),
@@ -35,6 +36,10 @@ for (const [route, html] of pages) {
     const localPath = src.pathname === '/_next/image' ? src.searchParams.get('url') : src.pathname;
     if (localPath?.startsWith('/images/')) await access(`public${localPath}`);
   }
+}
+// Check media sources/posters as well as linked pages.
+for (const html of pages.values()) {
+  for (const [, asset] of html.matchAll(/(?:src|poster)="(\/video\/[^"]+)"/g)) await access(`public${asset}`);
 }
 const guide = pages.get('/property-guide');
 assert(guide.includes('noindex') && guide.includes('guide-password'), 'Guide must remain private and password gated');
