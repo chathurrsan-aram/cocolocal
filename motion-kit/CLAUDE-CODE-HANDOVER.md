@@ -122,9 +122,12 @@ Updated 26 Sep 2026 (cloud session). Renders: private download page https://clau
 | M1 | Signature reveal, 5 s | DONE: proud/more × navy, indigo, light × 1:1, 4:5, 9:16, sound + silent | — |
 | M2 | Outro family, 3 s | DONE: A address, B website, C wheel, D follow × 3 themes × 3 formats + 1.5 s tails | — |
 | M3 | Intro sting, 2 s | DONE: 3 themes × 3 formats | — |
-| M4 | Follow-us, 9.5 s | 4:5 navy draft rendered, awaiting approval (see m4-follow/STATUS.md) | On approval: indigo + light, 9:16 + 1:1 |
-| M5 | Weekly offer template | Template + render_offers.py + Yazoo 4:5 draft, awaiting approval | Chat says which offers are live; cover + reel builder |
-| M6 | Website pieces | NOT STARTED | Work on the session branch; note the wheel branch (claude/coco-wheel-us9rh2) redesigns the site palette/type |
+| M4 | Follow-us v1, 9.5 s | Draft kept as an alternative (Chat liked it but wanted real clicks) | — |
+| M4b | Follow Us v2, 12 s (m6-follow-v2/) | 4:5 navy draft, awaiting approval | On approval: 9:16 + 1:1 |
+| M7 | Coco Wheel: Win / Lose / How to enter (m7-wheel/) | 4:5 navy drafts, awaiting approval; built from the real /wheel page (branch claude/coco-wheel-us9rh2) | On approval: 9:16 + 1:1; post once /wheel is live |
+| M5 | Weekly offers: single card + drinks reel (m5-offers/) | Reel draft (4 drinks offers, 23 s) awaiting approval; all offers live | On approval: 9:16 + 1:1; weekly: edit offers.json → render_reel.py |
+| M6 | Website pieces | /follow has a Spin the Coco Wheel button; WheelLoop component + public/video/wheel loops (not yet placed on a page: /wheel lives on the wheel branch) | Place WheelLoop on /wheel "How it works" and the homepage wheel strip once the wheel branch merges; then footer logo reveal, follow block, offer price drops |
+Music: every piece has its own track now (audio.py styles pop / drive / playful / light / disco with --arr per-bar levels); plan cuts on the beat grid first.
 Decisions this session: indigo stays at the #161A5C estimate (Canva background samples as #0D0D43); light theme = cream + navy ink only; M4 end line uses /follow.
 
 What was built for M1 v2 (for reference when extending): sky → peach → navy wipes on 8ths (0, 0.25, 0.5 s); the basket arrives big (1.9×) and tilted −14° and draws fast; three peach slots drop in on 16ths (1.25/1.375/1.5 s) then flip to ink at 1.9 s; the camera pulls back from 1.25× and the basket slides left at 2.0 s; letters rise from 2.3 s (0.08 s stagger); the peach rule streaks in with lead/trail edges at 3.0 s; the tagline rises and tightens its letter-spacing at 3.25 s; slow camera drift to the end. Audio: house bed, whooshes on the wipes, pops on the slots, whoosh on the pull-back, tick on the rule, chime on the tagline.
