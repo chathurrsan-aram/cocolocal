@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 // The Coco Wheel is live at /wheel (one free spin a week, no purchase needed).
 export default function WheelSoon() {
   return (
@@ -13,11 +14,11 @@ export default function WheelSoon() {
         alt="The Coco Wheel: a prize wheel with coffee, slushie, hot chocolate and snack prizes"
       />
       <div>
-        <p className="eyebrow">New · one free spin a week</p>
+        <span className="sticker">New</span>
         <h2 id="wheel-strip-title">Spin the Coco Wheel.</h2>
-        <p>Win a free coffee, slushie, hot chocolate or a little treat to collect in store. No purchase needed.</p>
-        <Link href="/wheel" className="text-link">Spin the Coco Wheel →</Link>
+        <p>One free spin a week. Win a free coffee, slushie, hot chocolate or a little treat to collect in store. No purchase needed.</p>
       </div>
+      <Link href="/wheel" className="button on-dark">Spin the wheel <ArrowRight size={18} aria-hidden="true" /></Link>
     </section>
   );
 }

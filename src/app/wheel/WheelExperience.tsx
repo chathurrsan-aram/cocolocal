@@ -8,16 +8,18 @@
 // then a gift-box reveal per outcome with confetti on wins. The spin is a pure function of
 // time (src/lib/wheel/motion.ts). Mouse movement tilts the machine, moves the spotlight and
 // the floating props. Reduced motion: no tilt, blur, confetti or bounce; results show at once.
-import { FormEvent, useCallback, useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
-import { Volume2, VolumeX } from "lucide-react";
+import { ArrowDown, Volume2, VolumeX } from "lucide-react";
 import { outcomes, segments, wheelConfig } from "@/data/wheel";
 import { segmentAngle } from "@/lib/wheel/geometry";
+import { detectContact } from "@/lib/wheel/contact";
 import { spinPlan, blurFor, pointerKick, sliceUnder } from "@/lib/wheel/motion";
 import { WheelDisc, WheelPointer, WheelRim, WheelShade, WheelStand } from "./WheelArt";
 import Lever from "./Lever";
 import Reveal from "./Reveal";
+import EntrySheet, { type Details } from "./EntrySheet";
 import { play, setSound, soundPreference } from "./sfx";
 import { savePrizeImage, sendToWhatsApp, type PrizeCard } from "./share";
 
@@ -35,7 +37,7 @@ type SpinResponse =
   | { ok: false; error: string; nextFreeSpinAt?: string; demo?: boolean };
 
 type Phase = "idle" | "loading" | "spinning" | "respin" | "result";
-type Bulbs = "idle" | "chase" | "win" | "dim";
+type Bulbs = "intro" | "idle" | "chase" | "win" | "dim";
 type Saved = Extract<SpinResponse, { ok: true }> & { redeemed?: boolean };
 type Status = { available: boolean; demo?: boolean; freeSpinUsed?: boolean; nextFreeSpinAt?: string; lastResult?: Saved | null };
 type Card =
@@ -59,6 +61,8 @@ const ERRORS: Record<string, string> = {
   "rate-limited": "That’s a lot of spins in a minute. Please wait a moment and try again.",
   unavailable: "The Coco Wheel isn’t open just now. Please try again later.",
 };
+// Problems with what was typed in the pop-up reopen it; anything else shows beside the wheel.
+const SHEET_ERRORS = new Set(["invalid-name", "invalid-contact", "bonus-invalid", "bonus-used"]);
 const looksLikeBonus = (v: string) => /^(bonus)?[\s-]*[2-9a-hjkmnp-z]{6}$/i.test(v.trim().replace(/[\s-]/g, ""));
 
 export default function WheelExperience() {
@@ -67,24 +71,22 @@ export default function WheelExperience() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
   const reduce = hydrated && prefersReduced;
-  const formId = useId();
-  const form = useRef<HTMLFormElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [card, setCard] = useState<Card | null>(null);
-  const [bulbs, setBulbs] = useState<Bulbs>("idle");
+  const [bulbs, setBulbs] = useState<Bulbs>("intro"); // bulbs light up in turn on arrival (CSS)
   const [highlight, setHighlight] = useState<number | null>(null);
   const [landed, setLanded] = useState<{ text: string; win: boolean } | null>(null);
   const [error, setError] = useState("");
   const [slow, setSlow] = useState(false);
   const [announce, setAnnounce] = useState("");
   const [status, setStatus] = useState<Status | null>(null);
-  const [details, setDetails] = useState({ firstName: "", contactType: "email" as "email" | "mobile", contact: "", marketingOptIn: false });
+  const [details, setDetails] = useState<Details>({ firstName: "", contact: "", marketingOptIn: false });
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [bonusCode, setBonusCode] = useState("");
   const [bonusOpen, setBonusOpen] = useState(false);
   const [sound, setSoundState] = useState(false);
   const respinToken = useRef<string | null>(null);
   const lastSavedAt = useRef<string | null>(null);
-  const bonusInput = useRef<HTMLInputElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const wheelEl = useRef<HTMLDivElement>(null);
   const backCanvas = useRef<HTMLCanvasElement>(null);
@@ -117,7 +119,7 @@ export default function WheelExperience() {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-      if (saved) setDetails(d => ({ ...d, firstName: saved.firstName ?? "", contactType: saved.contactType === "mobile" ? "mobile" : "email", contact: saved.contact ?? "" }));
+      if (saved) setDetails(d => ({ ...d, firstName: saved.firstName ?? "", contact: saved.contact ?? "" }));
     } catch { /* storage blocked */ }
     setSoundState(soundPreference()); // shown as on; audio itself starts on the next tap
     // Sets the device cookie, and brings back a prize or re-spin from an earlier visit
@@ -134,6 +136,8 @@ export default function WheelExperience() {
         setPhase("respin");
       }
     }).catch(() => setStatus({ available: true }));
+    const settle = setTimeout(() => setBulbs(b => (b === "intro" ? "idle" : b)), 1900);
+    return () => clearTimeout(settle);
   }, []);
 
   // Confetti on two canvases: one behind the wheel, one in front of the result card.
@@ -212,14 +216,19 @@ export default function WheelExperience() {
   const busy = phase === "loading" || phase === "spinning";
   const bonusReady = looksLikeBonus(bonusCode);
 
-  async function submit(event?: FormEvent) {
-    event?.preventDefault();
+  async function submit() {
     if (busy) return;
     setError("");
+    setSheetOpen(false);
+    if (sound) setSound(true); // resume audio inside the tap
     const isRespin = phase === "respin" && respinToken.current;
-    const body = isRespin ? { respinToken: respinToken.current } : { ...details, bonusCode: bonusCode.trim() || undefined };
+    const contact = detectContact(details.contact);
+    const body = isRespin ? { respinToken: respinToken.current } : {
+      firstName: details.firstName.trim(), contactType: contact.kind ?? "email", contact: contact.value ?? details.contact,
+      marketingOptIn: details.marketingOptIn, bonusCode: bonusCode.trim() || undefined,
+    };
     if (!isRespin) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ firstName: details.firstName, contactType: details.contactType, contact: details.contact })); } catch { /* ignore */ }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ firstName: details.firstName.trim(), contact: contact.display ?? details.contact })); } catch { /* ignore */ }
     }
     setPhase("loading");
     setHighlight(null);
@@ -250,6 +259,10 @@ export default function WheelExperience() {
       }
       setError(ERRORS[data.error] ?? "Something went wrong. Please try again.");
       setPhase(respinToken.current ? "respin" : "idle");
+      if (SHEET_ERRORS.has(data.error)) {
+        if (data.error.startsWith("bonus")) setBonusOpen(true);
+        setSheetOpen(true);
+      }
       return;
     }
 
@@ -299,7 +312,7 @@ export default function WheelExperience() {
     setLanded(null);
     if (openBonus) {
       setBonusOpen(true);
-      setTimeout(() => bonusInput.current?.focus(), 50);
+      setSheetOpen(true);
     }
   }
 
@@ -310,80 +323,54 @@ export default function WheelExperience() {
     if (next) play("pop", 0.7);
   }
 
-  function pullLever() {
-    if (busy) return;
-    const f = form.current;
+  const unavailable = Boolean(status && !status.available);
+  const known = Boolean(details.firstName.trim() && detectContact(details.contact).value);
+  const needsBonus = Boolean(status?.freeSpinUsed) && !bonusReady;
+
+  /** Lever, SPIN hub or the big button: spin straight away if we know who you are, otherwise ask first. */
+  function start() {
+    if (busy || unavailable) return;
     if (phase === "respin") { submit(); return; }
-    if (f && !f.reportValidity()) return;
-    f?.requestSubmit();
+    if (card) backToWheel();
+    if (!known || needsBonus) {
+      setError("");
+      if (needsBonus) setBonusOpen(true);
+      setSheetOpen(true);
+      return;
+    }
+    submit();
   }
 
-  const unavailable = Boolean(status && !status.available);
+  function notYou() {
+    setDetails({ firstName: "", contact: "", marketingOptIn: false });
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    setError("");
+    setSheetOpen(true);
+  }
+
   const leverLabel = phase === "respin" ? "Pull the lever to spin again" : "Pull the lever to spin the wheel";
+  const cta = phase === "respin" ? "Spin again" : status?.freeSpinUsed ? "Spin with a bonus code" : "Spin the wheel";
 
   return (
-    <section id="spin" className="wrap wheel-play" aria-labelledby="spin-heading">
-      <div className="wheel-panel">
-        <p className="eyebrow">YOUR SPIN</p>
-        <h2 id="spin-heading">Pop in your details, then pull the lever.</h2>
+    <section id="spin" className="wrap wheel-open" aria-labelledby="wheel-title">
+      <div className="wheel-open-copy">
+        <h1 id="wheel-title">Spin the <span>Coco Wheel</span></h1>
+        <p className="wheel-open-sub">One free spin every week. Win a coffee, a slushie or a little treat, then collect it in store.</p>
+        {unavailable ? <p className="wheel-note">{ERRORS.unavailable}</p> : (
+          <div className="actions">
+            <button type="button" className="button" onClick={start} disabled={busy}>{cta}</button>
+            <a href="#how-it-works" className="text-link">How it works <ArrowDown size={16} aria-hidden="true" /></a>
+          </div>
+        )}
+        {known && !unavailable && phase !== "respin" && (
+          <p className="wheel-who">Spinning as <strong>{details.firstName.trim()}</strong> <button type="button" className="link-button" onClick={notYou}>Not you?</button></p>
+        )}
+        {status?.freeSpinUsed && status.nextFreeSpinAt && !card && (
+          <p className="wheel-note">You’ve had this week’s free spin. The next one unlocks on {dayText(status.nextFreeSpinAt)}. Spent over {wheelConfig.bonusMinimumSpend}? Ask at the till for a bonus code.</p>
+        )}
+        {error && !sheetOpen && <p className="wheel-error" role="alert">{error}</p>}
         {status?.demo && <p className="wheel-demo">Preview demo: spins and codes here aren’t saved.</p>}
-        {status?.freeSpinUsed && status.nextFreeSpinAt && (
-          <p className="wheel-note">You’ve had this week’s free spin. Your next one unlocks on {dayText(status.nextFreeSpinAt)}. Got a bonus code from the till? Add it below.</p>
-        )}
-        {unavailable ? (
-          <p className="wheel-note">{ERRORS.unavailable}</p>
-        ) : (
-          <form ref={form} id={formId} className="wheel-form" onSubmit={e => { submit(e); if (sound) setSound(true); }}>
-            <label className="field">
-              <span>First name</span>
-              <input name="firstName" autoComplete="given-name" required maxLength={40} value={details.firstName}
-                onChange={e => setDetails({ ...details, firstName: e.target.value })} />
-            </label>
-            <fieldset className="field">
-              <legend>How can we recognise you?</legend>
-              <div className="segmented" role="radiogroup" aria-label="Email or mobile">
-                {(["email", "mobile"] as const).map(t => (
-                  <label key={t} className={details.contactType === t ? "on" : ""}>
-                    <input type="radio" name="contactType" value={t} checked={details.contactType === t}
-                      onChange={() => setDetails({ ...details, contactType: t, contact: "" })} />
-                    {t === "email" ? "Email" : "Mobile"}
-                  </label>
-                ))}
-              </div>
-              <input aria-label={details.contactType === "email" ? "Email address" : "UK mobile number"} required
-                type={details.contactType === "email" ? "email" : "tel"} inputMode={details.contactType === "email" ? "email" : "tel"}
-                autoComplete={details.contactType === "email" ? "email" : "tel"}
-                placeholder={details.contactType === "email" ? "you@example.com" : "07… mobile number"}
-                value={details.contact} onChange={e => setDetails({ ...details, contact: e.target.value })} />
-              <small>We use this to keep it to one free spin a person each week. We won’t message you unless you tick the box below.</small>
-            </fieldset>
-            <label className="check">
-              <input type="checkbox" checked={details.marketingOptIn} onChange={e => setDetails({ ...details, marketingOptIn: e.target.checked })} />
-              <span>Send me Coco Local offers and news by {details.contactType === "email" ? "email" : "text"}. Optional. You can still spin without this, and you can stop them any time.</span>
-            </label>
-            <div className="bonus">
-              <button type="button" className="bonus-toggle" aria-expanded={bonusOpen} onClick={() => setBonusOpen(o => !o)}>
-                Got a bonus code from the till?
-              </button>
-              {bonusOpen && (
-                <label className="field">
-                  <span>Bonus code</span>
-                  <input ref={bonusInput} value={bonusCode} autoCapitalize="characters" autoComplete="off" placeholder="BONUS-XXXXXX"
-                    onChange={e => setBonusCode(e.target.value)} />
-                  <small>Spend over {wheelConfig.bonusMinimumSpend} in store and ask for one. Each code gives one extra spin.</small>
-                </label>
-              )}
-              <AnimatePresence>
-                {bonusReady && (
-                  <motion.span className="bonus-chip" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.6, opacity: 0 }} transition={CARD_POP}>Bonus spin ready</motion.span>
-                )}
-              </AnimatePresence>
-            </div>
-            {error && <p className="wheel-error" role="alert">{error}</p>}
-            <p className="wheel-small">By spinning you confirm you’re {wheelConfig.minimumAge} or over and agree to the <Link href="/wheel/terms">terms (draft)</Link>. See our <Link href="/wheel/privacy">privacy notice (draft)</Link>.</p>
-          </form>
-        )}
+        <p className="wheel-small">{wheelConfig.minimumAge}+. No purchase needed. Online only. Prizes are collected at 210 High Road within {wheelConfig.prizeValidDays} days. <Link href="/wheel/terms">Terms (draft)</Link> · <Link href="/wheel/privacy">Privacy (draft)</Link></p>
       </div>
 
       <motion.div ref={stage} layout={!reduce} transition={reduce ? { duration: 0.2 } : MORPH_SPRING}
@@ -411,11 +398,11 @@ export default function WheelExperience() {
                   <div ref={wheelEl} className={`wheel-rotor-wrap bulbs-${bulbs}`}>
                     <WheelRim />
                     <motion.div className="wheel-rotor" style={{ rotate: rotation }}>
-                      <WheelDisc blur={blur} highlight={highlight} />
+                      <div className="wheel-spin-in"><WheelDisc blur={blur} highlight={highlight} /></div>
                     </motion.div>
                     <WheelShade />
                     <motion.div className="wheel-pointer" style={{ rotate: pointer }}><WheelPointer /></motion.div>
-                    <motion.button type="submit" form={formId} className={`wheel-hub ${phase}`} disabled={unavailable || busy}
+                    <motion.button type="button" onClick={start} className={`wheel-hub ${phase}`} disabled={unavailable || busy}
                       aria-label={phase === "respin" ? "Spin again" : "Spin the wheel"}
                       whileHover={idle && !reduce ? { scale: 1.06 } : undefined}
                       whileTap={idle && !reduce ? { scale: 0.94 } : undefined}
@@ -435,13 +422,13 @@ export default function WheelExperience() {
                   </div>
                   <WheelStand />
                 </motion.div>
-                <Lever disabled={unavailable || busy} reduce={reduce} onPull={pullLever} label={leverLabel} />
+                <Lever disabled={unavailable || busy} reduce={reduce} onPull={start} label={leverLabel} />
               </div>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.p key={landed ? `l-${landed.text}` : phase} className={`wheel-caption ${landed?.win ? "is-win" : ""}`} aria-live="polite"
                   initial={reduce ? false : landed ? { opacity: 0, scale: 0.6, y: 6 } : { opacity: 0, y: 4 }} animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, transition: { duration: 0.12 } }} transition={landed ? { type: "spring", stiffness: 420, damping: 16 } : { duration: 0.2 }}>
-                  {landed ? landed.text : slow ? "Still working on it…" : phase === "respin" ? "Spin again: you get one more go." : phase === "spinning" || phase === "loading" ? "Good luck…" : "Pull the lever or tap SPIN. One free spin a week."}
+                  {landed ? landed.text : slow ? "Still working on it…" : phase === "respin" ? "Spin again: you get one more go." : phase === "spinning" || phase === "loading" ? "Good luck…" : "Pull the lever or tap SPIN."}
                 </motion.p>
               </AnimatePresence>
             </motion.div>
@@ -456,6 +443,11 @@ export default function WheelExperience() {
         <canvas ref={frontCanvas} className="confetti-front" aria-hidden="true" />
         <p className="sr-only" aria-live="assertive">{announce}</p>
       </motion.div>
+
+      <EntrySheet open={sheetOpen} reduce={reduce} details={details} onChange={setDetails}
+        bonusCode={bonusCode} onBonusChange={setBonusCode} bonusOpen={bonusOpen} onBonusOpen={setBonusOpen} bonusReady={bonusReady}
+        freeSpinUsedUntil={status?.freeSpinUsed && status.nextFreeSpinAt ? dayText(status.nextFreeSpinAt) : undefined} known={known}
+        error={error} onSubmit={submit} onClose={() => setSheetOpen(false)} />
     </section>
   );
 }
@@ -473,7 +465,7 @@ function ResultCard({ card, onBack, reduce, onOpen }: { card: Card; onBack: (ope
   if (card.kind === "blocked") {
     return (
       <>
-        <p className="eyebrow">THIS WEEK’S SPIN</p>
+        <span className="result-badge">This week’s spin</span>
         <h3>{card.reason === "device-used" ? "This device has had this week’s free spin." : "You’ve had this week’s free spin."}</h3>
         <p>Your next free spin unlocks on <strong>{dayText(card.next)}</strong>.</p>
         <p>Spent over {wheelConfig.bonusMinimumSpend} in store? Ask at the till for a bonus code for an extra spin.</p>
@@ -492,7 +484,7 @@ function ResultCard({ card, onBack, reduce, onOpen }: { card: Card; onBack: (ope
     return (
       <>
         <Reveal art={art} tone="lose" reduce={instant} />
-        <Stagger i={0} show={show} reduce={instant}><p className="eyebrow">NOT THIS TIME</p><h3>Not this time, {card.firstName}.</h3></Stagger>
+        <Stagger i={0} show={show} reduce={instant}><span className="result-badge">Not this time</span><h3>Not this time, {card.firstName}.</h3></Stagger>
         <Stagger i={1} show={show} reduce={instant}><p>{outcome?.reveal?.line} Your next free spin unlocks on <strong>{dayText(card.next)}</strong>.</p></Stagger>
         <Stagger i={2} show={show} reduce={instant}>
           {card.bonusStillAvailable
@@ -508,7 +500,7 @@ function ResultCard({ card, onBack, reduce, onOpen }: { card: Card; onBack: (ope
   return (
     <>
       <Reveal art={art} tone="win" reduce={instant} onOpen={instant ? undefined : onOpen} />
-      <Stagger i={0} show={show} reduce={instant}><p className="eyebrow win-eyebrow">YOU WON</p><h3 className="win-title">{card.prize.label}</h3></Stagger>
+      <Stagger i={0} show={show} reduce={instant}><span className="result-badge">You won</span><h3 className="win-title">{card.prize.label}</h3></Stagger>
       <Stagger i={1} show={show} reduce={instant}><p>{outcome?.reveal?.line} {card.prize.claim}</p></Stagger>
       <Stagger i={2} show={show} reduce={instant}>
         <motion.p ref={chip} className="prize-code" aria-label={`Prize code ${card.prize.code.split("").join(" ")}`}

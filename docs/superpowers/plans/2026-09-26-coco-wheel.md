@@ -46,3 +46,11 @@ The owner asked for a much livelier wheel, closer to the Higgsfield artwork. Thi
 - Prize props are cut from `Introducing-wheel-poster.png` with rembg (u2net) into `public/wheel/props/`. Coins and crisps are drawn in SVG.
 - Each outcome's `reveal` in `src/data/wheel.ts` picks its picture and line.
 - Reduced motion turns off tilt, blur, confetti, bounce and floats, and results appear at once.
+
+## Warm daylight redesign (owner's follow-up, 26 Sep 2026)
+
+The owner felt the site had "so much dark blue" and looked AI-generated. Their choices: warm shop daylight look, whole site, wheel first then a quick pop-up, one smart contact box.
+
+- **Site-wide:** cream paper (`--paper`) and ink text, one cobalt accent (`--accent`), and peach from the logo for highlights (a marker stroke under the key heading phrase, the parking band and callouts). Gold appears only on wheel wins. Navy is kept for the wheel stage, the homepage wheel strip and the footer. Type is Bricolage Grotesque for headings and Figtree for body text. Shapes: pills for buttons, chips and tags; 16px for cards and media; 12px for inputs. There are fewer eyebrows, the ink logo sits in the header and the white logo in the footer. Motion: the hero settles in, cards lift on hover, and cards rise into place as they scroll into view (movement only, no fade; CSS scroll timelines, no JS). Reduced motion switches all of it off.
+- **/wheel:** the opening screen is just the headline and the machine. On arrival the stage lifts in, the wheel coasts round, the bulbs light in turn and the lever drops in and gives a small tug (CSS, so it runs before hydration). The lever, the SPIN hub or the button opens a short pop-up (`EntrySheet.tsx`, a bottom sheet on phones) the first time. After that the wheel spins straight away, with a "Spinning as Sam · Not you?" line. Once the free spin is used, the pop-up asks only for a bonus code. The Higgsfield clip moved down to "How it works".
+- **One contact box:** `src/lib/wheel/contact.ts` works out email or UK mobile as you type, using the same normalisers the server uses (core.ts re-exports them). It ticks the value when it is valid and tidies the format on blur (`07700 900123`). Tested in `scripts/wheel-contact.test.mjs`.

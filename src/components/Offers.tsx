@@ -21,7 +21,7 @@ export default function Offers() {
     <section id="offers" className="offers-section" aria-labelledby="offers-title">
       <div className="wrap section">
         <div className="section-heading">
-          <div><p className="eyebrow">This week at Coco Local</p><h2 id="offers-title">Offers worth popping in for.</h2></div>
+          <div><h2 id="offers-title">Offers worth popping in for.</h2></div>
           <p className="offers-intro">All offers are in store only.</p>
         </div>
         <ul className="promo-row" aria-label="Every week">

@@ -14,7 +14,7 @@ export default function Navbar() {
         setOpen(false);
         trigger.current?.focus();
     } }}>
- <Link href="/" aria-label="Coco Local home"><Image src="/images/home/logo-approved-600.webp" alt="Coco Local" width={600} height={184} priority className="site-logo"/></Link>
+ <Link href="/" aria-label="Coco Local home"><Image src="/images/home/logo-ink-600.webp" alt="Coco Local" width={600} height={184} priority className="site-logo"/></Link>
  <div className="desktop-nav">{navigation.map(l => <Link key={l.href} href={l.href} aria-current={pathname === l.href ? "page" : undefined}>{l.label}</Link>)}<a className="button small" href={shop.directions}>Get directions <ArrowUpRight size={16}/></a></div>
  <button ref={trigger} className="menu-toggle" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
  <div id="mobile-nav" className="mobile-nav" hidden={!open}>{navigation.map(l => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} aria-current={pathname === l.href ? "page" : undefined}>{l.label}</Link>)}<a href={shop.telephone}>Call {shop.phone}</a></div>

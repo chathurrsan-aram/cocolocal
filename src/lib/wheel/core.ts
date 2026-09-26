@@ -87,20 +87,7 @@ export function londonWeek(now: Date) {
 
 // ---- Contact details ----
 
-export function normaliseEmail(raw: string) {
-  const email = String(raw ?? '').trim().toLowerCase();
-  if (email.length > 254) return null;
-  return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/.test(email) ? email : null;
-}
-
-export function normaliseUkMobile(raw: string) {
-  let digits = String(raw ?? '').trim().replace(/\(0\)/g, '').replace(/[\s().-]/g, '');
-  if (!/^\+?\d+$/.test(digits)) return null;
-  if (digits.startsWith('+')) digits = digits.slice(1);
-  else if (digits.startsWith('00')) digits = digits.slice(2);
-  else if (digits.startsWith('0')) digits = `44${digits.slice(1)}`;
-  return /^447\d{9}$/.test(digits) ? `+${digits}` : null;
-}
+export { normaliseEmail, normaliseUkMobile } from './contact.ts';
 
 // ---- Codes ----
 
