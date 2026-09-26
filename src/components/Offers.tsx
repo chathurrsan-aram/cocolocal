@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import PriceDrop from "./motion/PriceDrop";
 
 const offers = [
   {
@@ -55,12 +56,12 @@ export default function Offers() {
           <p className="offers-intro">Find these offers in store.<br/>Select a design for a closer look.</p>
         </div>
         <div className="offers-grid">
-          {active.map(offer => (
+          {active.map((offer, i) => (
             <article className="offer-card" key={offer.id}>
               <button className="offer-art" aria-label={`Enlarge ${offer.title} offer`} onClick={() => {setSelected(offer); dialog.current?.showModal();}}>
                 <Image src={`/images/offers/${offer.id}.webp`} alt={`${offer.title}: ${offer.price}`} fill sizes="(max-width: 700px) 90vw, (max-width: 1000px) 45vw, 380px"/>
               </button>
-              <div className="offer-copy"><h3>{offer.title}</h3><p className="offer-price">{offer.price}</p><p>{offer.detail}</p><p className="offer-terms">{offer.terms}</p></div>
+              <div className="offer-copy"><h3>{offer.title}</h3><PriceDrop className="offer-price" index={i}>{offer.price}</PriceDrop><p>{offer.detail}</p><p className="offer-terms">{offer.terms}</p></div>
             </article>
           ))}
         </div>
