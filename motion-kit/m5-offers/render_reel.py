@@ -16,7 +16,7 @@ def panel_colour(p):
     return "#%02X%02X%02X" % tuple(sum(c[i] for c in px) // 4 for i in range(3))
 def sh(*a): subprocess.run(a, check=True)
 ap = argparse.ArgumentParser(); ap.add_argument("file", nargs="?", default=str(H / "offers.json")); ap.add_argument("--ids")
-ap.add_argument("--formats", default="1080x1350,1080x1920"); ap.add_argument("--stills"); a = ap.parse_args()
+ap.add_argument("--formats", default="1080x1350,1080x1920"); ap.add_argument("--stills"); ap.add_argument("--theme", default="navy-dark"); a = ap.parse_args()
 data = json.loads(pathlib.Path(a.file).read_text()); by = {o["id"]: o for o in data["offers"]}
 ids = a.ids.split(",") if a.ids else data["reel"]
 if not 1 <= len(ids) <= 6: raise SystemExit("pick 1–6 offers for a reel")
@@ -46,12 +46,12 @@ sh("python3", str(K / "tools/audio.py"), "synth", "--bpm", str(BPM), "--bars", s
    "--events", str(evf), "--out", str(wav), "--grid", str(work / "reel-grid.json"))
 tpl = (H / "reel.html").read_text().replace("__REEL__", json.dumps(dict(bpm=BPM, offers=offers)))
 tmp = H / "_reel.tmp.html"; tmp.write_text(tpl)
-built = f"build/offers-reel-{n}.built.html"
-sh("python3", str(K / "tools/build_piece.py"), "--piece", str(tmp.relative_to(K)), "--theme", "navy-dark", "--out", built, "--img", f"IMG_SHOP={(H / 'shopfront.webp').relative_to(K)}")
+built = f"build/offers-reel-{n}-{a.theme}.built.html"
+sh("python3", str(K / "tools/build_piece.py"), "--piece", str(tmp.relative_to(K)), "--theme", a.theme, "--out", built, "--img", f"IMG_SHOP={(H / 'shopfront.webp').relative_to(K)}")
 tmp.unlink()
 exp = K / "exports/m5-offers"; exp.mkdir(parents=True, exist_ok=True)
 for wh in a.formats.split(","):
-    w, h = wh.split("x"); base = exp / f"coco-offers-reel-{n}-{wh}"
+    w, h = wh.split("x"); base = exp / f"coco-offers-reel-{n}-{a.theme}-{wh}"
     if a.stills:
         sh("python3", str(K / "tools/render.py"), "stills", "--html", str(K / built), "--w", w, "--h", h, "--outdir", f"{base}-stills", *a.stills.split(",")); continue
     sh("python3", str(K / "tools/render.py"), "video", "--html", str(K / built), "--w", w, "--h", h, "--dur", f"{dur:.3f}", "--out", f"{base}.raw.mp4")

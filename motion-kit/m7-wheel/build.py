@@ -23,7 +23,7 @@ else:
              title=b(10.5), shrink=99, code=99, tip=b(11), end=b(16), kicks=[2, 4, 12, 16], confetti=[],
              badgeText="SO CLOSE!", heroTitle="Not this time", heroAR=310 / 366, winProp="",
              steps=[[b(12), "Try again next week"], [b(13), "Spent £10+? Ask at the till for a bonus spin."]])
-    hero = K / "brand/basket-white.svg"
+    hero = K / ("brand/basket-navy.svg" if theme == "light" else "brand/basket-white.svg")
 cfg = json.dumps(C).replace('"codeText": "COCO-EVNK"', '"codeText": "COCO-EVNK"')
 s = (H / "piece.html").read_text().replace("__CONFIG__", cfg).replace("__PROPS__", json.dumps(PROPS)).replace("$('codeT').textContent=C.code||'';", "$('codeT').textContent=C.codeText||'';")
 tmp = H / f"_piece-{mode}.html"; tmp.write_text(s)

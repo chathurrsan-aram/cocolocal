@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 __FONTFACES__
-:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__;--yellow:#FFE36B}
+:root{--peachT:__PEACHT__;--yellowT:__YELLOWT__;--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__;--yellow:#FFE36B}
 html,body{margin:0;background:var(--final);overflow:hidden}
 svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
 </style></head><body>
@@ -43,7 +43,7 @@ svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
   <line id="eRule" stroke="var(--peach)" stroke-linecap="round"/>
   <text id="e1" fill="var(--ink)" text-anchor="middle">One free spin every week</text>
   <text id="e2" fill="var(--ink)" text-anchor="middle" font-weight="500" opacity=".8">No purchase needed</text>
-  <text id="e3" fill="var(--peach)" text-anchor="middle" font-weight="500">cocolocal.co.uk/wheel</text>
+  <text id="e3" fill="var(--peachT)" text-anchor="middle" font-weight="500">cocolocal.co.uk/wheel</text>
 </g>
 </svg>
 <script>
@@ -80,13 +80,13 @@ for(let i=0;i<18;i++){const a0=(i*20-4)*Math.PI/180,a1=(i*20+4)*Math.PI/180,R=U(
   mk('path',{d:`M0,0 L${R*Math.cos(a0)},${R*Math.sin(a0)} L${R*Math.cos(a1)},${R*Math.sin(a1)} Z`,fill:'url(#rayG)'},$('rays'));}
 A($('halo'),{cx:HX,cy:HY,r:U(360)});
 A($('heroImg'),{x:-HW/2,y:-HW*C.heroAR/2,width:HW,height:HW*C.heroAR});
-A($('badgeT'),{'font-size':U(C.mode==='win'?46:110),'letter-spacing':U(C.mode==='win'?4:2),fill:C.mode==='win'?'#0F1A33':'var(--peach)','font-weight':700});
+A($('badgeT'),{'font-size':U(C.mode==='win'?46:110),'letter-spacing':U(C.mode==='win'?4:2),fill:C.mode==='win'?'#0F1A33':'var(--peachT)','font-weight':700});
 $('badgeT').textContent=C.badgeText;
-const hT=[...C.heroTitle].map((ch,i)=>{const e=mk('text',{'font-size':U(C.mode==='win'?84:74),'font-weight':700,fill:C.mode==='win'?'var(--yellow)':'var(--ink)'},$('hTitleG'),ch); e.style.whiteSpace='pre'; return e;});
+const hT=[...C.heroTitle].map((ch,i)=>{const e=mk('text',{'font-size':U(C.mode==='win'?84:74),'font-weight':700,fill:C.mode==='win'?'var(--yellowT)':'var(--ink)'},$('hTitleG'),ch); e.style.whiteSpace='pre'; return e;});
 A($('codeR'),{rx:U(18),'stroke-width':U(4)}); A($('codeT'),{'font-size':U(66),'letter-spacing':U(10)}); $('codeT').textContent=C.code||'';
 const stepEls=C.steps.map(([t0,txt],i)=>{const g=mk('g',{},$('steps'));
   if(C.mode==='win'){mk('circle',{r:U(19),fill:'var(--peach)'},g); mk('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':U(22),fill:'#0F1A33'},g,String(i+1));}
-  mk('text',C.mode==='win'?{x:U(34),'font-size':U(34),fill:'var(--ink)','dominant-baseline':'central'}:{'text-anchor':'middle','font-size':U(i?32:46),'font-weight':i?500:700,fill:i?'var(--ink)':'var(--peach)','dominant-baseline':'central'},g,txt);
+  mk('text',C.mode==='win'?{x:U(34),'font-size':U(34),fill:'var(--ink)','dominant-baseline':'central'}:{'text-anchor':'middle','font-size':U(i?32:46),'font-weight':i?500:700,fill:i?'var(--ink)':'var(--peachT)','dominant-baseline':'central'},g,txt);
   return g;});
 // confetti: deterministic bursts (closed-form flight with drag + gravity, flutter)
 const COLS=['#FEC091','#FFE36B','#8EA9DC','#FFFFFF','#F28C6B','#B2C1EE'];

@@ -13,7 +13,8 @@ ap = argparse.ArgumentParser(); ap.add_argument("--piece", required=True); ap.ad
 ap.add_argument("--img", action="append", default=[]); ap.add_argument("--out", required=True); a = ap.parse_args()
 navy, fin, ink, peach, lock = THEMES[a.theme]
 s = (K / a.piece).read_text()
-for k, v in {"__BG__": "#ECEAE7", "__NAVY__": navy, "__FINAL__": fin, "__INK__": ink, "__PEACH__": peach, "__LOCKUP__": uri(K / "brand" / lock)}.items():
+TEXT = {"navy-dark": ("#FEC091", "#FFE36B", "#B2C1EE"), "indigo-dark": ("#FEC091", "#FFE36B", "#B2C1EE"), "light": ("#B25A22", "#0F1A33", "#46557F")}   # peach / yellow / lavender used as TEXT
+for k, v in {"__LOCKUP_WHITE__": uri(K / "brand/logo-lockup-white.svg"), "__PEACHT__": TEXT[a.theme][0], "__YELLOWT__": TEXT[a.theme][1], "__LAVT__": TEXT[a.theme][2], "__BG__": "#ECEAE7", "__NAVY__": navy, "__FINAL__": fin, "__INK__": ink, "__PEACH__": peach, "__LOCKUP__": uri(K / "brand" / lock)}.items():
     s = s.replace(k, v)
 for spec in a.img:
     key, path = spec.split("=", 1); s = s.replace(f"__{key}__", uri(K / path))
