@@ -1,5 +1,5 @@
 {
-  "_help": "One entry per offer. status: live (renders) or sample (only with --samples). price and status are required. alcohol: true adds '18+. Please drink responsibly.' image: a pack shot / photo panel in packshots/ or null for a placeholder. reel: the offer ids (3–5) for the weekly reel, in order.",
+  "_help": "One entry per offer. status: live (renders) or sample (only with --samples). price and status are required. alcohol: true adds '18+. Please drink responsibly.' image: a pack shot / photo panel in packshots/ or null for a placeholder. reel: the offer ids (3–5) for the weekly reel, in order. products: cut-out PNGs (prep_cutouts.py) shown and animated in the reel; spin: can (label wraps and turns), bottle (slower turn) or flask (rocks).",
   "part": 1,
   "offers": [
     {
@@ -17,7 +17,11 @@
       "alcohol": false,
       "image": "packshots/yazoo-inspired-300ml.png",
       "image_note": "Cut from the Canva artwork YAZOO - Option 1; swap for a clean pack shot when available",
-      "status": "live"
+      "status": "live",
+      "products": [
+        "packshots/yazoo-inspired-300ml.png"
+      ],
+      "spin": "flask"
     },
     {
       "id": "beer-4pack",
@@ -33,7 +37,14 @@
       "dates": null,
       "alcohol": true,
       "image": "packshots/beer-4pack.jpg",
-      "status": "live"
+      "status": "live",
+      "products": [
+        "cutouts/beer-4pack-1.png",
+        "cutouts/beer-4pack-2.png",
+        "cutouts/beer-4pack-3.png",
+        "cutouts/beer-4pack-4.png"
+      ],
+      "spin": "can"
     },
     {
       "id": "beer-4pints",
@@ -49,7 +60,14 @@
       "dates": null,
       "alcohol": true,
       "image": "packshots/beer-4pints.jpg",
-      "status": "live"
+      "status": "live",
+      "products": [
+        "cutouts/beer-4pints-1.png",
+        "cutouts/beer-4pints-2.png",
+        "cutouts/beer-4pints-3.png",
+        "cutouts/beer-4pints-4.png"
+      ],
+      "spin": "can"
     },
     {
       "id": "wine-lvf",
@@ -65,7 +83,12 @@
       "dates": null,
       "alcohol": true,
       "image": "packshots/wine-lvf.jpg",
-      "status": "live"
+      "status": "live",
+      "products": [
+        "cutouts/wine-lvf-1.png",
+        "cutouts/wine-lvf-2.png"
+      ],
+      "spin": "bottle"
     },
     {
       "id": "wine-mcguigan",
@@ -81,7 +104,12 @@
       "dates": null,
       "alcohol": true,
       "image": "packshots/wine-mcguigan.jpg",
-      "status": "live"
+      "status": "live",
+      "products": [
+        "cutouts/wine-mcguigan-1.png",
+        "cutouts/wine-mcguigan-2.png"
+      ],
+      "spin": "bottle"
     },
     {
       "id": "spirits-35cl",
@@ -97,7 +125,12 @@
       "dates": null,
       "alcohol": true,
       "image": "packshots/spirits-35cl.jpg",
-      "status": "live"
+      "status": "live",
+      "products": [
+        "cutouts/spirits-35cl-1.png",
+        "cutouts/spirits-35cl-2.png"
+      ],
+      "spin": "flask"
     }
   ],
   "reel": [

@@ -29,11 +29,11 @@ DRIVE = {"m1-signature": ("1h06lXaj_iE_FEwC_uUWskjgVuQwqkOXm", "1QUyNksH4dYjCZbG
          "m3-sting": ("1oJuKwz33COS0N2AdbmpltELAf0I2_hcl", "1A0JDB-EpGn3LyeiWC-QTUzk-bj3HcXax")}
 M4, M5, WH = "1XqOaJozQJ54uD0mbR0cwSfhackWY9jjO", "1KE8TomciFsda8w7OMYrzRYF8eTiSMhTT", "12QoeTvLudy6P-jzIdunFTntYkBFDieP6"
 DR = [  # file stem, title, description, Drive folder — newest first
-    ("coco-follow-v2-draft-navy-dark-1080x1350", "Follow Us v2", "12 s · pop 120 BPM. Cursor clicks through /follow, then the real Follow buttons on Instagram and Facebook.", M4),
-    ("coco-wheel-win-draft-navy-dark-1080x1350", "Coco Wheel: Win", "11 s · drive 128 BPM. Lever, spin, drop on Free hot chocolate, then how to redeem.", WH),
-    ("coco-wheel-lose-draft-navy-dark-1080x1350", "Coco Wheel: Lose", "10 s · playful 96 BPM. Near miss, try again next week, bonus spin with £10+.", WH),
-    ("coco-wheel-howto-draft-navy-dark-1080x1350", "Coco Wheel: How to enter", "15 s · light 110 BPM. Bio link → /follow → wheel → name and email → spin → code.", WH),
-    ("coco-offers-reel-draft-navy-1080x1350", "Drinks offers reel", "23 s · disco 124 BPM. Shutter up on the shopfront, 4 drinks deals, address outro.", M5),
+    ("coco-follow-v2-draft-r2-navy-dark-1080x1350", "Follow Us v2", "12 s · pop 120 BPM. Cursor clicks through /follow, then the real Follow buttons on Instagram and Facebook.", M4),
+    ("coco-wheel-win-v2-draft-navy-dark-1080x1350", "Coco Wheel: Win v2", "13 s · drive 128 BPM. Lever, spin, hit + confetti on Free hot chocolate, YOU WON! + fanfare, mug drops on the beat, code and redeem steps.", WH),
+    ("coco-wheel-lose-v2-draft-navy-dark-1080x1350", "Coco Wheel: Lose v2", "12.5 s · playful 96 BPM. Teeters on the slushie line, SO CLOSE!, basket tips over, bounces back: try again next week.", WH),
+    ("coco-wheel-howto-draft-r2-navy-dark-1080x1350", "Coco Wheel: How to enter", "15 s · light 110 BPM. Bio link → /follow → wheel → name and email → spin → code.", WH),
+    ("coco-offers-reel-v2-draft-navy-1080x1350", "Drinks offers reel v2", "23 s · disco 124 BPM. Shutter up, clean cut-out cans spin in with light behind, prices slam on the beat, address outro.", M5),
     ("coco-follow-draft-navy-dark-1080x1350", "Follow Us v1 (alternative)", "9.5 s. The first version with the Follow pill and wheel ending.", M4),
     ("coco-offer-yazoo-draft-navy-1080x1350", "Weekly offer v1 (Yazoo)", "8 s. Single-offer card from offers.json.", M5)]
 up = []; drafts = []

@@ -7,3 +7,9 @@ Everything is captured from the real /wheel page (branch claude/coco-wheel-us9rh
 The real win came up as Free hot chocolate, so the Win motion lands there to match.
 Build: `python3 m7-wheel/build.py win|lose [theme]`, `m7-wheel/build-howto.sh [theme]`. Audio: win-11.25s.wav, lose-10s.wav, howto-15.3s.wav (events-*.json).
 Web: silent 720px loops + posters in the website repo public/video/wheel/ and src/components/WheelLoop.tsx.
+
+## v2 (26 Sep 2026, after Chat's feedback)
+- Prize props (slushie, coffee, hot chocolate, sweets, cookie) are separate layers now (layers/props.json + props/ from the wheel branch public/wheel/props): they bob on the half-note, pop on every beat, go wild during the spin, the winner jumps, and they slump on a loss. stage-bg-noprops.png is the stage without them.
+- Win (7 bars, 13.1 s): LAND b12 = hit + flash + confetti burst · b13 dim + "YOU WON!" slam + fanfare · mug drops slowly b13→b15 onto rotating rays + halo, lands with a squash + confetti rain · "Free hot chocolate" letters b15.5 · code card b18.5 · steps b19.5–21.5 · end b24.
+- Lose (5 bars, 12.5 s): teeters on the slushie line · womp b8 · "SO CLOSE!" slam b9 · basket drops b9.5→b10.5, tips b11 · bounces back b12 with "Try again next week" · bonus line b13 · end b16.
+- Confetti is deterministic closed-form flight (seeded), brand colours. Chat asked for it explicitly (overrides the kit's no-particles rule for these pieces).

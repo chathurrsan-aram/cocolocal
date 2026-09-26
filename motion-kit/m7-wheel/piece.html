@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 __FONTFACES__
-:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__;--yellow:#FFE36B}
 html,body{margin:0;background:var(--final);overflow:hidden}
 svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
 </style></head><body>
@@ -8,28 +8,34 @@ svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
 <defs>
   <clipPath id="stc"><rect id="stcr"/></clipPath>
   <clipPath id="rodc"><rect id="rodcr"/></clipPath>
-  <clipPath id="cardc"><rect id="cardcr"/></clipPath>
+  <radialGradient id="rayG" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(900)"><stop offset="0" stop-color="#FEC091" stop-opacity=".7"/><stop offset=".55" stop-color="#FEC091" stop-opacity=".12"/><stop offset="1" stop-color="#FEC091" stop-opacity="0"/></radialGradient>
+  <radialGradient id="haloG"><stop offset="0" stop-color="#FFE36B" stop-opacity=".55"/><stop offset=".6" stop-color="#FEC091" stop-opacity=".15"/><stop offset="1" stop-color="#FEC091" stop-opacity="0"/></radialGradient>
   <filter id="shw" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".4"/></filter>
   <filter id="csh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".35"/></filter>
+  <filter id="hsh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="24" stdDeviation="18" flood-color="#000" flood-opacity=".45"/></filter>
 </defs>
 <rect id="bg" fill="var(--bg)"/>
 <rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
 <g id="cam">
   <g id="stage" filter="url(#shw)"><g clip-path="url(#stc)">
     <image id="lBg" href="__L_BG__"/>
-    <image id="lRimB" href="__L_RIMB__"/>
-    <image id="lDisc" href="__L_DISC__"/>
-    <image id="lRimF" href="__L_RIMF__"/>
-    <image id="lPtr" href="__L_PTR__"/>
-    <image id="lHub" href="__L_HUB__"/>
-    <g clip-path="url(#rodc)"><image id="lRod" href="__L_ROD__"/></g>
-    <image id="lSlot" href="__L_SLOT__"/>
-    <image id="lKnob" href="__L_KNOB__"/>
+    <g id="props"></g>
+    <image id="lRimB" href="__L_RIMB__"/><image id="lDisc" href="__L_DISC__"/><image id="lRimF" href="__L_RIMF__"/>
+    <image id="lPtr" href="__L_PTR__"/><image id="lHub" href="__L_HUB__"/>
+    <g clip-path="url(#rodc)"><image id="lRod" href="__L_ROD__"/></g><image id="lSlot" href="__L_SLOT__"/><image id="lKnob" href="__L_KNOB__"/>
   </g></g>
-  <g id="card" filter="url(#shw)"><g clip-path="url(#cardc)"><image id="cardImg" href="__CARD__"/></g></g>
+  <rect id="dim" fill="var(--final)"/>
+  <g id="rays"></g>
+  <circle id="halo" fill="url(#haloG)"/>
+  <g id="hero" filter="url(#hsh)"><image id="heroImg" href="__HERO__"/></g>
+  <g id="badge"><rect id="badgeR"/><text id="badgeT" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g id="hTitleG"></g>
+  <g id="codeG"><rect id="codeR" fill="#0B1330" stroke="var(--yellow)"/><text id="codeT" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central" font-weight="700"></text></g>
+  <g id="steps"></g>
   <g id="cursor" filter="url(#csh)"><path d="M0,0 L0,34 L9,26 L15,40 L21,37 L15,24 L27,24 Z" fill="#FFFFFF" stroke="#0F1A33" stroke-width="2.4" stroke-linejoin="round"/></g>
 </g>
-<g id="steps"></g>
+<g id="confetti"></g>
+<rect id="flash" fill="#FFFFFF"/>
 <text id="title" fill="var(--ink)" text-anchor="middle"></text>
 <line id="tRule" stroke="var(--peach)" stroke-linecap="round"/>
 <g id="end">
@@ -42,75 +48,137 @@ svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
 </svg>
 <script>
 "use strict";
-const C=__CONFIG__;   // mode, beat, spin0, land, thetaF, card, steps[[t,text]], end, press, release, knobAt
+const C=__CONFIG__, PROPS=__PROPS__;
 const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5,sq=H/W<1.1;
 const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
 const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);}, NS='http://www.w3.org/2000/svg';
+const mk=(tag,attrs,parent,txt)=>{const e=document.createElementNS(NS,tag);A(e,attrs);if(txt!=null)e.textContent=txt;parent.appendChild(e);return e;};
 function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
-const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:15,z:0.9},lever:{w:18,z:0.8},cam:{w:9,z:0.95},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const SP={morph:{w:20,z:0.8},enter:{w:26,z:1},pop:{w:26,z:0.8},slam:{w:30,z:0.7},slide:{w:18,z:0.88},lever:{w:18,z:0.8},cam:{w:9,z:0.95},land:{w:22,z:0.55},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
 const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2, U=v=>v*k;
-const B=C.beat;
+const B=C.beat, bt=v=>v*B;
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+const kick=(t,t0,amt,dec=7)=>t<t0?0:amt*Math.exp(-(t-t0)*dec);
+const shake=(t,t0,amt)=>{if(t<t0)return[0,0];const e=t-t0,a=amt*Math.exp(-e*9);return[a*Math.sin(e*63),a*Math.cos(e*47)];};
 
 // ---------- layout ----------
 const titleY=U(sq?100:150), titleSm=U(sq?52:62), titleBig=U(96);
-const STW=653.2, STH=555, f=(W-U(120))/STW, sx=U(60), sy=U(sq?170:250);        // stage css → px
+const STW=653.2, STH=555, f=(W-U(120))/STW, sx=U(60), sy=U(sq?170:250);
 const P=(x,y)=>[sx+x*f, sy+y*f];
 A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H}));
 A($('stcr'),{x:sx,y:sy,width:STW*f,height:STH*f,rx:24*f});
 ['lBg','lRimB','lDisc','lRimF','lPtr','lHub','lRod','lSlot','lKnob'].forEach(id=>A($(id),{x:sx,y:sy,width:STW*f,height:STH*f}));
 const DC=P(279.59,260), PV=P(279.6,20), KNOB=P(587.2,176.9);
 A($('rodcr'),{x:sx,y:sy,width:STW*f,height:402*f});
-// result card (captured at 2x of the page stage: 653 css wide)
-const CW=653, CH=C.cardH, cf=Math.min(f,(H-sy-U(C.mode==='win'?250:300))/CH), cw=CW*cf, chh=CH*cf, cx=(W-cw)/2, cy=sy;
-A($('cardImg'),{x:cx,y:cy,width:cw,height:chh}); A($('cardcr'),{x:cx,y:cy,width:cw,height:chh,rx:24*cf});
-// steps (redeem / try-again lines) under the card
-const stepY0=cy+chh+U(C.mode==='win'?64:80);
-C.steps.forEach(([t,txt],i)=>{const g=document.createElementNS(NS,'g');g.id='st'+i;
-  if(C.mode==='win'){const c=document.createElementNS(NS,'circle');A(c,{cx:U(118),cy:stepY0+i*U(58)-U(12),r:U(19),fill:'var(--peach)'});g.appendChild(c);
-    const n=document.createElementNS(NS,'text');A(n,{x:U(118),y:stepY0+i*U(58)-U(12),'text-anchor':'middle','dominant-baseline':'central','font-size':U(22),fill:'#0F1A33'});n.textContent=i+1;g.appendChild(n);}
-  const tx=document.createElementNS(NS,'text');A(tx,C.mode==='win'?{x:U(152),y:stepY0+i*U(58),'font-size':U(34),fill:'var(--ink)'}:{x:W/2,y:stepY0+i*U(62),'text-anchor':'middle','font-size':U(i?30:40),'font-weight':i?500:600,fill:i?'var(--ink)':'var(--peach)'});
-  tx.textContent=txt;g.appendChild(tx);$('steps').appendChild(g);});
-$('title').textContent=''; A($('tRule'),{'stroke-width':U(8)});
+// floating prize props (their own layers, from the /wheel page)
+const PR=PROPS.map((p,i)=>{const el=mk('image',{href:p.href,x:sx+p.x*f,y:sy+p.y*f,width:p.w*f,height:p.h*f},$('props'));
+  return {el,cx:sx+(p.x+p.w/2)*f,cy:sy+(p.y+p.h/2)*f,ph:i*1.7,id:p.id};});
+A($('dim'),{x:-W,y:-H,width:3*W,height:3*H});
+// reveal layout
+const HX=W/2, HY=H*(tall?0.40:0.44), HW=U(C.mode==='win'?460:330);
+for(let i=0;i<18;i++){const a0=(i*20-4)*Math.PI/180,a1=(i*20+4)*Math.PI/180,R=U(1400);
+  mk('path',{d:`M0,0 L${R*Math.cos(a0)},${R*Math.sin(a0)} L${R*Math.cos(a1)},${R*Math.sin(a1)} Z`,fill:'url(#rayG)'},$('rays'));}
+A($('halo'),{cx:HX,cy:HY,r:U(360)});
+A($('heroImg'),{x:-HW/2,y:-HW*C.heroAR/2,width:HW,height:HW*C.heroAR});
+A($('badgeT'),{'font-size':U(C.mode==='win'?46:110),'letter-spacing':U(C.mode==='win'?4:2),fill:C.mode==='win'?'#0F1A33':'var(--peach)','font-weight':700});
+$('badgeT').textContent=C.badgeText;
+const hT=[...C.heroTitle].map((ch,i)=>{const e=mk('text',{'font-size':U(C.mode==='win'?84:74),'font-weight':700,fill:C.mode==='win'?'var(--yellow)':'var(--ink)'},$('hTitleG'),ch); e.style.whiteSpace='pre'; return e;});
+A($('codeR'),{rx:U(18),'stroke-width':U(4)}); A($('codeT'),{'font-size':U(66),'letter-spacing':U(10)}); $('codeT').textContent=C.code||'';
+const stepEls=C.steps.map(([t0,txt],i)=>{const g=mk('g',{},$('steps'));
+  if(C.mode==='win'){mk('circle',{r:U(19),fill:'var(--peach)'},g); mk('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':U(22),fill:'#0F1A33'},g,String(i+1));}
+  mk('text',C.mode==='win'?{x:U(34),'font-size':U(34),fill:'var(--ink)','dominant-baseline':'central'}:{'text-anchor':'middle','font-size':U(i?32:46),'font-weight':i?500:700,fill:i?'var(--ink)':'var(--peach)','dominant-baseline':'central'},g,txt);
+  return g;});
+// confetti: deterministic bursts (closed-form flight with drag + gravity, flutter)
+const COLS=['#FEC091','#FFE36B','#8EA9DC','#FFFFFF','#F28C6B','#B2C1EE'];
+const CF=[]; C.confetti.forEach(([t0,kind],bi)=>{const r=rng(99+bi*7),n=kind==='rain'?90:120;
+  for(let i=0;i<n;i++){const side=i%2?1:-1, el=mk('rect',{width:U(14+r()*10),height:U(8+r()*6),fill:COLS[Math.floor(r()*COLS.length)]},$('confetti'));
+    let x0,y0,vx,vy;
+    if(kind==='rain'){x0=r()*W; y0=-U(40)-r()*U(500); vx=(r()-0.5)*U(160); vy=U(120)+r()*U(220);}
+    else {x0=side<0?-U(20):W+U(20); y0=H*(0.55+r()*0.3); const sp=U(1500+r()*1300), ang=(-60-r()*28)*Math.PI/180; vx=-side*Math.cos(ang)*sp*(0.5+r()*0.6); vy=Math.sin(ang)*sp;}
+    CF.push({el,t0,x0,y0,vx,vy,rot:r()*360,vr:(r()-0.5)*900,fl:6+r()*10,life:kind==='rain'?3.6:3.0});}});
+function drawConfetti(t){const g=U(1900),c=1.4;
+  for(const p of CF){const e=t-p.t0; if(e<0||e>p.life){p.el.style.display='none';continue;} p.el.style.display='inline';
+    const q=(1-Math.exp(-c*e))/c, x=p.x0+p.vx*q, y=p.y0+(p.vy+g/c)*q-g*e/c;
+    const sxl=Math.cos(e*p.fl), op=cl01((p.life-e)/0.6);
+    p.el.setAttribute('transform',`translate(${x},${y}) rotate(${p.rot+p.vr*e}) scale(${sxl},1)`); p.el.style.opacity=op;}}
+$('title').textContent=''; A($('tRule'),{'stroke-width':U(8)}); A($('flash'),{x:0,y:0,width:W,height:H});
 const LW=W*(tall?0.62:0.56), LAR=330/2150, eY=H*0.40;
 A($('lock'),{x:W/2-LW/2,y:eY-LW*LAR/2,width:LW,height:LW*LAR}); A($('eRule'),{'stroke-width':U(10)});
 A($('e1'),{'font-size':U(46)}); A($('e2'),{'font-size':U(32)}); A($('e3'),{'font-size':U(38)});
-
-// cursor keyframes: enter → knob → press → drag down → release → leave
 const OFF=[W+U(80),H*0.8], DRAG=125*f;
 const KF=[[C.press-0.75,OFF[0],OFF[1],0],[C.press-0.08,KNOB[0]+U(4),KNOB[1]+U(4),0],[C.press,KNOB[0]+U(4),KNOB[1]+U(4),1],
   [C.release,KNOB[0]+U(4),KNOB[1]+U(4)+DRAG,1],[C.release+0.1,KNOB[0]+U(4),KNOB[1]+U(4)+DRAG,0],[C.release+0.8,OFF[0],OFF[1]+U(60),0]];
 function cursor(t){ if(t<KF[0][0]||t>KF[KF.length-1][0])return null; let i=0; while(i<KF.length-2&&t>KF[i+1][0])i++;
   const a=KF[i],b=KF[i+1],u=ease(cl01((t-a[0])/(b[0]-a[0]))); return {x:lerp(a[1],b[1],u),y:lerp(a[2],b[2],u),p:lerp(a[3],b[3],u)}; }
-const theta=t=>C.thetaF*(1-Math.pow(1-cl01((t-C.release)/(C.land-C.release)),3));
+// spin: fast start, long slow-down; the lose version teeters on the slushie line before settling
+const theta=t=>{const u=cl01((t-C.release)/(C.land-C.release)); let th=C.thetaF*(1-Math.pow(1-u,3));
+  if(C.mode==='lose'&&t>C.land-0.25){const e=t-(C.land-0.25); th+= -3.5*Math.sin(e*9)*Math.exp(-e*3.2);} return th;};
 const TITLE='Spin the Coco Wheel';
 
 window.seek=function(t){
-  [['w1',0],['w2',B/4],['w3',B/2]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:18,z:1}))));
-  // title types, then moves up on beat 3
-  const n=Math.max(0,Math.min(TITLE.length,Math.floor((t-B*0.75)/0.035)+1)); $('title').textContent=t<B*0.75?'':TITLE.slice(0,n);
-  const up=S(t-3*B,SP.slide), ty=lerp(H/2+titleBig*0.35,titleY+titleSm*0.35,up), ts=lerp(titleBig,titleSm,up);
+  [['w1',0],['w2',B/4],['w3',B/2]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:20,z:1}))));
+  const n=Math.max(0,Math.min(TITLE.length,Math.floor((t-B*0.75)/0.03)+1)); $('title').textContent=t<B*0.75?'':TITLE.slice(0,n);
+  const up=S(t-bt(3),SP.slide), ty=lerp(H/2+titleBig*0.35,titleY+titleSm*0.35,up), ts=lerp(titleBig,titleSm,up)*(1+kick(t,bt(3),0.06));
   A($('title'),{x:W/2,y:ty,'font-size':ts});
-  const rw=U(120)*S(t-3*B-0.1,SP.lead); A($('tRule'),{x1:W/2-rw/2,x2:W/2+rw/2,y1:ty+ts*0.34,y2:ty+ts*0.34}); $('tRule').style.opacity=rw>1?1:0;
-  // stage rises, later hands over to the result card
-  const rise=S(t-3*B,SP.slide), out=S(t-C.card,SP.enter);
-  $('stage').setAttribute('transform',`translate(${W/2},${sy+STH*f/2+(1-rise)*(H-sy+U(40))}) scale(${1-0.06*out}) translate(${-W/2},${-(sy+STH*f/2)})`);
-  $('stage').style.opacity=1-cl01(out*1.6);
-  // lever: knob + rod follow the drag, then spring back
+  const rw=U(120)*S(t-bt(3)-0.08,SP.lead); A($('tRule'),{x1:W/2-rw/2,x2:W/2+rw/2,y1:ty+ts*0.34,y2:ty+ts*0.34}); $('tRule').style.opacity=rw>1?1:0;
+  // camera: kicks on the downbeats + reveal hits, shake on slams
+  let z=1; C.kicks.forEach(b=>{z+=kick(t,bt(b),0.03,8);}); z+=kick(t,C.land,0.06,5);
+  let [shx,shy]=shake(t,C.badge,U(16)); const [s2x,s2y]=shake(t,C.heroLand,U(12)); shx+=s2x; shy+=s2y;
+  $('cam').setAttribute('transform',`translate(${W/2+shx},${H/2+shy}) scale(${z}) translate(${-W/2},${-H/2})`);
+  // stage
+  const rise=S(t-bt(3),SP.slide), dimK=S(t-C.dim,SP.enter);
+  $('stage').setAttribute('transform',`translate(${W/2},${sy+STH*f/2+(1-rise)*(H-sy+U(40))}) scale(${1-0.12*dimK}) translate(${-W/2},${-(sy+STH*f/2)})`);
+  $('dim').style.opacity=Math.min(1,0.82*dimK+0.18*cl01((t-C.end)/0.25));
+  // lever + spin + pointer
   const c=cursor(t);
   let pull=0; if(t>=C.press&&t<=C.release) pull=ease(cl01((t-C.press)/(C.release-C.press))); else if(t>C.release) pull=1-S(t-C.release,SP.lever);
   A($('lKnob'),{transform:`translate(0,${pull*DRAG})`}); A($('lRod'),{transform:`translate(0,${pull*DRAG})`});
-  // wheel spin + pointer kick on slice boundaries
   const th=theta(t); $('lDisc').setAttribute('transform',`rotate(${th},${DC[0]},${DC[1]})`);
-  const d=(((th+15)%30)+30)%30/30, kick=t>C.release&&t<C.land+0.3?-18*Math.max(0,1-d*4):0;
-  $('lPtr').setAttribute('transform',`rotate(${kick},${PV[0]},${PV[1]})`);
-  // camera: gentle push towards the pointer as it lands
-  const z=1+0.07*(S(t-(C.land-0.5),SP.cam)-S(t-C.card,SP.cam));
-  $('cam').setAttribute('transform',`translate(${PV[0]},${PV[1]+U(120)}) scale(${z}) translate(${-PV[0]},${-(PV[1]+U(120))})`);
-  // result card
-  const ci=S(t-C.card,SP.morph), co=S(t-C.end,SP.enter);
-  $('card').setAttribute('transform',`translate(0,${(1-ci)*U(120)+co*U(60)})`); $('card').style.opacity=cl01(ci*1.5)*(1-cl01(co*1.5));
-  C.steps.forEach(([ts0],i)=>{const q=S(t-ts0,SP.morph),g=$('st'+i); g.setAttribute('transform',`translate(0,${(1-q)*U(30)+co*U(40)})`); g.style.opacity=cl01(q)*(1-cl01(co*1.5));});
-  // cursor
+  const d=(((th+15)%30)+30)%30/30, kk=t>C.release&&t<C.land+0.6?-18*Math.max(0,1-d*4):0;
+  $('lPtr').setAttribute('transform',`rotate(${kk},${PV[0]},${PV[1]})`);
+  // props: bob on the half-note, pop on every beat, go wild during the spin, react to the result
+  const beatF=(t/B)%1, pulse=Math.exp(-beatF*7), spinning=t>C.release&&t<C.land, amp=spinning?2.4:1;
+  PR.forEach(p=>{let y=Math.sin(t/B*Math.PI+p.ph)*U(7)*amp, r=Math.sin(t/B*Math.PI*0.5+p.ph)*4*amp, s=1+0.05*pulse;
+    if(C.mode==='win'&&p.id===C.winProp){const j=S(t-C.land,SP.pop)-S(t-C.dim,SP.enter); y-=U(70)*j; s+=0.35*j; r+=12*j;}
+    if(C.mode==='lose'&&t>C.land){const dr=S(t-C.land,SP.slide)*(1-S(t-bt(12),SP.pop)); y+=U(30)*dr; r+=10*dr*(p.ph%2?1:-1); s-=0.08*dr;}
+    p.el.setAttribute('transform',`translate(${p.cx},${p.cy+y}) rotate(${r}) scale(${s}) translate(${-p.cx},${-p.cy})`);});
+  // rays + halo
+  const rayK=S(t-C.heroLand+0.3,SP.enter)*(1-cl01((t-C.end)/0.25));
+  $('rays').setAttribute('transform',`translate(${HX},${HY}) rotate(${t*22}) scale(${rayK*(1+0.06*pulse)})`); $('rays').style.opacity=(C.mode==='win'?1:0.35)*rayK;
+  $('halo').style.opacity=(C.mode==='win'?1:0.4)*rayK*(0.85+0.15*pulse);
+  // badge slam
+  const bK=S(t-C.badge,SP.slam), bOut=S(t-C.shrink,SP.enter);
+  const bw=$('badgeT').getComputedTextLength()+U(C.mode==='win'?64:0), bh=U(C.mode==='win'?78:0);
+  const by=C.mode==='win'?lerp(U(300),U(270),bOut):U(330);
+  A($('badgeR'),{x:W/2-bw/2,y:by-bh/2,width:bw,height:bh,rx:bh/2,fill:C.mode==='win'?'var(--yellow)':'none'}); A($('badgeT'),{x:W/2,y:by});
+  const bs=lerp(2.4,1,bK); $('badge').setAttribute('transform',`translate(${W/2},${by}) scale(${bs}) rotate(${(1-bK)*-8}) translate(${-W/2},${-by})`);
+  $('badge').style.opacity=cl01(bK*2)*(1-cl01((t-C.end)/0.25))*(C.mode==='lose'?1-cl01((t-bt(12))/0.3):1);
+  // hero: drops slowly on the beat, lands with a squash; lose: tips over, then pops back up
+  const drop=cl01((t-C.heroDrop)/(C.heroLand-C.heroDrop)), fall=drop<1?drop*drop*(3-2*drop):1;
+  const hy0=-U(400), land=S(t-C.heroLand,SP.land), squash=kick(t,C.heroLand,0.18,9);
+  const shrinkK=S(t-C.shrink,SP.morph);
+  let hy=lerp(hy0,HY,fall)-(1-land)*0+0, hs=(1-0.32*shrinkK), rot=0;
+  hy=lerp(hy, H*(tall?0.27:0.27), shrinkK);
+  if(C.mode==='lose'){ const tip=S(t-C.tip,SP.land)*(1-S(t-bt(12),SP.pop)); rot=-24*tip; hy+=U(20)*tip; }
+  $('hero').setAttribute('transform',`translate(${HX},${hy}) rotate(${rot}) scale(${hs*(1+squash*0.6)},${hs*(1-squash)})`);
+  $('hero').style.opacity=t<C.heroDrop?0:(1-cl01((t-C.end)/0.25)); $('halo').setAttribute('cy',hy);
+  // hero title: letters rise on 32nds
+  if(!hT.w){const fs0=U(C.mode==='win'?84:74); hT.forEach(e=>e.setAttribute('font-size',fs0)); hT.w=hT.map(e=>e.getComputedTextLength());}
+  const sc=1-0.25*shrinkK, tw=hT.w.reduce((a,b)=>a+b,0)*sc;
+  const tY=lerp(HY+U(C.mode==='win'?330:270), HY+U(C.mode==='win'?70:60), shrinkK)+(C.mode==='win'?0:0);
+  let x=W/2-tw/2;
+  hT.forEach((e,i)=>{const q=S(t-C.title-i*0.03,SP.morph); e.setAttribute('x',x); x+=hT.w[i]*sc;
+    e.setAttribute('y',tY+(1-q)*U(70)); e.style.opacity=cl01(q*1.6)*(1-cl01((t-C.end)/0.25)); e.setAttribute('font-size',U(C.mode==='win'?84:74)*(1-0.25*shrinkK));});
+  // code card (win)
+  const cK=S(t-C.code,SP.pop), cw=U(560), ch=U(124), cy=H*(tall?0.52:0.585);
+  A($('codeR'),{x:W/2-cw/2,y:cy-ch/2,width:cw,height:ch}); A($('codeT'),{x:W/2,y:cy});
+  $('codeG').setAttribute('transform',`translate(${W/2},${cy}) scale(${lerp(0.6,1,cK)}) translate(${-W/2},${-cy})`); $('codeG').style.opacity=C.code?cl01(cK*1.5)*(1-cl01((t-C.end)/0.25)):0;
+  // steps
+  C.steps.forEach(([t0],i)=>{const q=S(t-t0,SP.morph),g=stepEls[i];
+    const gy=C.mode==='win'?cy+ch/2+U(70)+i*U(62):HY+U(360)+i*U(72), gx=C.mode==='win'?U(150):W/2;
+    g.setAttribute('transform',`translate(${gx+(1-q)*U(C.mode==='win'?-40:0)},${gy+(1-q)*U(C.mode==='win'?0:30)})`); g.style.opacity=cl01(q)*(1-cl01((t-C.end)/0.25));});
+  drawConfetti(t);
+  $('flash').style.opacity=(C.mode==='win'?1:0)*0.28*Math.exp(-Math.max(0,t-C.land)*9)*(t>=C.land?1:0)+(C.mode==='win'?0.3*Math.exp(-Math.max(0,t-C.heroLand)*9)*(t>=C.heroLand?1:0):0);
   if(!c){$('cursor').style.opacity=0;} else {$('cursor').style.opacity=1; $('cursor').setAttribute('transform',`translate(${c.x},${c.y}) scale(${k*1.5*(1-0.12*c.p)})`);}
   // end card
   const e0=S(t-C.end-0.05,SP.enter), r1=S(t-C.end-0.25,SP.lead), r2=S(t-C.end-0.25,SP.trail), q1=S(t-C.end-0.4,SP.morph), q2=S(t-C.end-0.55,SP.morph), q3=S(t-C.end-0.7,SP.morph);
@@ -122,5 +190,5 @@ window.seek=function(t){
   A($('e3'),{x:W/2,y:ry+U(236)+(1-q3)*U(30)}); $('e3').style.opacity=cl01(q3);
 };
 const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
-Promise.all([document.fonts.ready,document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+Promise.all([document.fonts.ready,document.fonts.load('700 100px Poppins'),document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
 </script></body></html>

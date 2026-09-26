@@ -307,9 +307,33 @@ def ui_crash(): return crash() * 0.8
 def ui_snap():
     t = tt(0.08); return bp(rng.standard_normal(len(t)), 1500, 5000) * np.exp(-t * 120) * 0.6
 
+def ui_fanfare():   # bright brass-like arpeggio C–E–G then a held C/E/G chord; peak on the first note
+    t = tt(1.5); x = np.zeros_like(t)
+    def brass(f, t0, dur, g):
+        e = np.clip(t - t0, 0, None); on = (t >= t0) & (t < t0 + dur + 0.25)
+        env = np.minimum(e / 0.02, 1) * np.exp(-e * 1.6) * np.clip((t0 + dur + 0.25 - t) / 0.25, 0, 1)
+        ph = 2 * np.pi * f * e * (1 + 0.004 * np.sin(2 * np.pi * 5.5 * e))
+        return on * env * g * (ss.sawtooth(ph) * 0.6 + np.sin(ph) * 0.4)
+    for f, t0 in ((523.25, 0.0), (659.25, 0.11), (783.99, 0.22)): x += brass(f, t0, 0.12, 0.9)
+    for f in (523.25, 659.25, 783.99, 1046.5): x += brass(f, 0.34, 0.9, 0.55)
+    return lp(x, 3800) * 0.32
+def ui_sparkle():   # quick shimmer of high blips
+    t = tt(0.9); x = np.zeros_like(t); r = np.random.default_rng(5)
+    for k in range(26):
+        d = 0.03 * k * r.uniform(0.6, 1.2); f = r.uniform(2600, 6800); e = np.clip(t - d, 0, None)
+        x += (t >= d) * np.sin(2 * np.pi * f * e) * np.exp(-e * 40) * (1 - k / 30)
+    return x * 0.09
+def ui_whip():
+    t = tt(0.2); f = 900 + 5000 * (t / 0.2); ph = 2 * np.pi * np.cumsum(f) / SR
+    return bp(rng.standard_normal(len(t)), 700, 7000) * np.sin(np.pi * t / 0.2) ** 3 * 0.5 + np.sin(ph) * 0.02
+def ui_hit():
+    a, c = ui_impact(), crash() * 0.6; n = max(len(a), len(c))
+    return np.pad(a, (0, n - len(a))) + np.pad(c, (0, n - len(c)))
+
 UI = dict(click=ui_click, tick=ui_tick, whoosh=ui_whoosh, whoosh_s=lambda: ui_whoosh(0.28, 0.6), chime=ui_chime,
           pop=ui_pop, key=ui_key, enter=lambda: ui_key(1.4), thunk=ui_thunk, stretch=ui_stretch, riser=ui_riser, impact=ui_impact,
-          lever=ui_lever, womp=ui_womp, till=ui_till, crash=ui_crash, snap=ui_snap)
+          lever=ui_lever, womp=ui_womp, till=ui_till, crash=ui_crash, snap=ui_snap,
+          fanfare=ui_fanfare, sparkle=ui_sparkle, whip=ui_whip, hit=ui_hit)
 
 def env_peak(sig):
     e = np.convolve(np.abs(ss.hilbert(sig)), np.ones(48) / 48, "same"); return int(np.argmax(e))

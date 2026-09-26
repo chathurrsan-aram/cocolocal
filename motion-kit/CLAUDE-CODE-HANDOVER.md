@@ -124,8 +124,8 @@ Updated 26 Sep 2026 (cloud session). Renders: private download page https://clau
 | M3 | Intro sting, 2 s | DONE: 3 themes × 3 formats | — |
 | M4 | Follow-us v1, 9.5 s | Draft kept as an alternative (Chat liked it but wanted real clicks) | — |
 | M4b | Follow Us v2, 12 s (m6-follow-v2/) | 4:5 navy draft, awaiting approval | On approval: 9:16 + 1:1 |
-| M7 | Coco Wheel: Win / Lose / How to enter (m7-wheel/) | 4:5 navy drafts, awaiting approval; built from the real /wheel page (branch claude/coco-wheel-us9rh2) | On approval: 9:16 + 1:1; post once /wheel is live |
-| M5 | Weekly offers: single card + drinks reel (m5-offers/) | Reel draft (4 drinks offers, 23 s) awaiting approval; all offers live | On approval: 9:16 + 1:1; weekly: edit offers.json → render_reel.py |
+| M7 | Coco Wheel: Win / Lose / How to enter (m7-wheel/) | v2 4:5 navy drafts (animated props, confetti/fanfare win, SO CLOSE lose), awaiting approval; built from the real /wheel page (branch claude/coco-wheel-us9rh2) | On approval: 9:16 + 1:1; post once /wheel is live |
+| M5 | Weekly offers: single card + drinks reel (m5-offers/) | Reel v2 draft (clean cut-outs, spinning cans, light, price slams) awaiting approval; all offers live | On approval: 9:16 + 1:1; weekly: edit offers.json → render_reel.py |
 | M6 | Website pieces | /follow has a Spin the Coco Wheel button; WheelLoop component + public/video/wheel loops (not yet placed on a page: /wheel lives on the wheel branch) | Place WheelLoop on /wheel "How it works" and the homepage wheel strip once the wheel branch merges; then footer logo reveal, follow block, offer price drops |
 Music: every piece has its own track now (audio.py styles pop / drive / playful / light / disco with --arr per-bar levels); plan cuts on the beat grid first.
 Decisions this session: indigo stays at the #161A5C estimate (Canva background samples as #0D0D43); light theme = cream + navy ink only; M4 end line uses /follow.

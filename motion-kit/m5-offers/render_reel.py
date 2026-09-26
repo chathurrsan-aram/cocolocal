@@ -24,16 +24,20 @@ offers = []
 for i in ids:
     o = by[i]
     if o.get("status") != "live" or not o.get("price"): raise SystemExit(f"{i}: must be live and have a price")
-    img = H / o["image"] if o.get("image") else None
+    prods = o.get("products") or []
+    if not prods: raise SystemExit(f"{i}: add cut-out products (run prep_cutouts.py) to use it in the reel")
     offers.append(dict(eyebrow=o.get("eyebrow"), headline_lines=o["headline_lines"], price=o["price"], unit=o.get("unit"), detail_line=o.get("detail_line"),
-                       product_line=o.get("product_line"), img=uri(img) if img else "", panel=panel_colour(img) if img else "#1B2746"))
+                       product_line=o.get("product_line"), spin=o.get("spin", "flask"), products=[uri(H / q) for q in prods]))
 n = len(ids); bars = 2 + 2 * n + 2; dur = bars * 4 * 60 / BPM
 # music: disco, crash on each offer's first bar; SFX on the beat grid
 arr = [1, 2] + sum([[3, 2] for _ in range(n)], []) + [3, 2]
-ev = [(0, "whoosh_s", .6), (0.25, "whoosh_s", .6), (0.5, "whoosh_s", .65), (1, "tick", .5), (2, "lever", .8), (3.5, "thunk", .7), (4, "whoosh", .8), (5, "pop", .6), (6, "tick", .6)]
+ev = [(0, "whoosh_s", .6), (0.25, "whoosh_s", .6), (0.5, "whoosh_s", .65), (1, "tick", .5), (2, "lever", .8), (3.5, "thunk", .7), (4, "whoosh", .8), (4, "hit", .7),
+      (5, "snap", .8), (5, "thunk", .6), (5.5, "snap", .8), (5.5, "thunk", .6), (6, "tick", .6), (7.6, "whip", .8)]
 for i in range(n):
-    s = 8 + 8 * i
-    ev += [(s, "whoosh_s", .55), (s + 1.5, "whoosh_s", .5), (s + 4, "till", .85), (s + 4, "pop", .6), (s + 5, "tick", .5), (s + 5.5, "snap", .5)]
+    s = 8 + 8 * i; np_ = len(offers[i]["products"])
+    ev += [(s + 0.5, "snap", .5), (s + 1, "snap", .5)]
+    ev += [(s + 1.5 + (0.5 if np_ > 2 else 1) * j, "pop", .6) for j in range(np_)]
+    ev += [(s + 4, "hit", .8), (s + 4, "till", .9), (s + 4.5, "tick", .5), (s + 7.6, "whip", .8)]
 out = 8 + 8 * n; ev += [(out, "whoosh", .7), (out + 1, "chime", .85)]
 work = K / "build"; work.mkdir(exist_ok=True)
 evf = work / "reel-events.json"; evf.write_text(json.dumps([{"beat": b, "sound": s_, "gain": g} for b, s_, g in ev]))
