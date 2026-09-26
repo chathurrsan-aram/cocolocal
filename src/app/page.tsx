@@ -14,9 +14,9 @@ export default function Home() {
     <Hero />
     <ShopWalk />
     <Offers />
+    <Slushies />
     <VisitUs />
     <FollowUs />
     <WheelSoon />
-    <Slushies />
   </>;
 }
