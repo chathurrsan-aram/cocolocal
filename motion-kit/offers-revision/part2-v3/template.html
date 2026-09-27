@@ -3,7 +3,7 @@ html,body{margin:0;background:#F7F3EA;overflow:hidden}canvas{display:block}</sty
 /* Offers Part 2 — v3 motion.  Every frame is a pure function of time: seek(t).
    One hero action per offer, then a readable hold.  No sliced wobble, no orbits, no label-wrap spins, no see-through products. */
 const CFG=__CFG__, M=__META__, IMG={};
-const B=60/124, W=1080, H=1920, c=document.getElementById('c'), x=c.getContext('2d');
+const B=60/CFG.bpm, W=1080, H=1920, c=document.getElementById('c'), x=c.getContext('2d');
 const NAVY='#101039', CREAM='#F7F3EA', MUTED='#5E5B6B', PEACH='#F5C49B', RULE='#DDD5C7';
 const cl=v=>Math.min(1,Math.max(0,v)), lerp=(a,b,t)=>a+(b-a)*t;
 const eo3=t=>1-Math.pow(1-cl(t),3), eo5=t=>1-Math.pow(1-cl(t),5), eio=t=>{t=cl(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2};
@@ -35,9 +35,9 @@ function plinth(){x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();
 function contact(px,w,k){if(k<=0)return;x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();const g=x.createRadialGradient(px,PL.cy,2,px,PL.cy,w*.62);g.addColorStop(0,`rgba(60,45,30,${.32*k})`);g.addColorStop(1,'rgba(60,45,30,0)');x.fillStyle=g;x.beginPath();x.ellipse(px,PL.cy+2,w*.62,w*.12,0,0,7);x.fill();x.restore();}
 
 /* ---------------- products: solid, land on one shared baseline ---------------- */
-function layout(o){const P=M.products[o.id],n=P.length,hgt=o.prodH,gap=o.gap;const ws=P.map(p=>p.w/p.h*hgt);const tw=ws.reduce((a,v)=>a+v,0)+gap*(n-1);let px=540-tw/2;
-  return P.map((p,j)=>{const cx=px+ws[j]/2;px+=ws[j]+gap;return {img:IMG[p.src],cx,w:ws[j],h:hgt,base:PL.cy+6}})}
-function drawProduct(p,lt,kind,extra=0){ // lt = seconds since landing time (negative = still falling)
+function layout(o){const P=o.items||M.products[o.id],n=P.length,hgt=o.prodH,gap=o.gap;const ws=P.map(p=>p.w/p.h*hgt);const tw=ws.reduce((a,v)=>a+v,0)+gap*(n-1);let px=540-tw/2;
+  return P.map((p,j)=>{const cx=px+ws[j]/2;px+=ws[j]+gap;return {img:IMG[p.src],cx,w:ws[j],h:hgt,base:PL.cy+6,kind:p.kind}})}
+function drawProduct(p,lt,kind,extra=0){ if(kind==='pack')kind='bag'; // lt = seconds since landing time (negative = still falling)
   const fall=lt<0?Math.pow(cl(1+lt/.34),2):1, dropY=(1-fall)*-900;         // accelerate in from above
   const settle=lt>0?Math.exp(-lt*10)*Math.sin(lt*34)*(kind==='bag'?10:5):0; // one small damped rebound
   const squash=kind==='bag'&&lt>0?1-.035*Math.exp(-lt*14):1;
@@ -78,7 +78,7 @@ function warp(t,t0,th,tExit){ // physics time: real speed up to just before the 
   let tau=0,dt=1/480;const a0=Math.max(.05,th-.12);for(let u=t0;u<t;u+=dt){const a=u-t0;let s=a<a0?1:a<a0+.32?lerp(1,.02,eio((a-a0)/.32)):.02;if(u>tExit)s=lerp(.02,1.6,eio((u-tExit)/.35));tau+=s*Math.min(dt,t-u);}return tau}
 const CR=document.createElement('canvas'),crx=CR.getContext('2d');CR.width=CR.height=420;
 function drawCrisp(c,t,t0,tExit){const lt=t-t0-c.delay;if(lt<0)return;const tau=warp(t,t0+c.delay,c.th,tExit),[px,py]=crispPos(c,tau),dth=tau-c.th;
-  const rot=c.rot+c.wz*dth,flip=c.flip+c.wf*dth,cf=Math.cos(flip),sp=M.crisps[c.sprite],im=IMG[sp.src],sz=c.size,sh=sz*sp.h/sp.w;
+  const rot=c.rot+c.wz*dth,flip=c.flip+c.wf*dth,cf=Math.cos(flip),sp=M[c.sheet||'crisps'][c.sprite],im=IMG[sp.src],sz=c.size,sh=sz*sp.h/sp.w;
   // shade on a private canvas: the far side of a tumbling crisp is a little darker and oilier
   crx.clearRect(0,0,420,420);crx.globalCompositeOperation='source-over';crx.drawImage(im,210-sz/2,210-sh/2,sz,sh);
   const dark=cf<0?.22+.18*(1-Math.abs(cf)):.12*(1-Math.abs(cf));if(dark>0){crx.globalCompositeOperation='source-atop';crx.fillStyle=`rgba(110,60,5,${dark})`;crx.fillRect(0,0,420,420);}
@@ -108,43 +108,61 @@ function offer(o,t,tt){ // t = seconds into the scene; tt = timing table (beats)
   // stage with a slow camera push through the hold
   const push=1+.03*eio((t-tt.price*B)/(8*B));
   x.save();x.translate(540,1110);x.scale(push,push);x.translate(-540,-1110);
-  stage(o,t);o.scene(t,tt);x.restore();
+  stage(o,t);o.scene(o,t,tt);x.restore();
   footer(o);}
 
 /* ---------------- end card: logo centred on its visible ink ---------------- */
-function endCard(t,alcohol){x.fillStyle=CREAM;x.fillRect(0,0,W,H);const k=spring(t,14,.86);
+function endCard(t,alcohol,isReel){x.fillStyle=CREAM;x.fillRect(0,0,W,H);const k=spring(t,14,.86);
   const lg=IMG.logo,ink=M.logoInk,lw=700,sc=lw/ink.w,lh=ink.h*sc;x.save();x.globalAlpha=cl(k*2);x.translate(540,720+(1-k)*40);x.drawImage(lg,ink.x,ink.y,ink.w,ink.h,-lw/2,-lh/2,lw,lh);x.restore();
-  const it=[[CFG.play?'Find this offer in store.':'Find these offers in store.',900,44,600,NAVY],['210 High Road, South Benfleet',1010,40,600,NAVY],['SS7 5LD',1062,36,500,NAVY],['@cocolocal_ · cocolocal.co.uk',1290,32,600,NAVY]];
+  const it=[[isReel?'Worth popping in for.':'Find this offer in store.',900,44,600,NAVY],['210 High Road, South Benfleet',1010,40,600,NAVY],['SS7 5LD',1062,36,500,NAVY],['@cocolocal_ · cocolocal.co.uk',1290,32,600,NAVY]];
   it.forEach(([s,y,sz,wt,col],j)=>{const a=eo3((t-.12-j*.09)/.4);x.save();x.globalAlpha=a;txt(s,540,y+(1-a)*22,sz,wt,col,'center');x.restore()});
   const a=eo3((t-.5)/.4);x.save();x.globalAlpha=a;const pw=measure('PARKING ON SITE · OPEN SEVEN DAYS',24,600)+80;rrect(540-pw/2,1140,pw,58,29);x.fillStyle='#FBDC8E';x.fill();txt('PARKING ON SITE · OPEN SEVEN DAYS',540,1178,24,600,NAVY,'center',900,2);x.restore();
   txt(alcohol?'Varieties as stocked · Subject to availability · 18+ · Please drink responsibly':'Varieties as stocked · Subject to availability',540,1760,22,500,MUTED,'center',940);}
 
-/* ---------------- scenes ---------------- */
-const SCENES={
- coffee(t,tt){const o=CFG.offers.coffee,P=layout(o),L=M.liquids['coffee-action'],tf={x:520-L.w*.33,y:1075-L.h*.33,s:.66};
-   const t0=tt.action*B,dur=1.75*B,p=t<t0?0:1.06*eo3((t-t0)/dur),shine=t>t0+dur?((t-t0-dur)/3.2)%1.4-.2:-1;
-   x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();if(p>0){x.drawImage(liquidLayer('coffee-action',p,shine),tf.x,tf.y,L.w*tf.s,L.h*tf.s);drawDroplets('coffee-action',tf,t,t0,dur,false);}x.restore();
-   plinth();P.forEach((q,j)=>{const lt=t-(tt.land+.5*j)*B;const k=cl((lt+.1)*4);contact(q.cx,q.w,k);drawProduct(q,lt,'bottle')});
-   x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();if(p>0)drawDroplets('coffee-action',tf,t,t0,dur,true);x.restore();},
- mccoys(t,tt){const o=CFG.offers.mccoys,P=layout(o),t0=tt.action*B,tExit=tt.exit*B;
-   const C=o.crisps;C.filter(c=>c.back).forEach(c=>drawCrisp(c,t,t0,tExit));
-   plinth();P.forEach((q,j)=>{const lt=t-(tt.land+.5*j)*B,kick=t>t0?.022*Math.exp(-(t-t0)*9)*Math.sin((t-t0)*40):0;contact(q.cx,q.w,cl((lt+.1)*4));drawProduct(q,lt,'bag',kick)});
-   C.filter(c=>!c.back).forEach(c=>drawCrisp(c,t,t0,tExit));}
-};
+/* ---------------- scenes: one hero action each ---------------- */
+function landAt(o,tt,j){const n=M.products[o.id].length;return (tt.land+(n>2?1/3:.5)*j)*B}
+function stageClip(){rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip()}
+function pourScene(o,t,tt){const P=layout(o),L=M.liquids[o.liquid],f=o.pour,tf={x:f.cx-L.w*f.s/2,y:f.cy-L.h*f.s/2,s:f.s};
+  const t0=tt.action*B,dur=1.75*B,p=t<t0?0:1.06*eo3((t-t0)/dur),shine=t>t0+dur?((t-t0-dur)/3.2)%1.4-.2:-1;
+  const mir=()=>{if(f.mirror){x.translate(1080,0);x.scale(-1,1);}};
+  x.save();stageClip();mir();if(p>0){x.globalAlpha=f.alpha||1;x.drawImage(liquidLayer(o.liquid,p,shine),tf.x,tf.y,L.w*tf.s,L.h*tf.s);x.globalAlpha=1;drawDroplets(o.liquid,tf,t,t0,dur,false);}x.restore();
+  plinth();P.forEach((q,j)=>{const lt=t-landAt(o,tt,j);contact(q.cx,q.w,cl((lt+.1)*4));drawProduct(q,lt,o.prodKind)});
+  x.save();stageClip();mir();if(p>0)drawDroplets(o.liquid,tf,t,t0,dur,true);x.restore();}
+function burstScene(o,t,tt){const P=layout(o),t0=tt.action*B,tExit=tt.exit*B,C=o.crisps;
+  C.filter(c=>c.back).forEach(c=>drawCrisp(c,t,t0,tExit));
+  plinth();P.forEach((q,j)=>{const lt=t-landAt(o,tt,j),kick=o.prodKind==='bag'&&t>t0?.022*Math.exp(-(t-t0)*9)*Math.sin((t-t0)*40):0;contact(q.cx,q.w,cl((lt+.1)*4));drawProduct(q,lt,o.prodKind,kick)});
+  C.filter(c=>!c.back).forEach(c=>drawCrisp(c,t,t0,tExit));}
+function sceneFor(o){return o.kind==='pour'?pourScene:burstScene}
 
-/* ---------------- timeline ---------------- */
+/* ---------------- reel intro (cover) ---------------- */
+function intro(t){const b=t/B,o=CFG.intro;x.fillStyle=CREAM;x.fillRect(0,0,W,H);header();
+  const ne=Math.max(0,Math.min(o.eyebrow.length,Math.floor(b*16)+1));txt(o.eyebrow.slice(0,ne),70,272,25,600,'#8A5A2E','left',940,2.8);
+  o.lines.forEach((ln,j)=>{const k=spring(t-(1+.5*j)*B,18,.7),y=372+j*104;x.save();x.translate(70,y);const sc=lerp(1.5,1,cl(k))+.05*(k-cl(k));x.scale(sc,sc);x.globalAlpha=cl(k*3);txt(ln,0,0,98,700,NAVY,'left',940);x.restore();});
+  const c1=eo3((t-2.5*B)/.4);x.save();x.globalAlpha=c1;txt(o.caption,70,520+(1-c1)*14,34,500,NAVY);x.restore();
+  const pl=eo3((t-3*B)/.4);x.save();x.globalAlpha=pl;const pw=measure(o.pill,22,600)+56;rrect(70,566,pw,52,26);x.fillStyle='#FBDC8E';x.fill();txt(o.pill,70+pw/2,600,22,600,NAVY,'center',900,1.6);x.restore();
+  const push=1+.03*eio((t-4*B)/(4*B));x.save();x.translate(540,1110);x.scale(push,push);x.translate(-540,-1110);
+  stage(o,t);const P=layout(o),t0=3.5*B;o.crisps.filter(c=>c.back).forEach(c=>drawCrisp(c,t,t0,7.5*B));
+  plinth();P.forEach((q,j)=>{const lt=t-(2+.25*j)*B;contact(q.cx,q.w,cl((lt+.1)*4));drawProduct(q,lt,q.kind||'bottle')});
+  o.crisps.filter(c=>!c.back).forEach(c=>drawCrisp(c,t,t0,7.5*B));x.restore();footer({});}
+
+/* ---------------- timelines ---------------- */
 const TT={copy:0,land:1,action:2,price:4,exit:13.5,end:14,total:20};
-function short(id,t){const o=CFG.offers[id];o.scene=SCENES[id];const b=t/B;
-  // exit: whip the whole offer out to the left while the end card slides in from the right (same move as the drinks reel)
-  const kx=b<TT.exit?0:eio((b-TT.exit)/.55);
-  if(kx<1){x.save();x.translate(-kx*W*1.08,0);offer(o,t,TT);x.restore();}
-  if(kx>0){x.save();x.translate((1-kx)*W*1.08,0);endCard(Math.max(0,t-(TT.exit+.3)*B),o.alcohol);x.restore();}}
-window.seek=t=>short(CFG.play,t);
-window.DURATION=TT.total*B;
-const srcs={logo:'__LOGO__'};[...Object.values(M.products).flat(),...M.crisps].forEach(p=>{if(CFG.uri[p.src])srcs[p.src]=CFG.uri[p.src]});
+const RT={copy:0,land:.5,action:1.5,price:3,exit:7.5};
+function whip(k,drawOut,drawIn){if(k<1){x.save();x.translate(-k*W*1.08,0);drawOut();x.restore();}if(k>0){x.save();x.translate((1-k)*W*1.08,0);drawIn();x.restore();}}
+function short(id,t){const o=CFG.offers[id];const b=t/B,run=()=>{o.scene=sceneFor(o);offer(o,t,TT)};
+  if(b<TT.exit)return run();whip(eio((b-TT.exit)/.55),run,()=>endCard(Math.max(0,t-(TT.exit+.3)*B),o.alcohol,false));}
+function reel(t){const b=t/B,ids=CFG.order;
+  const at=i=>i<0?(tt=>intro(tt)):i>=ids.length?(tt=>endCard(Math.max(0,tt-.3*B),true,true)):(tt=>{const o=CFG.offers[ids[i]];o.scene=sceneFor(o);offer(o,tt,RT)});
+  // section i: -1 intro [0,8), 0..7 offers [8+8i, 16+8i), 8 end card [72,80); whips on the last half-beat of each section
+  const sec=b<8?-1:Math.min(8,Math.floor((b-8)/8)), s0=sec<0?0:8+8*sec, lb=b-s0, k=lb>=7.5&&sec<8?eio((lb-7.5)/.55):0;
+  if(k<=0)return at(sec)(t-s0*B);
+  whip(k,()=>at(sec)(t-s0*B),()=>at(sec+1)(t-(s0+8)*B));}
+window.seek=t=>CFG.play==='reel'?reel(t):short(CFG.play,t);
+window.DURATION=(CFG.play==='reel'?80:TT.total)*B;
+const srcs={logo:'__LOGO__'};[...Object.values(M.products).flat(),...M.crisps,...(M.fruit||[])].forEach(p=>{if(CFG.uri[p.src])srcs[p.src]=CFG.uri[p.src]});
 Object.values(M.liquids).forEach(L=>{[L.ribbon,L.umap,...L.drops.map(d=>d.src)].forEach(s=>{if(CFG.uri[s])srcs[s]=CFG.uri[s]})});
 Promise.all([document.fonts.load('700 80px Poppins'),document.fonts.load('600 30px Poppins'),document.fonts.load('500 30px Poppins'),
   ...Object.entries(srcs).map(([k,s])=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{IMG[k]=i;res()};i.onerror=()=>rej(k);i.src=s}))]).then(()=>{
-  Object.values(CFG.offers).forEach(o=>(o.crisps||[]).forEach(setupCrisp));makeNoise();Object.keys(M.liquids).forEach(n=>{if(IMG[M.liquids[n].umap])prepLiquid(n)});seek(0);window.READY=true;
+  [...Object.values(CFG.offers),CFG.intro||{}].forEach(o=>(o.crisps||[]).forEach(setupCrisp));makeNoise();Object.keys(M.liquids).forEach(n=>{if(IMG[M.liquids[n].umap])prepLiquid(n)});seek(0);window.READY=true;
   if(!location.search.includes('render')){let st=null;const f=n=>{st??=n;seek(((n-st)/1000)%window.DURATION);requestAnimationFrame(f)};requestAnimationFrame(f)}});
 </script></body></html>

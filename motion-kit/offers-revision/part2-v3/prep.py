@@ -90,5 +90,13 @@ for row in range(2):
         ys, xs = np.nonzero(arr[t:b, l:r] > 64)
         box = (l + xs.min(), t + ys.min(), l + xs.max() + 1, t + ys.max() + 1)
         p = f'crisp-{row * 3 + col}.png'; im.crop(box).save(OUT / p); meta['crisps'].append({'src': p, 'w': int(box[2] - box[0]), 'h': int(box[3] - box[1])})
+meta['fruit'] = []
+im = Image.open(A / 'revision2/assets/fruit-action.png').convert('RGBA'); arr = np.array(im)[:, :, 3]; w, h = im.size
+for row in range(2):
+    for col in range(3):
+        l, r, t, b = col * w // 3, (col + 1) * w // 3, row * h // 2, (row + 1) * h // 2
+        ys, xs = np.nonzero(arr[t:b, l:r] > 64)
+        box = (l + xs.min(), t + ys.min(), l + xs.max() + 1, t + ys.max() + 1)
+        p = f'fruit-{row * 3 + col}.png'; im.crop(box).save(OUT / p); meta['fruit'].append({'src': p, 'w': int(box[2] - box[0]), 'h': int(box[3] - box[1])})
 json.dump(meta, open(OUT / 'meta.json', 'w'), indent=1)
 print('products', {k: len(v) for k, v in meta['products'].items()})
