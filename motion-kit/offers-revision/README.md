@@ -16,3 +16,11 @@ Inputs not in this repo: the product cut-outs, generated splash and crisp art, l
 
     python3 part2-v3/prep.py && python3 part2-v3/build.py coffee build/coffee.html
     python3 music/p2_short_score.py coffee coffee.wav && music/master.sh coffee.wav coffee.m4a
+
+## v4 "simple" motion (prototype)
+
+`part2-v3/template-simple.html` is a calmer take on the same scenes. Products glide up and settle with no drop and no bounce. Splashes and snacks ease in together and then float gently. Prices and headlines rise in on the beat. Scenes change with a soft dip through cream, and the header and footer hold still. Build it with:
+
+    TEMPLATE=template-simple.html python3 part2-v3/build.py coffee build/coffee.html
+
+`music/p2_music.py` has `SIMPLE = True`, which swaps the thuds, pours and crunches for soft swells to match. Set it to `False` to get the v3 sound design back.

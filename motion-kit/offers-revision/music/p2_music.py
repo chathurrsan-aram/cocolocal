@@ -145,7 +145,8 @@ def lead(s, st, b0, chord, which=None):
 
 def hit(s, st, b, big=True):
     kind = st['hit']; top = st['chords'][1]
-    s.kick(b, punch=1.3); s.impact(b, gain=.6 if big else .4); s.crash(b, gain=.5, length=2.4)
+    s.kick(b, punch=1.3); s.crash(b, gain=.5, length=2.4)
+    if not SIMPLE: s.impact(b, gain=.6 if big else .4)
     if kind in ('brass', 'marimba_brass', 'clav_brass'):
         s.brass(b, top, .8, gain=1.3, fall=True); s.clap(b, gain=.7)
         if kind == 'marimba_brass':
@@ -156,7 +157,10 @@ def hit(s, st, b, big=True):
     elif kind == 'supersaw':
         s.supersaw(b, top, 1.2, gain=1.1, bright=9000); s.clap(b, gain=.9); s.snare(b, gain=.6)
 
+SIMPLE = True   # v4 simple motion: products glide in and props ease in, so the sound is soft air and shimmer, not thuds, pours and crunches
+
 def foley(s, offer, T):
+    if SIMPLE: return soft_foley(s, offer, T)
     act, land = T['action'], T['land']
     kinds = {'water': 'pour', 'coffee': 'pour', 'barefoot': 'pour', 'yellow-tail': 'pour', 'thirsty': 'burst', 'jacobs': 'burst', 'mccoys': 'burst', 'pringles': 'burst'}
     for j, b in enumerate(land):
@@ -166,6 +170,12 @@ def foley(s, offer, T):
     if kinds[offer] == 'pour': s.pour(act, 1.9, gain=1.0)
     else:
         s.whoosh(act + .12, length=.3, gain=.55); s.crunch_burst(act, 16 if offer != 'thirsty' else 8, .4, gain=.9 if offer != 'thirsty' else .5); s.impact(act, gain=.3)
+
+def soft_foley(s, offer, T):
+    act, land = T['action'], T['land']
+    s.whoosh(land[0] - .25, length=.55, gain=.3, peak=.6)                    # products glide up together
+    s.crash(act + .15, reverse=True, length=.7, gain=.28)                    # swell as the splash or snacks ease in
+    s.whoosh(act - .1, length=.7, gain=.25, peak=.5)
 
 # ------------------------------------------------------------------ cues
 SHORT_T = dict(copy=0, land=[1, 1.5], action=2, price=4, exit=13.5, end=14, total=20)
@@ -183,7 +193,7 @@ def short(offer, out, T=SHORT_T):
     foley(s, offer, T)
     s.brass(T['price'] - .5, C[1][1:], .22, gain=.45) if st['hit'] != 'supersaw' else s.supersaw(T['price'] - .5, C[1], .2, gain=.5)
     hit(s, st, T['price'])
-    s.whoosh(T['exit'] + .28, length=.42, gain=.75)
+    s.crash(T['end'], reverse=True, length=.9, gain=.35) if SIMPLE else s.whoosh(T['exit'] + .28, length=.42, gain=.75)
     # end card: two calmer bars, then a button two beats from the end
     e = T['end']; s.crash(e, gain=.5); s.kick(e, punch=1.2)
     drums(s, st, e, 1, intensity=.7)
@@ -204,19 +214,25 @@ def reel(out, T=None):
     # intro (matches the cover): eyebrow types from 0 · title lines slam on 1 and 1.5 · products land 2–2.75 · groove drops on 4
     for k in range(16): s.shaker(k / 4, gain=.2 + .1 * (k % 2))
     s.typewriter(0, 18, 16, gain=.35); s.epiano(0, C[0], 3.8, vel=.55); s.strings(0, C[0], 7.5, gain=.3, attack=.8)
-    for b in (1, 1.5): s.brass(b, C[0][1:], .3, gain=.85); s.snare(b, gain=.6); s.kick(b, punch=1.1)
-    for j, b in enumerate((2, 2.25, 2.5, 2.75)): s.clink(b, 2200 + 150 * j, gain=.45, pan=-.3 + .2 * j)
+    if SIMPLE:
+        for b in (1, 1.5): s.epiano(b, C[0][1:], .45, vel=.8, gain=.7); s.kick(b, punch=.9, gain=.7)
+        s.whoosh(1.75, length=.6, gain=.3, peak=.6)
+    else:
+        for b in (1, 1.5): s.brass(b, C[0][1:], .3, gain=.85); s.snare(b, gain=.6); s.kick(b, punch=1.1)
+        for j, b in enumerate((2, 2.25, 2.5, 2.75)): s.clink(b, 2200 + 150 * j, gain=.45, pan=-.3 + .2 * j)
     s.riser(4, 1.5, gain=.35)
     s.kick(4, punch=1.3); s.impact(4, gain=.55); s.crash(4, gain=.6); drums(s, st, 4, 1, fill=True); bass(s, st, 4, R[1]); lead(s, st, 4, C[1], 'rhodes')
     s.crash(8, reverse=True, length=1.6, gain=.4)
     for i, offer in enumerate(REEL_ORDER):
         o = 8 + 8 * i
-        s.crash(o, gain=.55); s.whoosh(o - .2, length=.4, gain=.6)
+        s.crash(o, gain=.55); s.crash(o, reverse=True, length=.8, gain=.3) if SIMPLE else s.whoosh(o - .2, length=.4, gain=.6)
         for bar in range(2):
             drums(s, st, o + 4 * bar, 1, fill=(bar == 1)); bass(s, st, o + 4 * bar, R[(2 * i + bar) % 4]); lead(s, st, o + 4 * bar, C[(2 * i + bar) % 4], LEAD_FOR[offer])
         foley(s, offer, dict(land=[o + .5 + (1 / 3 if offer in ('thirsty', 'jacobs', 'pringles') else .5) * j for j in range(3 if offer in ('thirsty', 'jacobs', 'pringles') else 2)], action=o + 1.5))
         s.brass(o + 3, STYLES[offer]['chords'][1][1:] if False else C[(2 * i + 1) % 4][1:], .8, gain=1.25, fall=True)
-        s.kick(o + 3, punch=1.3); s.impact(o + 3, gain=.6); s.clap(o + 3, gain=.7); s.crash(o + 3, gain=.45, length=2)
+        s.kick(o + 3, punch=1.3); s.clap(o + 3, gain=.7)
+        s.crash(o + 3, gain=.45, length=2)
+        if not SIMPLE: s.impact(o + 3, gain=.6)
     e = 72; s.crash(e, gain=.6); s.kick(e, punch=1.3); s.brass(e, C[0], .9, gain=1.1)
     drums(s, st, e, 1, fill=True); bass(s, st, e, R[2]); lead(s, st, e, C[2], 'rhodes_strings')
     s.kick(76, punch=1.4); s.impact(76, gain=.7); s.crash(76, gain=.7, length=3.2); s.brass(76, C[0], 1.6, gain=1.1)

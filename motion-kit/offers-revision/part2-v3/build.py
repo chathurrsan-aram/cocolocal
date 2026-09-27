@@ -1,7 +1,7 @@
 """Build a self-contained Part 2 v3 piece.
     python3 build.py <offer-id | reel> <out.html>
 Offer copy, colours, product sizes and hero actions live here; motion lives in template.html."""
-import base64, json, math, pathlib, sys
+import base64, json, math, os, pathlib, sys
 import numpy as np
 from PIL import Image
 H = pathlib.Path(__file__).parent; A = H / 'assets'; F = pathlib.Path('/root/offers-revision/part2/outputs/coco-offers-part2-cream/assets')
@@ -98,5 +98,5 @@ for i in ids + (['coffee', 'pringles', 'jacobs', 'thirsty'] if play == 'reel' el
 M2 = dict(M); M2['liquids'] = {k: v for k, v in M['liquids'].items() if v['ribbon'] in need}
 cfg = dict(play=play, bpm=STYLES[play]['bpm'], order=order, offers={i: OFF[i] for i in ids}, intro=INTRO, uri={s: uri(A / s) for s in need})
 fonts = ''.join('@font-face{font-family:Poppins;src:url(data:font/woff2;base64,' + base64.b64encode((F / f'poppins-latin-{w}-normal.woff2').read_bytes()).decode() + ') format("woff2");font-weight:' + str(w) + ';}' for w in (500, 600, 700))
-s = (H / 'template.html').read_text().replace('__FONTS__', fonts).replace('__CFG__', json.dumps(cfg)).replace('__META__', json.dumps(M2)).replace('__LOGO__', uri(F / 'logo-lockup-navy.png'))
+s = (H / os.environ.get('TEMPLATE', 'template.html')).read_text().replace('__FONTS__', fonts).replace('__CFG__', json.dumps(cfg)).replace('__META__', json.dumps(M2)).replace('__LOGO__', uri(F / 'logo-lockup-navy.png'))
 pathlib.Path(sys.argv[2]).write_text(s); print('built', sys.argv[2], len(s) // 1024, 'KB', 'bpm', cfg['bpm'])
