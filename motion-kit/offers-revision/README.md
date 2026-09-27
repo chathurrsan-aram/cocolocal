@@ -24,3 +24,17 @@ Inputs not in this repo: the product cut-outs, generated splash and crisp art, l
     TEMPLATE=template-simple.html python3 part2-v3/build.py coffee build/coffee.html
 
 `music/p2_music.py` has `SIMPLE = True`, which swaps the thuds, pours and crunches for soft swells to match. Set it to `False` to get the v3 sound design back.
+
+## v5 motion (current)
+
+`part2-v3/template-v5.html` keeps every v3 hero action: pours, bursts, price slams and whips. Three things changed:
+
+- **Products** are set down naturally. Each one comes in from just above, slows into contact on its beat, and settles from a slight tilt with no bounce. Bags give once as they land.
+- **The reel opens** on the "This week's deals" opener from the drinks reel, restyled in cream. The colour wipes run, "This week at Coco Local" types out, the shopfront rises and its shutter rolls up, the camera pushes through the door with a flash, and the headline slams in twice with a peach rule. Then the cover and the eight offers follow. The reel is 88 beats long.
+- **Every video ends** on the approved lockup outro from `m2-outros`. Sky, peach and cream wipes run, the basket rides in and pops on the end beat, the letters rise, the rule zips across, then the tagline, address and pill appear.
+
+Build it with:
+
+    TEMPLATE=template-v5.html python3 part2-v3/build.py reel build/reel.html
+
+In `music/p2_music.py`, `SIMPLE = False` restores the v3 sound effects. `opener()` ports the drinks reel's opener sounds, and `outro_fx()` scores the lockup.

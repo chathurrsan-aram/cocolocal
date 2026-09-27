@@ -96,7 +96,8 @@ for i in ids + (['coffee', 'pringles', 'jacobs', 'thirsty'] if play == 'reel' el
         L = M['liquids'][o['liquid']]; need |= {L['ribbon'], L['umap']} | {d['src'] for d in L['drops']}
     for c in (o.get('crisps') or []): need.add(M[c['sheet']][c['sprite']]['src'])
 M2 = dict(M); M2['liquids'] = {k: v for k, v in M['liquids'].items() if v['ribbon'] in need}
-cfg = dict(play=play, bpm=STYLES[play]['bpm'], order=order, offers={i: OFF[i] for i in ids}, intro=INTRO, uri={s: uri(A / s) for s in need})
+shop = 'data:image/webp;base64,' + base64.b64encode(pathlib.Path('/root/coco-motion-kit/m5-offers/shopfront.webp').read_bytes()).decode() if play == 'reel' else ''
+cfg = dict(play=play, shop=shop, bpm=STYLES[play]['bpm'], order=order, offers={i: OFF[i] for i in ids}, intro=INTRO, uri={s: uri(A / s) for s in need})
 fonts = ''.join('@font-face{font-family:Poppins;src:url(data:font/woff2;base64,' + base64.b64encode((F / f'poppins-latin-{w}-normal.woff2').read_bytes()).decode() + ') format("woff2");font-weight:' + str(w) + ';}' for w in (500, 600, 700))
 s = (H / os.environ.get('TEMPLATE', 'template.html')).read_text().replace('__FONTS__', fonts).replace('__CFG__', json.dumps(cfg)).replace('__META__', json.dumps(M2)).replace('__LOGO__', uri(F / 'logo-lockup-navy.png'))
 pathlib.Path(sys.argv[2]).write_text(s); print('built', sys.argv[2], len(s) // 1024, 'KB', 'bpm', cfg['bpm'])

@@ -157,7 +157,7 @@ def hit(s, st, b, big=True):
     elif kind == 'supersaw':
         s.supersaw(b, top, 1.2, gain=1.1, bright=9000); s.clap(b, gain=.9); s.snare(b, gain=.6)
 
-SIMPLE = True   # v4 simple motion: products glide in and props ease in, so the sound is soft air and shimmer, not thuds, pours and crunches
+SIMPLE = False  # v4 simple motion: products glide in and props ease in, so the sound is soft air and shimmer, not thuds, pours and crunches
 
 def foley(s, offer, T):
     if SIMPLE: return soft_foley(s, offer, T)
@@ -177,6 +177,40 @@ def soft_foley(s, offer, T):
     s.crash(act + .15, reverse=True, length=.7, gain=.28)                    # swell as the splash or snacks ease in
     s.whoosh(act - .1, length=.7, gain=.25, peak=.5)
 
+class Shift:
+    """Offset every beat-positioned call on a Session (used to slot the 80-beat reel behind the opener)."""
+    def __init__(self, s, off): self.s, self.off = s, off
+    def __getattr__(self, k):
+        f = getattr(self.s, k)
+        return (lambda beat, *a, **kw: f(beat + self.off, *a, **kw)) if callable(f) else f
+
+def outro_fx(s, e):
+    """The lockup outro: sky, peach and cream wipes from half a second before the end beat, the basket pops on it,
+    the letters rise, the peach rule zips across, the tagline lands."""
+    sec = 1 / s.B
+    for j, d in enumerate((.5, .38, .25)): s.whoosh(e - d * sec + .05, length=.3, gain=.4 + .1 * j, pan_sweep=(-.7, .7))
+    s.snap(e, gain=.8); s.tom(e, 170, gain=.35)
+    for j in range(8): s.snap(e + (.05 + .06 * j + (.06 if j >= 4 else 0)) * sec, gain=.18, pan=-.4 + .1 * j)
+    s.whoosh(e + .5 * sec, length=.22, gain=.35, pan_sweep=(-.6, .6), peak=.4)
+    s.clink(e + .75 * sec, 2600, gain=.3)
+
+def opener(s, st):
+    """'This week's deals' opener, as in the drinks reel: wipes 0/.25/.5 · shop rises .5 · eyebrow types from 1 ·
+    shutter 2–3.5 · camera push + flash 4 (drop) · headline slams 5 and 5.5 · rule 6 · whip out 7.5."""
+    C, R = st['chords'], st['roots']
+    for i, b in enumerate([0, .25, .5]): s.whoosh(b + .12, length=.32, gain=.45 + .1 * i, pan_sweep=(-.7, .7))
+    s.epiano(.5, C[0], 3.5, vel=.6, gain=.7); s.strings(.5, C[0][:3], 3.5, gain=.35, attack=.8)
+    for k in range(4, 16): s.shaker(k / 4, gain=.2 + .15 * (k % 2))
+    s.typewriter(1, 23, 8, gain=.55)
+    s.shutter_roll(2, 1.5, gain=.9); s.tom(3.5, 95, gain=.7)
+    s.riser(4, 1.5, gain=.45)
+    s.kick(4, punch=1.3); s.impact(4, gain=.8); s.crash(4, gain=.7)
+    drums(s, st, 4, 1, fill=True); bass(s, st, 4, R[1])
+    s.brass(5, C[1][1:], .3, gain=.9); s.snare(5, gain=.7); s.impact(5, gain=.4)
+    s.brass(5.5, C[1][1:], .45, gain=1.0); s.snare(5.5, gain=.8); s.clap(5.5, gain=.8); s.impact(5.5, gain=.55)
+    s.epiano(6, C[1], 1.5, vel=.9); s.whoosh(6, length=.25, gain=.3)
+    s.whoosh(7.6, length=.45, gain=.8)
+
 # ------------------------------------------------------------------ cues
 SHORT_T = dict(copy=0, land=[1, 1.5], action=2, price=4, exit=13.5, end=14, total=20)
 
@@ -193,7 +227,7 @@ def short(offer, out, T=SHORT_T):
     foley(s, offer, T)
     s.brass(T['price'] - .5, C[1][1:], .22, gain=.45) if st['hit'] != 'supersaw' else s.supersaw(T['price'] - .5, C[1], .2, gain=.5)
     hit(s, st, T['price'])
-    s.crash(T['end'], reverse=True, length=.9, gain=.35) if SIMPLE else s.whoosh(T['exit'] + .28, length=.42, gain=.75)
+    outro_fx(s, T['end'])
     # end card: two calmer bars, then a button two beats from the end
     e = T['end']; s.crash(e, gain=.5); s.kick(e, punch=1.2)
     drums(s, st, e, 1, intensity=.7)
@@ -209,8 +243,11 @@ REEL_ORDER = ['water', 'coffee', 'thirsty', 'jacobs', 'mccoys', 'pringles', 'bar
 LEAD_FOR = {'water': 'marimba', 'coffee': 'rhodes', 'thirsty': 'brass', 'jacobs': 'clav', 'mccoys': 'stab', 'pringles': 'supersaw', 'barefoot': 'rhodes_strings', 'yellow-tail': 'nylon'}
 
 def reel(out, T=None):
-    """80 beats: intro 0–8 · offers at 8+8i (land +.5/+1/+1.5, action +1.5, price +3, whip +7.5) · outro 72–80."""
-    st = STYLES['reel']; s = Session(st['bpm'], 80); C, R = st['chords'], st['roots']
+    """88 beats: opener 0–8 · cover 8–16 · offers at 16+8i (land +.5/+1/+1.5, action +1.5, price +3, whip +7.5) · outro 80–88."""
+    st = STYLES['reel']; s0_ = Session(st['bpm'], 88); C, R = st['chords'], st['roots']
+    opener(s0_, st)
+    s = Shift(s0_, 8)
+    drums(s, st, 0, 1, intensity=.6); bass(s, st, 0, R[0])     # keep the groove under the cover after the opener
     # intro (matches the cover): eyebrow types from 0 · title lines slam on 1 and 1.5 · products land 2–2.75 · groove drops on 4
     for k in range(16): s.shaker(k / 4, gain=.2 + .1 * (k % 2))
     s.typewriter(0, 18, 16, gain=.35); s.epiano(0, C[0], 3.8, vel=.55); s.strings(0, C[0], 7.5, gain=.3, attack=.8)
@@ -233,11 +270,12 @@ def reel(out, T=None):
         s.kick(o + 3, punch=1.3); s.clap(o + 3, gain=.7)
         s.crash(o + 3, gain=.45, length=2)
         if not SIMPLE: s.impact(o + 3, gain=.6)
+    outro_fx(s, 72)
     e = 72; s.crash(e, gain=.6); s.kick(e, punch=1.3); s.brass(e, C[0], .9, gain=1.1)
     drums(s, st, e, 1, fill=True); bass(s, st, e, R[2]); lead(s, st, e, C[2], 'rhodes_strings')
     s.kick(76, punch=1.4); s.impact(76, gain=.7); s.crash(76, gain=.7, length=3.2); s.brass(76, C[0], 1.6, gain=1.1)
     s.epiano(76, C[0], 3.6, vel=1.0); s.strings(76, C[0], 3.4, gain=.55, attack=.05); s.bass_note(76, R[0] + '2', 3.0)
-    s.render(out, fade_out=.8)
+    s0_.render(out, fade_out=.8)
     return st
 
 if __name__ == '__main__':
