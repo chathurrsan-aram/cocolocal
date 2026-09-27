@@ -38,3 +38,18 @@ Build it with:
     TEMPLATE=template-v5.html python3 part2-v3/build.py reel build/reel.html
 
 In `music/p2_music.py`, `SIMPLE = False` restores the v3 sound effects. `opener()` ports the drinks reel's opener sounds, and `outro_fx()` scores the lockup.
+
+## v6 reel (in review)
+
+`part2-v3/template-v6.html` changes only the full reel. Everything else is as in v5.
+
+- The price value is roughly twice as big, with a small qualifier line above it.
+- Each offer keeps one headline and one detail line. The eyebrow and savings lines are gone.
+- Products are 18% smaller.
+- The "Big favourites. Little prices." slide now plays just before the outro.
+
+Build it with:
+
+    TEMPLATE=template-v6.html PRODSCALE=0.82 python3 part2-v3/build.py reel build/reel.html
+
+The `reel()` cue in `music/p2_music.py` follows the new order: opener, then the offers, then the recap slide as a breakdown and drop, then the outro.

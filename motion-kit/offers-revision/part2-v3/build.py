@@ -59,7 +59,13 @@ OFF = {
                saving='Selected varieties', back=['#EFE2C3', '#F8F2E4'], prodH=690, gap=96, prodKind='bottle', kind='pour', liquid='wine-action', pour=dict(cx=540, cy=1000, s=.82, mirror=True), alcohol=True),
 }
 for k, o in OFF.items(): o.update(id=k, priceSize=108)
+PS = float(os.environ.get('PRODSCALE', '1'))   # v6 reel: products a touch smaller so the price leads
+if PS != 1:
+    for o in OFF.values():
+        drop = o['prodH'] * (1 - PS) / 2; o['prodH'] = round(o['prodH'] * PS); o['gap'] = round(o['gap'] * PS)
+        if o.get('pour'): o['pour'] = dict(o['pour'], s=o['pour']['s'] * (PS + 1) / 2, cy=o['pour']['cy'] + drop)
 # snack and fruit bursts: different pieces for each offer
+OFF['thirsty']['reelDetail'] = 'Thirsty still drinks · varieties as stocked'
 OFF['mccoys']['crisps'] = None   # keep the approved prototype layout
 OFF['jacobs']['crisps'] = burst(OFF['jacobs'], 'crisps', [0, 3, 1, 5, 2, 0, 3], 11, sizes=(92, 110, 128, 140))
 OFF['pringles']['crisps'] = burst(OFF['pringles'], 'crisps', [4], 21, sizes=(110, 130, 150, 170))
@@ -77,9 +83,12 @@ def mccoys_crisps():   # the approved prototype, unchanged
                         wf=float(r.uniform(6, 12) * r.choice([-1, 1])), delay=float(k % 4) * .03))
     return out
 OFF['mccoys']['crisps'] = mccoys_crisps()
+if PS != 1:   # pull the approved McCoy's layout in towards the smaller packs
+    for c in OFF['mccoys']['crisps']:
+        c['ty'] = PLY - (PLY - c['ty']) * PS; c['tx'] = 540 + (c['tx'] - 540) * (PS + 1) / 2; c['x0'] = 540 + (c['x0'] - 540) * PS; c['size'] *= (PS + 1) / 2
 
 INTRO = dict(id='intro', eyebrow='A LITTLE LOCAL VALUE', lines=['Big favourites.', 'Little prices.'], caption='Eight offers, one local stop.', pill='SEPTEMBER OFFERS · PART 2',
-             back=['#EFE3D2', '#F6EFE5'], prodH=480, gap=16,
+             back=['#EFE3D2', '#F6EFE5'], prodH=round(480 * PS), gap=16,
              items=[dict(M['products']['coffee'][0], kind='bottle'), dict(M['products']['pringles'][1], kind='bottle'),
                     dict(M['products']['jacobs'][0], kind='bag'), dict(M['products']['thirsty'][1], kind='bottle')])
 INTRO['crisps'] = burst(dict(id='intro', prodH=560, gap=18), 'crisps', [3, 0, 4, 5, 1], 41, n_back=5, sizes=(90, 110, 124, 136),

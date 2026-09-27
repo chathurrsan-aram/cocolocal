@@ -243,39 +243,35 @@ REEL_ORDER = ['water', 'coffee', 'thirsty', 'jacobs', 'mccoys', 'pringles', 'bar
 LEAD_FOR = {'water': 'marimba', 'coffee': 'rhodes', 'thirsty': 'brass', 'jacobs': 'clav', 'mccoys': 'stab', 'pringles': 'supersaw', 'barefoot': 'rhodes_strings', 'yellow-tail': 'nylon'}
 
 def reel(out, T=None):
-    """88 beats: opener 0–8 · cover 8–16 · offers at 16+8i (land +.5/+1/+1.5, action +1.5, price +3, whip +7.5) · outro 80–88."""
-    st = STYLES['reel']; s0_ = Session(st['bpm'], 88); C, R = st['chords'], st['roots']
-    opener(s0_, st)
-    s = Shift(s0_, 8)
-    drums(s, st, 0, 1, intensity=.6); bass(s, st, 0, R[0])     # keep the groove under the cover after the opener
-    # intro (matches the cover): eyebrow types from 0 · title lines slam on 1 and 1.5 · products land 2–2.75 · groove drops on 4
-    for k in range(16): s.shaker(k / 4, gain=.2 + .1 * (k % 2))
-    s.typewriter(0, 18, 16, gain=.35); s.epiano(0, C[0], 3.8, vel=.55); s.strings(0, C[0], 7.5, gain=.3, attack=.8)
-    if SIMPLE:
-        for b in (1, 1.5): s.epiano(b, C[0][1:], .45, vel=.8, gain=.7); s.kick(b, punch=.9, gain=.7)
-        s.whoosh(1.75, length=.6, gain=.3, peak=.6)
-    else:
-        for b in (1, 1.5): s.brass(b, C[0][1:], .3, gain=.85); s.snare(b, gain=.6); s.kick(b, punch=1.1)
-        for j, b in enumerate((2, 2.25, 2.5, 2.75)): s.clink(b, 2200 + 150 * j, gain=.45, pan=-.3 + .2 * j)
-    s.riser(4, 1.5, gain=.35)
-    s.kick(4, punch=1.3); s.impact(4, gain=.55); s.crash(4, gain=.6); drums(s, st, 4, 1, fill=True); bass(s, st, 4, R[1]); lead(s, st, 4, C[1], 'rhodes')
-    s.crash(8, reverse=True, length=1.6, gain=.4)
+    """88 beats (v6 order): opener 0–8 · offers at 8+8i (land +.5/+1/+1.5, action +1.5, price +3, whip +7.5) ·
+    'Big favourites' slide 72–80 (a breakdown: title slams 73/73.5, products 74–74.75, drop on 76) · outro 80–88."""
+    st = STYLES['reel']; s = Session(st['bpm'], 88); C, R = st['chords'], st['roots']
+    opener(s, st)
     for i, offer in enumerate(REEL_ORDER):
         o = 8 + 8 * i
         s.crash(o, gain=.55); s.crash(o, reverse=True, length=.8, gain=.3) if SIMPLE else s.whoosh(o - .2, length=.4, gain=.6)
         for bar in range(2):
             drums(s, st, o + 4 * bar, 1, fill=(bar == 1)); bass(s, st, o + 4 * bar, R[(2 * i + bar) % 4]); lead(s, st, o + 4 * bar, C[(2 * i + bar) % 4], LEAD_FOR[offer])
-        foley(s, offer, dict(land=[o + .5 + (1 / 3 if offer in ('thirsty', 'jacobs', 'pringles') else .5) * j for j in range(3 if offer in ('thirsty', 'jacobs', 'pringles') else 2)], action=o + 1.5))
-        s.brass(o + 3, STYLES[offer]['chords'][1][1:] if False else C[(2 * i + 1) % 4][1:], .8, gain=1.25, fall=True)
-        s.kick(o + 3, punch=1.3); s.clap(o + 3, gain=.7)
-        s.crash(o + 3, gain=.45, length=2)
+        n = 3 if offer in ('thirsty', 'jacobs', 'pringles') else 2
+        foley(s, offer, dict(land=[o + .5 + (1 / 3 if n > 2 else .5) * j for j in range(n)], action=o + 1.5))
+        s.brass(o + 3, C[(2 * i + 1) % 4][1:], .8, gain=1.25, fall=True)
+        s.kick(o + 3, punch=1.3); s.clap(o + 3, gain=.7); s.crash(o + 3, gain=.45, length=2)
         if not SIMPLE: s.impact(o + 3, gain=.6)
-    outro_fx(s, 72)
-    e = 72; s.crash(e, gain=.6); s.kick(e, punch=1.3); s.brass(e, C[0], .9, gain=1.1)
+    # the recap slide near the end: a short breakdown, then the drop into the last bar before the outro
+    c = Shift(s, 72)
+    for k in range(16): c.shaker(k / 4, gain=.2 + .1 * (k % 2))
+    c.crash(0, gain=.5); c.typewriter(0, 18, 16, gain=.35); c.epiano(0, C[0], 3.8, vel=.6); c.strings(0, C[0], 7.5, gain=.3, attack=.8); c.bass_note(0, R[0] + '2', 3.8)
+    for b in (1, 1.5): c.brass(b, C[0][1:], .3, gain=.85); c.snare(b, gain=.6); c.kick(b, punch=1.1)
+    for j, b in enumerate((2, 2.25, 2.5, 2.75)): c.clink(b, 2200 + 150 * j, gain=.45, pan=-.3 + .2 * j)
+    c.riser(4, 1.5, gain=.35)
+    c.kick(4, punch=1.3); c.impact(4, gain=.55); c.crash(4, gain=.6); drums(c, st, 4, 1, fill=True); bass(c, st, 4, R[1]); lead(c, st, 4, C[1], 'rhodes')
+    # outro
+    outro_fx(s, 80)
+    e = 80; s.crash(e, gain=.6); s.kick(e, punch=1.3); s.brass(e, C[0], .9, gain=1.1)
     drums(s, st, e, 1, fill=True); bass(s, st, e, R[2]); lead(s, st, e, C[2], 'rhodes_strings')
-    s.kick(76, punch=1.4); s.impact(76, gain=.7); s.crash(76, gain=.7, length=3.2); s.brass(76, C[0], 1.6, gain=1.1)
-    s.epiano(76, C[0], 3.6, vel=1.0); s.strings(76, C[0], 3.4, gain=.55, attack=.05); s.bass_note(76, R[0] + '2', 3.0)
-    s0_.render(out, fade_out=.8)
+    s.kick(84, punch=1.4); s.impact(84, gain=.7); s.crash(84, gain=.7, length=3.2); s.brass(84, C[0], 1.6, gain=1.1)
+    s.epiano(84, C[0], 3.6, vel=1.0); s.strings(84, C[0], 3.4, gain=.55, attack=.05); s.bass_note(84, R[0] + '2', 3.0)
+    s.render(out, fade_out=.8)
     return st
 
 if __name__ == '__main__':
