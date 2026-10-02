@@ -1,16 +1,17 @@
 """Full Range soundtrack: original, 120 BPM, Bb major shop-pop house, every UI moment on the grid.
+A 4-beat shopfront opener comes first; the beat map below is on the piece's own grid, after it.
     python3 music.py out.wav
 Beat map (matches template.html): cover 0–8 (headline .5/1, cards 2–2.75, 'Come explore' 3.5, grid drop 4,
-tiles on 16ths from 4.75, tap 7.5) · collections at 8+6i (tap + swipe on the downbeat, shelf lights on +1.5
-(+2 for the first), polaroid +2, pill +2.5) · finale 80 (lights wave 81.5–84.25, address 84.5) · outro 88 · end 94."""
+tiles on 16ths from 4.75, tap 7.5) · 13 collections at 8+6i (tap + swipe on the downbeat, shelf lights on +1.5
+(+2 for the first), polaroid +2, pill +2.5) · finale 86 (lights wave 87.5–90.25, address 90.5, shopfront polaroid 90.75) · outro 94 · end 100."""
 import sys
 sys.path.insert(0, '/root/offers-revision/music')
-from p2_music import Session, N, drums, bass, lead, outro_fx
+from p2_music import Session, N, drums, bass, lead, outro_fx, Shift
 
 ST = dict(name='Bright shop-pop house', bpm=120, drums='four', swing=.0, lead='marimba', hit='keys_strings', bassline='octave',
           chords=[N('D4 F4 A4 C5'), N('Bb3 D4 F4 A4'), N('G3 Bb3 D4 F4'), N('A3 C4 F4 G4')], roots=['Bb', 'G', 'Eb', 'F'])
 C, R = ST['chords'], ST['roots']
-T0, SEC, NCOL = 8, 6, 12
+T0, SEC, NCOL, INTRO = 8, 6, 13, 4
 FIN = T0 + SEC * NCOL; END = FIN + 8; TOTAL = END + 6
 WAVE = ['F5', 'G5', 'A5', 'C6', 'D6', 'F6']
 
@@ -22,8 +23,29 @@ def light(s, b, k):
     for j, nt in enumerate(C[k % 4][1:]): s.marimba(b + j * .0625, nt.replace('4', '5').replace('3', '4'), gain=.55, pan=-.3 + .3 * j)
     s.clink(b, 2600, gain=.3)
 
+class Gate:
+    """Drop beat-positioned calls at or after `hi` (the groove's last half bar before the finale breakdown)."""
+    def __init__(self, s, hi): self.s, self.hi = s, hi
+    def __getattr__(self, k):
+        f = getattr(self.s, k)
+        return (lambda beat, *a, **kw: None if beat >= self.hi else f(beat, *a, **kw)) if callable(f) else f
+
+def opener(s):
+    """The shopfront: card rises 0, 'Come on in.' .5, address pill 1.25, push through the door 2.75, iris 3.4,
+    a two-note door chime as we step in, then the cover at INTRO."""
+    s.whoosh(0, length=.45, gain=.35); s.epiano(0, C[0], 3.4, vel=.45, gain=.55); s.strings(0, C[0], 3.6, gain=.2, attack=.6)
+    for k in range(12): s.shaker(1 + k / 4, gain=.08 + .06 * (k % 2))
+    s.pluck(.5, 'F5', gain=.5); s.pluck(.75, 'A5', gain=.4)
+    s.snap(1.25, gain=.35); s.clink(1.25, 2900, gain=.3)
+    s.riser(2, 1.5, gain=.28); s.whoosh(2.6, length=.7, gain=.45, peak=.7)
+    s.marimba(3.25, 'E6', gain=.7, pan=-.15); s.clink(3.25, 2640, gain=.3)            # ding...
+    s.marimba(3.5, 'C6', gain=.75, pan=.15); s.clink(3.5, 2090, gain=.3)              # ...dong
+    s.whoosh(3.35, length=.35, gain=.35, pan_sweep=(-.5, .5))
+
 def main(out):
-    s = Session(ST['bpm'], TOTAL)
+    root = Session(ST['bpm'], INTRO + TOTAL)
+    opener(root)
+    s = Shift(root, INTRO)          # everything below is on the piece's own beat grid, after the opener
     # ---- cover: airy intro, then the groove drops as the cover folds into the grid
     s.epiano(0, C[0], 3.8, vel=.55, gain=.7); s.strings(0, C[0], 7.6, gain=.25, attack=.8)
     for k in range(16): s.shaker(k / 4, gain=.15 + .1 * (k % 2))
@@ -34,11 +56,12 @@ def main(out):
     drums(s, ST, 4, 1, intensity=.8); bass(s, ST, 4, R[1])
     for k in range(8): s.marimba(4.75 + k * .125, ['D5', 'F5', 'A5', 'C6', 'A5', 'F5', 'G5', 'A5'][k], gain=.45, pan=-.4 + .1 * k)
     tap(s, 7.5); s.whoosh(7.8, length=.35, gain=.4)
-    # ---- twelve collections, two bars each... six beats: 1.5 bars, so the groove runs bar-wise underneath
-    for bar in range(int((FIN - T0) / 4)):
+    # ---- thirteen collections, six beats each: the groove runs bar-wise underneath, cut at the finale
+    g = Gate(s, FIN)
+    for bar in range(-(-(FIN - T0) // 4)):
         b0 = T0 + 4 * bar
-        drums(s, ST, b0, 1, fill=(bar % 3 == 2), intensity=1.0)
-        bass(s, ST, b0, R[bar % 4]); lead(s, ST, b0, C[bar % 4], 'marimba' if bar % 6 < 3 else 'nylon')
+        drums(g, ST, b0, 1, fill=(bar % 3 == 2), intensity=1.0)
+        bass(g, ST, b0, R[bar % 4]); lead(g, ST, b0, C[bar % 4], 'marimba' if bar % 6 < 3 else 'nylon')
     for i in range(NCOL):
         sb = T0 + SEC * i
         s.crash(sb, gain=.35 if i else .5)
@@ -53,6 +76,7 @@ def main(out):
     s.epiano(FIN, C[0], 3.8, vel=.8); s.strings(FIN, C[0], 7.5, gain=.35, attack=.4); s.bass_note(FIN, R[0] + '2', 3.8)
     for k in range(16): s.shaker(FIN + k / 4, gain=.18 + .1 * (k % 2))
     for k in range(12): s.marimba(FIN + 1.5 + k * .25, WAVE[k % 6] if k < 6 else WAVE[(k % 6)].replace('5', '6'), gain=.42, pan=-.5 + k * .09)
+    s.snap(FIN + 4.75, gain=.5); s.tom(FIN + 4.75, 200, gain=.2)                   # shopfront polaroid lands
     s.riser(FIN + 4, 1.5, gain=.25); s.kick(FIN + 4, punch=1.2); s.clap(FIN + 4, gain=.6)
     drums(s, ST, FIN + 4, 1, intensity=.85); bass(s, ST, FIN + 4, R[3]); lead(s, ST, FIN + 4, C[3], 'marimba')
     # ---- outro: the lockup lands on END
@@ -61,7 +85,7 @@ def main(out):
     drums(s, ST, END, 1, intensity=.7)
     s.kick(END + 4, punch=1.3); s.crash(END + 4, gain=.5, length=2.2); s.epiano(END + 4, C[0], 1.9, vel=1.0); s.bass_note(END + 4, R[0] + '2', 1.9)
     s.strings(END + 4, C[0], 1.9, gain=.4, attack=.05)
-    s.render(out, fade_out=.5)
+    root.render(out, fade_out=.5)
 
 if __name__ == '__main__':
-    main(sys.argv[1]); print('wrote', sys.argv[1], ST['name'], TOTAL, 'beats')
+    main(sys.argv[1]); print('wrote', sys.argv[1], ST['name'], INTRO + TOTAL, 'beats')

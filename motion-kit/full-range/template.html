@@ -1,8 +1,8 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Coco Local — Full Range</title><style>__FONTS__
 html,body{margin:0;background:#F5F0E6;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c" width="1080" height="1920"></canvas><script>
-/* Coco Local — Full Range, 12 collections.  Code motion design: every frame is a pure function of time (seek).
-   One persistent app: a cover folds into a 12-tile grid, a finger taps Slushies, the tile becomes the collection card,
-   and the finger walks the tab bar through all twelve.  Each collection lights its real shelves on an isometric map of
+/* Coco Local — Full Range, 13 collections.  Code motion design: every frame is a pure function of time (seek).
+   One persistent app: the real shopfront pushes in through the door, a cover folds into a 13-tile grid, a finger taps Slushies, the tile becomes the collection card,
+   and the finger walks the tab bar through all thirteen.  Each collection lights its real shelves on an isometric map of
    the shop (built from the owner's floor plan, 3D cutaway and labelled CCTV / aisle photos), with a path from the door. */
 const CFG=__CFG__, IMG={};
 const BPM=120, B=60/BPM, W=1080, H=1920, c=document.getElementById('c'), x=c.getContext('2d');
@@ -22,7 +22,8 @@ function cover(im,dx,dy,dw,dh){const r=Math.max(dw/im.width,dh/im.height),sw=dw/
 
 /* ---------------- data ---------------- */
 const COL=CFG.collections, N=COL.length;
-const T0=8, SEC=6, FIN=T0+SEC*N, END=FIN+8, TOTAL=END+6;   // beats: cover 0–8 · 12×6 · finale · outro
+const T0=8, SEC=6, FIN=T0+SEC*N, END=FIN+8, TOTAL=END+6;   // beats (after the opener): cover 0–8 · 13×6 · finale · outro
+const INTRO=4;                                              // the shopfront opener runs before beat 0
 const sec=b=>Math.max(-1,Math.min(N-1,Math.floor((b-T0)/SEC)));
 
 /* ---------------- the shop, in plan units (from the owner's customer-area layout) ---------------- */
@@ -127,9 +128,10 @@ function chipCentre(k,t){const C=chips();let sc=Math.max(0,Math.min(C.total-940,
 
 /* ---------------- layout of a collection page ---------------- */
 const CARD={x:56,y:528,w:968,h:645,r:34}, MAP={x:56,y:1262,w:968,h:398,r:30};
-const GRID=(k)=>{const col=k%3,row=Math.floor(k/3);return {x:68+col*322,y:640+row*262,w:300,h:200}};
+const GRID=(k)=>{const col=k%3,row=Math.floor(k/3);return k===N?{x:68+322,y:590+row*222,w:622,h:172}:{x:68+col*322,y:590+row*222,w:300,h:172}};
 const COVERC=[{x:70,y:815,w:450,h:300},{x:550,y:815,w:450,h:300},{x:70,y:1145,w:450,h:300},{x:550,y:1145,w:450,h:300}];
-const COVER_IDX=[0,2,4,6]; // slushies, sweets, DIY, pets -> the cover's four photos
+const COVER_IDX=[0,3,5,7]; // slushies, sweets, DIY, pets -> the cover's four photos
+const POP_IDX=[...Array(N+1).keys()].filter(k=>!COVER_IDX.includes(k)); // the rest pop in on 16ths
 
 function photoCard(t,b,rect,alpha){ // the persistent card; the photo swipes between collections
   const i=Math.max(0,sec(b));x.save();x.globalAlpha=alpha;
@@ -170,7 +172,7 @@ function mapPanel(t,b,rect,a,bigK){ // "Find it in store": the isometric shop wi
   if(ta>0){x.save();x.translate(thx,thy+(1-cl(ta))*40);x.rotate((3-2*(i%2)*3)*Math.PI/180);const sc=lerp(.6,1,cl(ta))+.04*(ta-cl(ta));x.scale(sc,sc);x.globalAlpha=a*cl(ta*2);
     x.shadowColor='rgba(40,30,20,.28)';x.shadowBlur=22;x.shadowOffsetY=10;rr(-tw_/2-10,-th_/2-10,tw_+20,th_+56,10);x.fillStyle='#fff';x.fill();x.shadowColor='transparent';
     x.save();rr(-tw_/2,-th_/2,tw_,th_,4);x.clip();cover(IMG['shelf-'+COL[i].id],-tw_/2,-th_/2,tw_,th_);x.restore();
-    txt('ON OUR SHELVES',0,th_/2+32,15,700,NAVY,'center',300,1.6);x.restore();}
+    txt(COL[i].snap||'ON OUR SHELVES',0,th_/2+32,15,700,NAVY,'center',tw_+10,1.6);x.restore();}
   // location pill (bottom-right)
   const pa=s(t-lt-1*B,SP.ui)*(1-cl(outA*2));
   if(pa>0){const lbl=COL[i].where,pw=tw(lbl,25,600)+64,px=rect.x+rect.w-pw-24,py=rect.y+rect.h-74+(1-pa)*24;
@@ -203,20 +205,21 @@ function coverAndGrid(t,b){
     masked(y-96,122,()=>{x.save();x.globalAlpha=cl(e*2)*hA;txt(ln,70,y+(1-e)*110-(1-hA)*60,96,700,NAVY,'left',940);x.restore()})});
   const sa=s(t-1.5*B,SP.ui);x.save();x.globalAlpha=cl(sa*1.6)*hA;txt('Everyday favourites. Unexpected finds.',74,640+(1-sa)*20,34,600,MUTED);txt('Take a look around your local.',74,688+(1-sa)*20,34,600,MUTED);x.restore();
   const ga=b<8?1:1-cl((b-8)/.4);
-  masked(292,110,()=>{x.save();x.globalAlpha=cl(h2*2)*ga;txt('Twelve collections.',70,384+(1-h2)*100,78,700,NAVY,'left',940);x.restore()});
+  masked(292,110,()=>{x.save();x.globalAlpha=cl(h2*2)*ga;txt('Thirteen collections.',70,384+(1-h2)*100,78,700,NAVY,'left',940);x.restore()});
   masked(402,100,()=>{const h3=s(t-4.5*B,SP.ui);x.save();x.globalAlpha=cl(h3*2)*ga;txt('One local shop.',70,480+(1-h3)*100,78,700,NAVY,'left',940);x.restore()});
   const tapT=7.5*B,grow=s(t-8*B,SP.ui);
-  for(let k=0;k<N;k++){const g=GRID(k),ci=COVER_IDX.indexOf(k);let r,al=1,sc=1;
+  for(let k=0;k<=N;k++){const g=GRID(k),ci=COVER_IDX.indexOf(k);let r,al=1,sc=1;
     if(ci>=0){const c0=COVERC[ci],e1=s(t-(2+ci*.25)*B,SP.pop),mv=s(t-4.5*B,SP.ui);
       r={x:lerp(c0.x,g.x,mv),y:lerp(c0.y,g.y,mv)+(1-cl(e1))*160,w:lerp(c0.w,g.w,mv),h:lerp(c0.h,g.h,mv)};al=cl(e1*2);sc=lerp(.92,1,cl(e1))+.03*(e1-cl(e1));}
-    else{const e=s(t-(4.75+[1,3,5,7,8,9,10,11].indexOf(k)*.125)*B,SP.pop);r={...g};al=cl(e*2);sc=lerp(.7,1,cl(e))+.04*(e-cl(e));}
+    else{const e=s(t-(4.75+POP_IDX.indexOf(k)*.125)*B,SP.pop);r={...g};al=cl(e*2);sc=lerp(.7,1,cl(e))+.04*(e-cl(e));}
     if(k===0&&b>=8){const card=CARD;r={x:lerp(r.x,card.x,grow),y:lerp(r.y,card.y,grow),w:lerp(r.w,card.w,grow),h:lerp(r.h,card.h,grow)};}
     else if(b>=8){al*=1-cl((b-8)/.35);sc*=1-.12*cl((b-8)/.35)}
     if(al<=0)continue;const pressK=k===0?1-.035*Math.max(0,1-Math.abs((t-tapT-.04)/.12)):1;
     x.save();x.globalAlpha=al;x.translate(r.x+r.w/2,r.y+r.h/2);x.scale(sc*pressK,sc*pressK);
     const rad=lerp(22,CARD.r,k===0?grow:0);x.shadowColor='rgba(60,45,30,.14)';x.shadowBlur=18;x.shadowOffsetY=8;rr(-r.w/2,-r.h/2,r.w,r.h,rad);x.fillStyle='#EFE6D8';x.fill();x.shadowColor='transparent';
+    if(k===N){rr(-r.w/2,-r.h/2,r.w,r.h,rad);x.fillStyle='#FEC091';x.fill();txt('+ lots more in store',0,14,40,700,NAVY,'center',r.w-40);x.restore();continue}
     x.save();rr(-r.w/2,-r.h/2,r.w,r.h,rad);x.clip();cover(IMG[COL[k].id],-r.w/2,-r.h/2,r.w,r.h);x.restore();
-    const la=s(t-4.9*B,SP.ui)*(b<8?1:1-cl((b-8)/.25));if(la>0){x.globalAlpha=al*la;txt(COL[k].tab,-r.w/2+4,r.h/2+38,25,700,NAVY,'left',r.w)}
+    const la=s(t-4.9*B,SP.ui)*(b<8?1:1-cl((b-8)/.25));if(la>0){x.globalAlpha=al*la;txt(COL[k].tab,-r.w/2+4,r.h/2+36,25,700,NAVY,'left',r.w)}
     x.restore();}
   const ca=s(t-3.5*B,SP.ui)*(1-cl((b-4.2)/.3));if(ca>0){x.save();x.globalAlpha=ca;txt('COME EXPLORE →',540,1560+(1-ca)*20,40,700,NAVY,'center',800,1);x.restore()}}
 
@@ -233,10 +236,13 @@ function finale(t,b){const f=s(t-FIN*B,SP.ui);
   order.forEach((id,k)=>{extra[id]=cl(s(t-(FIN+1.5+k*.25)*B,SP.pop))});
   drawShop(m,[],0,0,[],0,0,t,extra);x.restore();
   const a1=s(t-(FIN+4.5)*B,SP.ui),a2=s(t-(FIN+5)*B,SP.ui),a3=s(t-(FIN+5.5)*B,SP.ui);
+  const sp=s(t-(FIN+4.75)*B,SP.pop);if(sp>0){const pw_=300,ph_=225;x.save();x.translate(842,1452+(1-cl(sp))*60);x.rotate(-4*Math.PI/180);const sc=lerp(.6,1,cl(sp))+.04*(sp-cl(sp));x.scale(sc,sc);x.globalAlpha=cl(sp*2);
+    x.shadowColor='rgba(40,30,20,.28)';x.shadowBlur=24;x.shadowOffsetY=10;rr(-pw_/2-12,-ph_/2-12,pw_+24,ph_+64,10);x.fillStyle='#fff';x.fill();x.shadowColor='transparent';
+    x.save();rr(-pw_/2,-ph_/2,pw_,ph_,4);x.clip();cover(IMG.shop,-pw_/2,-ph_/2,pw_,ph_);x.restore();txt('SEE YOU SOON',0,ph_/2+36,17,700,NAVY,'center',300,1.8);x.restore()}
   x.save();x.globalAlpha=cl(a1*2);txt('210 High Road, South Benfleet',70,1340+(1-a1)*24,44,700);x.restore();
   x.save();x.globalAlpha=cl(a2*2);txt('SS7 5LD',70,1396+(1-a2)*24,38,600,MUTED);x.restore();
-  if(a3>0){x.save();x.globalAlpha=cl(a3*2);const pw=tw('FREE PARKING ON SITE · OPEN SEVEN DAYS',24,700,2)+64;rr(70,1440+(1-a3)*20,pw,56,28);x.fillStyle=PILL;x.fill();
-    txt('FREE PARKING ON SITE · OPEN SEVEN DAYS',70+pw/2,1477+(1-a3)*20,24,700,NAVY,'center',900,2);x.restore()}}
+  if(a3>0){x.save();x.globalAlpha=cl(a3*2);const pw=tw('FREE PARKING · OPEN SEVEN DAYS',24,700,2)+64;rr(70,1440+(1-a3)*20,pw,56,28);x.fillStyle=PILL;x.fill();
+    txt('FREE PARKING · OPEN SEVEN DAYS',70+pw/2,1477+(1-a3)*20,24,700,NAVY,'center',900,2);x.restore()}}
 
 /* ---------------- outro: the approved lockup motion ---------------- */
 const BASKET=[['M120 232 L73 312',24],['M246 232 L293 312',24],['M120 411 V452',26],['M183 411 V452',26],['M246 411 V452',26],
@@ -257,10 +263,10 @@ function endCard(te){const S2=S;[['#8EA9DC',0],['#FEC091',.12],[CREAM,.25]].forE
   x.restore();x.save();x.globalAlpha=cl((te-2)/.4);txt('Varieties as stocked · Subject to availability · 18+ · Please drink responsibly',540,1760,22,500,MUTED,'center',940);x.restore()}
 
 /* ---------------- the timeline ---------------- */
-function frame(t){const b=t/B;x.fillStyle=CREAM;x.fillRect(0,0,W,H);
+function main(t){const b=t/B;x.fillStyle=CREAM;x.fillRect(0,0,W,H);
   const POP=.5,te=t-(END*B-POP);
   if(te>=0&&S(te-.25,18,1)>.999)return endCard(te);
-  header(cl(t/.4));
+  header(1);
   const camZ=1+.012*Math.sin(t*.35);x.save();x.translate(540,960);x.scale(camZ,camZ);x.translate(-540,-960);
   if(b<8.6)coverAndGrid(t,b);
   const pageA=b<8?0:b<FIN?1:1-cl((b-FIN)/.35);
@@ -272,9 +278,33 @@ function frame(t){const b=t/B;x.fillStyle=CREAM;x.fillRect(0,0,W,H);
   if(b>=FIN)finale(t,b);
   finger(t,b);
   x.restore();
-  const i=b<8?-1:b<FIN?sec(b):-1;footer(i,i>=0&&COL[i].alcohol,cl(t/.4));
+  const i=b<8?-1:b<FIN?sec(b):-1;footer(i,i>=0&&COL[i].alcohol,1);
   if(te>=0)endCard(te);}
-window.seek=t=>frame(Math.max(0,t));window.DURATION=TOTAL*B;
+/* ---------------- opener: the real shopfront, then a push through the door into the app ---------------- */
+const DOORF=[.509,.56];   // the shop door, as a fraction of the shopfront photo
+function opener(t){const b=t/B;if(b<3.3){x.fillStyle=CREAM;x.fillRect(0,0,W,H);header(cl(t/.3));footer(-1,false,cl(t/.3));}
+  const e=s(t-.05,SP.ui),h=s(t-.5*B,SP.ui),pl=s(t-1.25*B,SP.pop),push=S(t-2.75*B,7,1),tA=1-cl(push*3),iris=2300*S(t-3.4*B,6.5,1);if(iris>=2250)return;
+  x.save();if(iris>0){x.beginPath();x.rect(0,0,W,H);x.arc(540,960,iris,0,Math.PI*2,true);x.clip('evenodd')}
+  masked(306,46,()=>{x.save();x.globalAlpha=cl(h*1.6)*tA;txt('YOUR LOCAL ON THE HIGH ROAD',70,340+(1-h)*35,24,700,BROWN,'left',940,2.8);x.restore()});
+  masked(352,100,()=>{x.save();x.globalAlpha=cl(h*1.6)*tA;txt('Come on in.',70,432+(1-h)*70-push*40,84,700,NAVY,'left',940);x.restore()});
+  // card: rises on a spring, then grows to the full frame while the camera pushes into the door
+  const c0={x:56,y:528,w:968,h:726},full={x:0,y:0,w:W,h:H},g=push;
+  const r={x:lerp(c0.x,full.x,g),y:lerp(c0.y+(1-e)*180,full.y,g),w:lerp(c0.w,full.w,g),h:lerp(c0.h,full.h,g)},rad=lerp(34,0,g);
+  const im=IMG.shop,base=Math.max(r.w/im.width,r.h/im.height),Z=(1.08-.06*e+.02*cl(t/2))*(1+3.2*push*push),sc=base*Z;
+  const fx=DOORF[0]*im.width,fy=DOORF[1]*im.height,p0=[r.x+r.w/2+(fx-im.width/2)*base,r.y+r.h/2+(fy-im.height/2)*base],cx=r.x+r.w/2,cy=r.y+r.h/2;
+  const ax=lerp(p0[0],cx,push),ay=lerp(p0[1],cy,push);
+  x.save();x.globalAlpha=cl(e*2);x.translate(r.x+r.w/2,r.y+r.h/2);x.scale(lerp(.94,1,cl(e)),lerp(.94,1,cl(e)));x.translate(-(r.x+r.w/2),-(r.y+r.h/2));
+  x.shadowColor='rgba(60,45,30,.16)';x.shadowBlur=30;x.shadowOffsetY=12;rr(r.x,r.y,r.w,r.h,rad);x.fillStyle='#1a1a1a';x.fill();x.shadowColor='transparent';
+  x.save();rr(r.x,r.y,r.w,r.h,rad);x.clip();x.drawImage(im,ax-fx*sc,ay-fy*sc,im.width*sc,im.height*sc);
+  // a warm glow spills out of the door as we go in
+  const gl=cl((b-3.1)/.4);if(gl>0){const gr=x.createRadialGradient(cx,cy,0,cx,cy,700);gr.addColorStop(0,`rgba(255,246,228,${.55*gl})`);gr.addColorStop(1,'rgba(255,246,228,0)');x.fillStyle=gr;x.fillRect(r.x,r.y,r.w,r.h)}
+  x.restore();x.restore();
+  // location pill under the card
+  if(pl>0&&push<.3){const lbl='210 HIGH ROAD · SOUTH BENFLEET',pw=tw(lbl,24,700,2)+80;x.save();x.globalAlpha=cl(pl*2)*(1-cl(push*4));x.translate(540,1340);x.scale(lerp(.6,1,cl(pl)),lerp(.6,1,cl(pl)));
+    rr(-pw/2,-29,pw,58,29);x.fillStyle=PILL;x.fill();x.fillStyle=NAVY;x.beginPath();x.arc(-pw/2+30,0,7,0,7);x.fill();txt(lbl,12,9,24,700,NAVY,'center',900,2);x.restore()}
+  x.restore()}
+function frame(t){const o=INTRO*B,b=t/B;if(b>=3.3)main(t-o);if(b<INTRO+.6)opener(t)}   // the cover starts under the opener's fade
+window.seek=t=>frame(Math.max(0,t));window.DURATION=(INTRO+TOTAL)*B;
 const srcs={logo:'__LOGO__'};Object.entries(CFG.img).forEach(([k,v])=>srcs[k]=v);
 Promise.all([document.fonts.load('700 80px Poppins'),document.fonts.load('600 30px Poppins'),document.fonts.load('500 30px Poppins'),document.fonts.load('600 318px Poppins'),
   ...Object.entries(srcs).map(([k,s_])=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{IMG[k]=i;res()};i.onerror=()=>rej(k);i.src=s_}))]).then(()=>{seek(0);window.READY=true;

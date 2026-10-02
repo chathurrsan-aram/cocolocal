@@ -12,6 +12,8 @@ DOOR = [100, 385]
 COLS = [
  dict(id='slushies', tab='Slushies', eyebrow='ICE-COLD TREATS', headline='Ice-cold slushies.', sub='Red, blue or a colourful mix.',
       lit=['tables'], where='By the entrance · slush machine', path=[DOOR, [150, 330], [152, 248]]),
+ dict(id='hotcoffee', tab='Hot coffee', eyebrow='FRESHLY MADE', headline='Hot coffee.', sub='Freshly made coffee, ready to go.',
+      lit=['tables'], where='By the entrance · coffee machine', path=[DOOR, [150, 330], [152, 248]], snap='MADE FRESH IN STORE'),
  dict(id='coffee', tab='Chilled coffee', eyebrow='READY WHEN YOU ARE', headline='Chilled coffee.', sub='Iced coffee and Frappuccino, ready to go.',
       lit=['chill'], where='Chiller wall · on your left', path=[DOOR, [200, 300], [430, 266]]),
  dict(id='sweets', tab='Sweets', eyebrow='A LITTLE TREAT', headline='Sweet discoveries.', sub='Sweets, chocolate and sharing favourites.',
@@ -38,6 +40,7 @@ COLS = [
 img = {}
 for c in COLS:
     img[c['id']] = uri(I / f"{c['id']}.jpg", 'image/jpeg'); img['shelf-' + c['id']] = uri(I / f"shelf-{c['id']}.jpg", 'image/jpeg')
+img['shop'] = uri(I / 'shop.jpg', 'image/jpeg')                 # the real shopfront, for the opener and the finale
 cfg = dict(collections=COLS, img=img)
 fonts = ''.join('@font-face{font-family:Poppins;src:url(data:font/woff2;base64,' + base64.b64encode((F / f'poppins-latin-{w}-normal.woff2').read_bytes()).decode() + ') format("woff2");font-weight:' + str(w) + ';}' for w in (500, 600, 700))
 s = (H / 'template.html').read_text().replace('__FONTS__', fonts).replace('__CFG__', json.dumps(cfg)).replace('__LOGO__', uri(I / 'logo.png', 'image/png'))
