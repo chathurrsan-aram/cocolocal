@@ -89,7 +89,30 @@ This is a review draft. The patched remote build passed. Do not merge/publish un
 - Source Canva designs: Beer-Instagram-A `DAHVMO7TUvM` (two pages), Wine-Instagram-B `DAHVMfm4GUY` (two pages), Spirits Colour Splash `DAHVgR7sDMo`. Retrieved current page artwork through Canva; available page images are 400×500. No generated redesigns used in these cards.
 - Added prominent gold “Spin the wheel” hero button linking to the existing password-protected demo.
 
+## Homepage refresh — 26 September 2026 (branch `homepage-refresh`, preview only)
+Plan: `docs/superpowers/plans/2026-09-26-homepage-refresh.md`. Screenshots: `docs/homepage-refresh/`.
+- New homepage order: hero → "Walk through the shop" → offers → Coco’s slushies → visit us → follow us → Coco Wheel "coming soon" (no link; `/spin` unchanged and still private).
+- Owner answers (26 Sep): Instagram stays @cocolocal_; wheel teaser without link, hero Spin button removed; H1 "Your local." with "Your local in South Benfleet" subline.
+- All offer/promo text now lives in `src/data/offers.ts` (tested by `npm test`). September offers end automatically after 6 Oct 2026; standing promos: Tuesdays 10% off over £25 (excl. tobacco), Free Slushie Friday with £3 spend, free on-site parking. 18+ line added automatically to alcohol.
+- Walk-through is CSS scroll-driven (no JS): pinned stage on desktop, simpler stacked reveal on phones, static gallery for reduced motion / unsupported browsers.
+- Photos: audit shortlist only, re-encoded 800/1200/2400 WebP without metadata (`scripts/prepare-homepage-assets.mjs`). Navbar now uses the approved transparent logo. Slushie reel and logo reveal are decorative, < 0.5 MB each, muted, poster frames, labelled "Illustration".
+- Verified locally on the production build: build + site checks, lint, tests; Lighthouse mobile perf 96–98 / a11y 100, desktop 100 / 100, CLS 0; keyboard tab order all visible; no horizontal overflow at 390px.
+- Still missing: daytime car-park/forecourt photo (none usable; CCTV stills only), a real slushie pour clip, more groceries/world-foods shots. Slushie price not shown: window poster says £1.50, older site copy said £1.20 — needs a decision.
 ### Remove wheel password — 26 September 2026
 - `/spin` now loads the wheel directly from `/wheel-demo.html`; removed password form, decryption and lock control. Deleted obsolete encrypted payload; no password or private access file published.
 - Kept demo/non-redeemable labels and noindex. Daily browser limit, UK midnight reset and saved results are unchanged (same script and storage origin/name).
 - Updated production output checks to require the direct iframe and absence of password field. Verified unchanged wheel logic and script/component parsing before preview deployment.
+
+### Latest homepage media refresh — 26 September 2026
+- Continued the newer `homepage-refresh` layout (PR #8), replacing the old opening-banner hero with the real, bright `chillers-03` interior photo. Added a full-width “Free parking on site” banner above the hero.
+- Replaced the old slushie photo/small loop section with the existing “Take a little chill break” campaign artwork and the 8-second Higgsfield/API counter-landing clip (`coco-local-slushie-120-8s.mp4`). Placed the pair at the bottom of the homepage. Video is user-controlled, retains audio, preloads no video bytes and has a poster.
+- Preserved the previously requested hero wheel link and open demo access in the newer layout. Removed duplicated old-page fragments left after its prior merge so the page compiles.
+- Source poster: 2026-09-13/new-chat-2/outputs/Coco-Local-Chill-Break.png. Source clip: 2026-09-25/referenced-chatgpt-conversation-this-is-an-2/outputs/coco-local-slushie-120-8s.mp4. Video visually reviewed via sampled frames; existing offer tests pass.
+
+### Hero comparison and offers grouping — 26 September 2026
+- Added preview toggle A (split hero) / B (larger slideshow above the copy), shareable through `?hero=split` / `?hero=wide`. Both cycle through current interior photo, approved logo, and stocked drinks chillers. Manual controls, pause, focus/hover pause and reduced-motion default included.
+- Slushie artwork and video now immediately follow offers. Tuesday promo uses the same neutral card styling and grid placement as other weekly promotions.
+- Replaced the rejected eight-second video with the five-second raw `seedance-slush-5s.mp4`: macro ice, counter cup and clean navy product ending. No poster/price outro. Exact clip clarification requested; source choice is provisional pending reply.
+
+### Coco Wheel — 26 September 2026
+- The live Coco Wheel at `/wheel` replaces the demo: `/spin` redirects there and `/wheel-demo.html` is removed. Plan: `docs/superpowers/plans/2026-09-26-coco-wheel.md`. The homepage hero button and the wheel strip (formerly “coming soon”) now link to `/wheel`.

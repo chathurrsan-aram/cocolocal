@@ -1,0 +1,28 @@
+{
+ "mode": "synth",
+ "bpm": 120.0,
+ "period": 0.5,
+ "bars": 1,
+ "duration": 2.0,
+ "loop": false,
+ "analysis": {
+  "bpm": 119.929,
+  "period": 0.5002973155489733,
+  "first_beat": 0.015479166666666667,
+  "first_downbeat": 1.5163711133135864
+ },
+ "events": [
+  {
+   "beat": 0.2,
+   "t": 0.1,
+   "sound": "tick",
+   "peak_ms": 0.52
+  },
+  {
+   "beat": 0.7,
+   "t": 0.35,
+   "sound": "chime",
+   "peak_ms": 77.94
+  }
+ ]
+}

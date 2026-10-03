@@ -2,7 +2,7 @@ import { readFile, access } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 // Validate the actual production output, including links produced from shared data.
-const routes = ['/', '/products', '/about', '/contact', '/delivery', '/property-guide', '/spin'];
+const routes = ['/', '/products', '/about', '/contact', '/delivery', '/property-guide', '/wheel', '/wheel/terms', '/wheel/privacy'];
 const pages = new Map(await Promise.all(routes.map(async route => [route,
   await readFile(`.next/server/app/${route === '/' ? 'index' : route.slice(1)}.html`, 'utf8')
 ])));
@@ -23,6 +23,7 @@ for (const [route, html] of pages) {
     const href = encoded.replaceAll('&amp;', '&');
     if (!href.startsWith('/') && !href.startsWith('#')) continue;
     const target = new URL(href, `https://cocolocal.co.uk${route}`);
+    if (target.pathname.startsWith('/video/')) { await access(`public${target.pathname}`); checkedLinks++; continue; }
     assert(pages.has(target.pathname), `${route}: missing route ${href}`);
     if (target.hash) {
       assert(pages.get(target.pathname).includes(`id="${decodeURIComponent(target.hash.slice(1))}"`),
@@ -36,12 +37,26 @@ for (const [route, html] of pages) {
     if (localPath?.startsWith('/images/')) await access(`public${localPath}`);
   }
 }
+// Check media sources/posters as well as linked pages.
+for (const html of pages.values()) {
+  for (const [, asset] of html.matchAll(/(?:src|poster)="(\/video\/[^"]+)"/g)) await access(`public${asset}`);
+}
 const guide = pages.get('/property-guide');
 assert(guide.includes('noindex') && guide.includes('guide-password'), 'Guide must remain private and password gated');
 assert(!guide.includes('srcdoc='), 'Guide must not ship decrypted in server-rendered output');
 const sitemap = await readFile('.next/server/app/sitemap.xml.body', 'utf8');
-assert(!sitemap.includes('/spin'), 'Demo wheel must not be in sitemap');
-assert(pages.get('/spin').includes('noindex') && pages.get('/spin').includes('src="/wheel-demo.html"') && !pages.get('/spin').includes('wheel-password'), 'Wheel demo must load directly without a password');
-await access('public/wheel-demo.html');
+const wheel = pages.get('/wheel');
+// While /wheel is password-protected it stays out of the sitemap, and the gate must exist.
+assert(!sitemap.includes('/wheel<'), 'Password-protected wheel must not be in sitemap');
+const { readFile: rf } = await import('node:fs/promises');
+const middleware = await rf('src/middleware.ts', 'utf8');
+assert(middleware.includes("'/wheel'") && middleware.includes("'/api/wheel/spin'"), 'Wheel page and spin API must be behind the password gate');
+const unlock = await rf('src/app/wheel/unlock/page.tsx', 'utf8');
+assert(unlock.includes('index: false') && unlock.includes('action="/api/wheel/unlock"'), 'Unlock page must be noindex and post to the unlock API');
+assert(wheel.includes('/wheel/og.jpg') && wheel.includes('href="/wheel/terms"') && wheel.includes('href="/wheel/privacy"'), 'Wheel needs OG image and terms/privacy links');
+assert(!pages.get('/').includes('href="/spin"') && pages.get('/').includes('href="/wheel"'), 'Homepage links to the live wheel');
+for (const route of ['/wheel/terms', '/wheel/privacy']) {
+  assert(pages.get(route).includes('noindex') && pages.get(route).includes('DRAFT'), `${route}: must be marked DRAFT and noindex until approved`);
+}
 assert(!sitemap.includes('property-guide'), 'Private guide must not be in sitemap');
 console.log(`Site checks passed: ${pages.size} routes, ${checkedLinks} internal links, image files, canonical URLs and private-guide safeguards.`);

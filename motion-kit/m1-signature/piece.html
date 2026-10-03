@@ -1,0 +1,85 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}
+:root{--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+svg{display:block;position:absolute;left:0;top:0}
+text{font-family:Poppins;font-weight:600}
+</style></head><body>
+<svg id="sv"><defs>
+  <clipPath id="cw"><rect x="400" y="140" width="1800" height="365"/></clipPath>
+  <clipPath id="ct"><rect x="-500" y="780" width="3200" height="160"/></clipPath>
+</defs>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
+<g id="cam"><g id="lock">
+  <g id="basket" fill="none" stroke="var(--ink)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path id="hl" pathLength="1" d="M120 232 L73 312"/><path id="hr" pathLength="1" d="M246 232 L293 312"/>
+    <g id="slots"><path id="s1" pathLength="1" d="M120 411 V452" stroke-width="26"/><path id="s2" pathLength="1" d="M183 411 V452" stroke-width="26"/><path id="s3" pathLength="1" d="M246 411 V452" stroke-width="26"/></g>
+    <rect id="rim" pathLength="1" x="26" y="324" width="314" height="38" rx="19"/>
+    <path id="body" pathLength="1" d="M183 498 L102 498 Q73 498 67 470 L45 362 M183 498 L264 498 Q293 498 299 470 L321 362"/>
+    
+  </g>
+  <g clip-path="url(#cw)"><g id="word" fill="var(--ink)"></g></g>
+  <line id="rule" x1="1075" x2="1075" y1="690" y2="690" stroke="var(--peach)" stroke-width="14" stroke-linecap="round"/>
+  <g clip-path="url(#ct)"><text id="tag" x="1075" y="905" text-anchor="middle" font-size="__TAGSIZE__" fill="var(--ink)">__TAGLINE__</text></g>
+</g></g>
+<text id="meas" x="493" y="481" font-size="318" opacity="0">coco local</text>
+</svg>
+<script>/*ENGINE*/</script>
+<script>
+"use strict";
+const W=innerWidth,H=innerHeight;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id);
+// closed-form spring step (same as engine S)
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},draw:{w:8.5,z:1},pop:{w:26,z:0.8},grow:{w:7.5,z:1},slide:{w:15,z:0.9}};
+const lerp=(a,b,k)=>a+(b-a)*k, clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+const INK=hex(getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()), NAVY=hex(getComputedStyle(document.documentElement).getPropertyValue('--navy').trim()), PEACH=hex(getComputedStyle(document.documentElement).getPropertyValue('--peach').trim());
+// layout
+const tall=H/W>1.5, LW=W*(tall?0.74:0.62), s=LW/2150;
+const cx=W/2, cy=H/2, GX=1075, GY=__GCY__;          // group centre in lockup units
+const tx=cx-GX*s, ty=cy-GY*s;
+$('lock').setAttribute('transform',`translate(${tx},${ty}) scale(${s})`);
+// per-letter wordmark from measured positions
+const letters=[];
+function buildLetters(){const m=$('meas'), str='coco local';
+ for(let i=0;i<str.length;i++){ if(str[i]===' ')continue;
+  const q=m.getStartPositionOfChar(i); const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',q.x); t.setAttribute('y',481); t.setAttribute('font-size',318); t.textContent=str[i]; $('word').appendChild(t);
+  letters.push({el:t,t0: i<4 ? 2.3+i*0.08 : 2.62+(i-5)*0.08}); } }
+const BC={x:185,y:367};                       // basket centre (units)
+const startOff={x:GX-BC.x,y:GY-BC.y};
+const dash=(el,p)=>{el.style.strokeDasharray='1 1';el.style.strokeDashoffset=String(1-clamp(p,0,1));el.style.opacity=p>0.005?1:0;};
+const R=Math.hypot(W,H)/2+4;
+
+const Sd={lead:{w:30,z:0.84},trail:{w:15,z:0.9},cam:{w:9.5,z:0.92}};
+function snap(t0,t,sp){return S(t-t0,sp);}
+window.seek=function(t){
+  // colour wipes on 8ths: sky, peach, navy
+  [['w1',0],['w2',0.25],['w3',0.5]].forEach(([id,t0])=>{const k=S(t-t0,{w:18,z:1});const e=$(id);
+    e.setAttribute('x',lerp(-W*1.05,0,k)); e.setAttribute('y',0); e.setAttribute('width',W*1.05); e.setAttribute('height',H);});
+  // camera: zoomed in on the basket, pulls back at 2.0, then slow drift
+  const cz=lerp(1.25,1,S(t-2.0,Sd.cam))*(1+0.025*clamp((t-3)/2,0,1));
+  $('cam').setAttribute('transform',`translate(${cx},${cy}) scale(${cz}) translate(${-cx},${-cy})`);
+  // basket: arrives at 0.55 big and tilted, draws fast
+  const arr=S(t-0.55,SP.morph), rot=lerp(-14,0,S(t-0.6,{w:12,z:0.8}));
+  dash($('hl'),S(t-0.6,{w:14,z:1})); dash($('hr'),S(t-0.66,{w:14,z:1}));
+  dash($('rim'),S(t-0.8,{w:12,z:1})); dash($('body'),S(t-0.9,{w:12,z:1}));
+  // slots drop in on 16ths (peach), flip to white on the pull-back
+  const fl=clamp((t-1.9)/0.12,0,1), sc_=rgb(PEACH.map((v,i)=>lerp(v,INK[i],fl)));
+  [1.25,1.375,1.5].forEach((t0,i)=>{const e=$('s'+(i+1)),k=S(t-t0,SP.pop);e.style.opacity=t>t0?1:0;e.setAttribute('transform',`translate(0,${(1-k)*-420})`);e.style.stroke=sc_;});
+  const pulse=1+0.07*(S(t-1.5,SP.pop)-S(t-1.62,SP.pop));
+  const sl=S(t-2.0,SP.slide), sc=lerp(1.9,1,sl)*pulse*lerp(0.6,1,arr);
+  const ox=lerp(startOff.x,0,sl), oy=lerp(startOff.y,0,sl);
+  $('basket').style.opacity=t>0.55?1:0;
+  $('basket').setAttribute('transform',`translate(${ox+BC.x},${oy+BC.y}) rotate(${rot}) scale(${sc}) translate(${-BC.x},${-BC.y})`);
+  for(const L of letters){ const k=S(t-L.t0,SP.morph); L.el.setAttribute('transform',`translate(0,${(1-k)*360})`); }
+  // peach rule shoots across (lead/trail edges) and settles centred
+  const lead=S(t-3.0,Sd.lead), trail=S(t-3.0,Sd.trail);
+  $('rule').setAttribute('x1',lerp(-200,1075-__RULEW__/2,trail)); $('rule').setAttribute('x2',lerp(-200,1075+__RULEW__/2,lead)); $('rule').style.opacity=t>3.0?1:0;
+  // tagline rises and tightens
+  const tk=S(t-3.25,SP.morph); $('tag').setAttribute('transform',`translate(0,${(1-tk)*170})`); $('tag').setAttribute('letter-spacing',(1-S(t-3.25,{w:9,z:1}))*28);
+};
+document.fonts.ready.then(()=>{buildLetters();seek(0);window.READY=true;});
+</script></body></html>

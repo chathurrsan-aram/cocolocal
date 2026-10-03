@@ -1,0 +1,146 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--peachT:__PEACHT__;--yellowT:__YELLOWT__;--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+html,body{margin:0;background:var(--final);overflow:hidden}
+svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
+</style></head><body>
+<svg id="sv" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="cc"><rect id="ccr"/></clipPath>
+  <clipPath id="igRowC"><rect id="igRowR"/></clipPath>
+  <clipPath id="fbRowC"><rect id="fbRowR"/></clipPath>
+  <filter id="shw" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".35"/></filter>
+  <filter id="csh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+<rect id="bg" fill="var(--bg)"/>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
+<g id="cam">
+  <g id="win" filter="url(#shw)">
+    <rect id="winR" fill="#FFFFFF"/>
+    <rect id="barPill" fill="#EEF0F3"/>
+    <text id="url" fill="#4A5163" font-weight="500" dominant-baseline="central"></text>
+    <g clip-path="url(#cc)">
+      <rect id="pageBg"/>
+      <g id="pF"><image id="imF" href="__IMG_FOLLOW__" preserveAspectRatio="none"/><rect id="hov" fill="#f3edda" style="mix-blend-mode:multiply"/></g>
+      <g id="pI"><rect id="pIbg" fill="rgb(12,16,19)"/><image id="imI" href="__IMG_IG_BEFORE__" preserveAspectRatio="none"/>
+        <g clip-path="url(#igRowC)"><image id="imI2" href="__IMG_IG_AFTER__" preserveAspectRatio="none"/></g></g>
+      <g id="pB"><rect id="pBbg" fill="#FFFFFF"/><image id="imB" href="__IMG_FB_BEFORE__" preserveAspectRatio="none"/>
+        <g clip-path="url(#fbRowC)"><image id="imB2" href="__IMG_FB_AFTER__" preserveAspectRatio="none"/></g></g>
+    </g>
+  </g>
+  <g id="cursor" filter="url(#csh)"><path id="cur" d="M0,0 L0,34 L9,26 L15,40 L21,37 L15,24 L27,24 Z" fill="#FFFFFF" stroke="#0F1A33" stroke-width="2.4" stroke-linejoin="round"/></g>
+</g>
+<text id="title" fill="var(--ink)" text-anchor="middle"></text>
+<line id="tRule" stroke="var(--peach)" stroke-linecap="round"/>
+<g id="end">
+  <image id="lock" href="__LOCKUP__" preserveAspectRatio="xMidYMid meet"/>
+  <line id="eRule" stroke="var(--peach)" stroke-linecap="round"/>
+  <g id="hIG"><image id="gIG" href="__IMG_IG_GLYPH__"/><text id="tIG" fill="var(--ink)" dominant-baseline="central">@cocolocal_</text></g>
+  <g id="hFB"><image id="gFB" href="__IMG_FB_LOGO__"/><text id="tFB" fill="var(--ink)" dominant-baseline="central">Coco Local</text></g>
+  <text id="eUrl" fill="var(--peachT)" text-anchor="middle" font-weight="500">cocolocal.co.uk/follow</text>
+</g>
+</svg>
+<script>
+"use strict";
+const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5,sq=H/W<1.1;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);};
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:20,z:0.86},page:{w:20,z:1},scroll:{w:12,z:1},cam:{w:9,z:0.95},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x));
+const ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+
+// ---------- layout (1080-wide design units) ----------
+const U=v=>v*k;
+const titleBigY=H/2, titleY=U(sq?110:tall?380:150), titleBig=U(150), titleSm=U(sq?60:72);
+const wx=U(60), ww=U(960), wy=U(sq?190:tall?470:250), wh=tall?U(1180):H-wy-U(sq?40:60), barH=U(72);
+const cx0=wx, cy0=wy+barH, cw=ww, ch=wh-barH;
+// pages (asset pixel sizes from assets/meta.json)
+const F={w:1008,h:1788,btn:{fb:[504,875],ig:[504,1054.5],wheel:[504,1234]}}, IG={w:820,h:765,btn:[364,344],row:[0,314,820,374]}, FB={w:1100,h:654,btn:[910,460],row:[690,432,1100,494]};
+const sF=cw/F.w, sI=cw/IG.w, sB=cw/FB.w;
+const fScroll=Math.max(0,F.btn.ig[1]*sF-ch*0.58);
+const P=(x,y)=>[cx0+x,cy0+y];
+const tgtFIG=P(F.btn.ig[0]*sF+U(60),F.btn.ig[1]*sF-fScroll), tgtFFB=P(F.btn.fb[0]*sF+U(60),F.btn.fb[1]*sF-fScroll);
+const tgtIG=P(IG.btn[0]*sI,IG.btn[1]*sI), tgtFB=P(FB.btn[0]*sB,FB.btn[1]*sB);
+
+A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H}));
+A($('winR'),{x:wx,y:wy,width:ww,height:wh,rx:U(28)});
+A($('barPill'),{x:wx+U(28),y:wy+U(14),width:ww-U(56),height:U(44),rx:U(22)});
+A($('url'),{x:wx+U(56),y:wy+U(36),'font-size':U(24)});
+A($('ccr'),{x:cx0,y:cy0,width:cw,height:ch});
+A($('imF'),{x:0,y:0,width:cw,height:F.h*sF});
+const hw=844*sF, hh=157.4*sF;  // hover rect over a follow-page button (css 422x78.7 at 2x, scaled)
+A($('pIbg'),{x:0,y:0,width:cw,height:ch}); A($('imI'),{x:0,y:0,width:cw,height:IG.h*sI}); A($('imI2'),{x:0,y:0,width:cw,height:IG.h*sI});
+A($('igRowR'),{x:IG.row[0]*sI,y:IG.row[1]*sI,width:(IG.row[2]-IG.row[0])*sI,height:(IG.row[3]-IG.row[1])*sI});
+A($('pBbg'),{x:0,y:0,width:cw,height:ch}); A($('imB'),{x:0,y:0,width:cw,height:FB.h*sB}); A($('imB2'),{x:0,y:0,width:cw,height:FB.h*sB});
+A($('fbRowR'),{x:FB.row[0]*sB,y:FB.row[1]*sB,width:(FB.row[2]-FB.row[0])*sB,height:(FB.row[3]-FB.row[1])*sB});
+$('title').textContent=''; A($('tRule'),{'stroke-width':U(8)});
+// end card
+const LW=W*(tall?0.62:0.56), LAR=330/2150, eY=H*(tall?0.40:0.40);
+A($('lock'),{x:W/2-LW/2,y:eY-LW*LAR/2,width:LW,height:LW*LAR});
+A($('eRule'),{'stroke-width':U(10)});
+['tIG','tFB'].forEach(id=>A($(id),{'font-size':U(40)})); A($('eUrl'),{'font-size':U(38)});
+const g=U(52);
+A($('gIG'),{width:g,height:g}); A($('gFB'),{width:g,height:g});
+
+// cursor keyframes [t, x, y, press]
+const OFF=[W+U(80),H+U(80)];
+const KF=[[2.15,OFF[0],OFF[1],0],[2.88,tgtFIG[0],tgtFIG[1],0],[3.0,tgtFIG[0],tgtFIG[1],1],[3.12,tgtFIG[0],tgtFIG[1],0],
+ [3.5,tgtFIG[0]+U(40),tgtFIG[1]-U(80),0],[4.4,tgtIG[0],tgtIG[1],0],[4.5,tgtIG[0],tgtIG[1],1],[4.62,tgtIG[0],tgtIG[1],0],[5.7,tgtIG[0]+U(60),tgtIG[1]+U(90),0],
+ [6.4,tgtFFB[0],tgtFFB[1],0],[6.5,tgtFFB[0],tgtFFB[1],1],[6.62,tgtFFB[0],tgtFFB[1],0],[7.1,tgtFFB[0]+U(60),tgtFFB[1]+U(40),0],
+ [7.9,tgtFB[0],tgtFB[1],0],[8.0,tgtFB[0],tgtFB[1],1],[8.12,tgtFB[0],tgtFB[1],0],[9.5,tgtFB[0]+U(70),tgtFB[1]+U(120),0],[10.1,OFF[0],OFF[1],0]];
+function cursor(t){ if(t<KF[0][0]||t>KF[KF.length-1][0])return null; let i=0; while(i<KF.length-2&&t>KF[i+1][0])i++;
+  const a=KF[i],b=KF[i+1],u=ease(cl01((t-a[0])/(b[0]-a[0]))); return {x:lerp(a[1],b[1],u),y:lerp(a[2],b[2],u),p:lerp(a[3],b[3],u)}; }
+const TITLE='Follow us';
+
+window.seek=function(t){
+  // wipes on 8ths
+  [['w1',0],['w2',0.125],['w3',0.25]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:18,z:1}))));
+  // title types on 32nds from beat 1.5, then moves up on beat 3
+  const n=Math.max(0,Math.min(TITLE.length,Math.floor((t-0.75)/0.0625)+1)); $('title').textContent=t<0.75?'':TITLE.slice(0,n);
+  const up=S(t-1.5,SP.slide), endK=S(t-10.0,SP.slide);
+  const ty=lerp(titleBigY+titleBig*0.35,titleY+titleSm*0.35,up), ts=lerp(titleBig,titleSm,up);
+  A($('title'),{x:W/2,y:ty,'font-size':ts*(1+(t>1.3?0.08*Math.exp(-(t-1.3)*9):0))}); $('title').style.opacity=1;
+  const rw=lerp(U(0),U(120),S(t-1.62,SP.lead)); A($('tRule'),{x1:W/2-rw/2,x2:W/2+rw/2,y1:ty+ts*0.32,y2:ty+ts*0.32}); $('tRule').style.opacity=rw>1?1:0;
+  // browser window rises on beat 3, leaves on the end card (beat 20)
+  const rise=S(t-1.55,SP.slide), leave=S(t-9.95,SP.enter);
+  $('win').setAttribute('transform',`translate(0,${(1-rise)*(H-wy+U(60))+leave*U(90)})`); $('win').style.opacity=1-cl01(leave*1.4);
+  // page stack: F → I (beat 6.5) → F (beat 12) → B (beat 13.5)
+  const toI=S(t-3.2,SP.page), back=S(t-5.95,SP.page), toB=S(t-6.7,SP.page);
+  const fX=-0.28*cw*(toI*(1-back))+(-0.28*cw)*toB, iX=cw*(1-toI)+cw*back, bX=cw*(1-toB);
+  const scr=fScroll*S(t-2.0,SP.scroll);
+  $('pF').setAttribute('transform',`translate(${cx0+fX},${cy0-scr})`); $('pF').style.opacity=1-0.35*cl01(toI*(1-back)+toB);
+  $('pI').setAttribute('transform',`translate(${cx0+iX},${cy0})`); $('pB').setAttribute('transform',`translate(${cx0+bX},${cy0})`);
+  A($('pageBg'),{x:cx0,y:cy0,width:cw,height:ch,fill:'rgb(233,233,227)'});
+  const url=t<3.35?'cocolocal.co.uk/follow':t<6.1?'instagram.com/cocolocal_':t<6.85?'cocolocal.co.uk/follow':'facebook.com/cocolocal';
+  $('url').textContent=url;
+  // hover highlight on the follow-page button being clicked
+  const hovI=cl01((t-2.7)/0.15)*(1-cl01((t-3.2)/0.1)), hovF=cl01((t-6.25)/0.15)*(1-cl01((t-6.7)/0.1));
+  const hb=hovI>0?F.btn.ig:F.btn.fb; A($('hov'),{x:hb[0]*sF-hw/2,y:hb[1]*sF-hh/2,width:hw,height:hh,rx:U(12),opacity:Math.max(hovI,hovF)});
+  // Follow → Following: the real "after" capture replaces the button row on the click
+  $('imI2').style.opacity=cl01((t-4.5)/0.08); $('imB2').style.opacity=cl01((t-8.0)/0.08);
+  // camera pushes in on each Follow click
+  const zI=S(t-4.0,SP.cam)-S(t-5.55,SP.cam), zB=S(t-7.5,SP.cam)-S(t-9.1,SP.cam);
+  const z=1+0.17*zI+0.17*zB, px=zB>0.001?tgtFB[0]:tgtIG[0], py=zB>0.001?tgtFB[1]:tgtIG[1];
+  const pulse=1-0.012*(S(t-4.5,SP.pop)-S(t-4.62,SP.pop))-0.012*(S(t-8.0,SP.pop)-S(t-8.12,SP.pop));
+  const kk=(t0,a,d=8)=>t<t0?0:a*Math.exp(-(t-t0)*d);
+  const punch=1+[2,4,6,8].reduce((a,b)=>a+kk(b,0.012),0)+[3,4.5,6.5,8].reduce((a,b)=>a+kk(b,0.03,9),0);
+  $('cam').setAttribute('transform',`translate(${px},${py}) scale(${z*pulse*punch}) translate(${-px},${-py})`);
+  // cursor
+  const c=cursor(t); if(!c){$('cursor').style.opacity=0;} else {$('cursor').style.opacity=1;
+    $('cursor').setAttribute('transform',`translate(${c.x},${c.y}) scale(${k*1.5*(1-0.12*c.p)})`);}
+  // end card (bar 5 downbeat)
+  const e1=S(t-10.05,SP.enter), e2=S(t-10.3,SP.lead), e2t=S(t-10.3,SP.trail), e3=S(t-10.45,SP.morph), e4=S(t-10.6,SP.morph);
+  const e1s=S(t-10.0,{w:30,z:0.62}); $('lock').style.opacity=cl01(e1s*2); $('lock').setAttribute('transform',`translate(${W/2},${eY}) scale(${lerp(1.7,1,e1s)}) translate(${-W/2},${-eY})`);
+  const ry=eY+LW*LAR/2+U(46), rr=U(75);
+  A($('eRule'),{y1:ry,y2:ry,x1:lerp(-U(40),W/2-rr,e2t),x2:lerp(-U(40),W/2+rr,e2)}); $('eRule').style.opacity=t>10.3?1:0;
+  const hy=ry+U(96), wI=g+U(16)+$('tIG').getComputedTextLength(), wF=g+U(16)+$('tFB').getComputedTextLength(), gap=U(56), x0=W/2-(wI+gap+wF)/2;
+  A($('gIG'),{x:x0,y:hy-g/2}); A($('tIG'),{x:x0+g+U(16),y:hy}); A($('gFB'),{x:x0+wI+gap,y:hy-g/2}); A($('tFB'),{x:x0+wI+gap+g+U(16),y:hy});
+  $('hIG').style.opacity=cl01(e3); $('hIG').setAttribute('transform',`translate(0,${(1-e3)*U(30)})`);
+  $('hFB').style.opacity=cl01(e4); $('hFB').setAttribute('transform',`translate(0,${(1-e4)*U(30)})`);
+  const e5=S(t-10.8,SP.morph); A($('eUrl'),{x:W/2,y:hy+U(96)+(1-e5)*U(30)}); $('eUrl').style.opacity=cl01(e5);
+  $('end').style.display=t>10?'inline':'none';
+};
+const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>

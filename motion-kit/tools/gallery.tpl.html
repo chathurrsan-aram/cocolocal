@@ -1,0 +1,253 @@
+<title>Coco Local Motion Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=DM+Mono:wght@400&display=swap">
+<style>
+:root{
+  --navy:#0F1A33; --cream:#ECEAE7; --peach:#FEC091; --peach-deep:#C9763A; --sky:#8EA9DC;
+  --bg:#F4F2EF; --surface:#FFFFFF; --ink:#0F1A33; --muted:#555D70; --line:#DCD9D3;
+  --chip:#E6E3DE; --chip-on:#0F1A33; --chip-on-ink:#FFFFFF; --accent:var(--peach-deep);
+  --btn:#0F1A33; --btn-ink:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --bg:#0B1326; --surface:#131E38; --ink:#ECEAE7; --muted:#A5ADBF; --line:#26324F;
+  --chip:#1C2847; --chip-on:#FEC091; --chip-on-ink:#0F1A33; --accent:#FEC091; --btn:#FEC091; --btn-ink:#0F1A33;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#0B1326; --surface:#131E38; --ink:#ECEAE7; --muted:#A5ADBF; --line:#26324F;
+  --chip:#1C2847; --chip-on:#FEC091; --chip-on-ink:#0F1A33; --accent:#FEC091; --btn:#FEC091; --btn-ink:#0F1A33;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.55 Poppins,system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:1180px;margin:0 auto}
+header{padding-block:40px 24px;display:grid;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:.01em}
+.brand svg{width:30px;height:auto;flex:none}
+h1{font-weight:600;font-size:clamp(28px,4.6vw,44px);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1 .rule{display:block;width:84px;height:6px;border-radius:3px;background:var(--accent);margin-top:14px}
+.lede{max-width:64ch;color:var(--muted);margin:0}
+.dest{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.dest p{margin:0;flex:1 1 320px}
+.dest code{font:400 13px/1.4 "DM Mono",ui-monospace,monospace;background:var(--chip);padding:2px 6px;border-radius:6px;word-break:break-word}
+.dest a{color:var(--ink);font-weight:500}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--btn);color:var(--btn-ink);border:0;border-radius:999px;padding:10px 18px;font-weight:500;font-size:14px;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.55;cursor:progress}
+.btn:focus-visible,.chip:focus-visible,.card .play:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.group b{font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.chip{border:0;background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
+#status{font-size:13px;color:var(--muted);margin-left:auto}
+section{padding-block:34px 8px;display:grid;gap:16px}
+.shead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:end;justify-content:space-between}
+.shead h2{margin:0;font-weight:600;font-size:22px}
+.shead p{margin:4px 0 0;color:var(--muted);max-width:64ch;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{display:grid;gap:10px;align-content:start}
+.media{position:relative;border-radius:12px;overflow:hidden;background:var(--navy);max-width:100%}
+.media img,.media video{display:block;width:100%;height:100%;object-fit:cover}
+.play{position:absolute;inset:0;border:0;background:transparent;display:grid;place-items:center}
+.play span{width:46px;height:46px;border-radius:50%;background:rgba(15,26,51,.72);display:grid;place-items:center}
+.play span::after{content:"";border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+.meta{display:grid;gap:2px}
+.meta strong{font-weight:500;font-size:14px;line-height:1.35}
+.meta small{font:400 12px/1.4 "DM Mono",ui-monospace,monospace;color:var(--muted);word-break:break-all}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{padding:7px 14px;font-size:13px}
+.tag{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--muted);margin-right:6px;vertical-align:1px}
+.note{font-size:13px;color:var(--muted)}
+.drive{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px 10px;margin-top:6px}
+.drive a{color:var(--ink);font-weight:500}
+#driveErr{margin:0;padding-left:18px}
+.sheetlink{font-size:13px;color:var(--ink)}
+.empty{color:var(--muted);font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="brand"><svg viewBox="0 0 64 52" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20 26 6M46 20 38 6M6 20h52M10 20l5 24h34l5-24M25 28v8M32 28v8M39 28v8"/></g></svg>coco local</div>
+  <h1>Motion kit renders<span class="rule"></span></h1>
+  <p class="lede">Every approved piece in 4:5, 9:16 and 1:1, dark navy, indigo and light. Each file comes with sound and as a silent copy for adding your own music. 60 fps H.264.</p>
+  <div class="dest">
+    <p>Save a zip, then drag it into <a href="https://drive.google.com/drive/folders/1m8yIoYK-5VUiEc3kP0F9TvTMKdwcWHND">Drive: <code>05 — Marketing &amp; Content / 05 — Brand Motion Kit</code></a> and unzip it there.</p>
+    <button class="btn" id="zipAll" type="button">Save everything (.zip)</button>
+  </div>
+</header>
+<section class="drive" aria-labelledby="driveH">
+  <div class="shead"><div><h2 id="driveH">Put everything in Google Drive</h2>
+  <p>Uploads every video (with sound and silent), the contact sheets and the two drafts into the folders in <a href="https://drive.google.com/drive/folders/1m8yIoYK-5VUiEc3kP0F9TvTMKdwcWHND">05 — Brand Motion Kit</a>, using your Google Drive connection. Files already there are skipped, so you can run it again if it stops.</p></div>
+  <button class="btn" id="driveGo" type="button">Upload everything to Google Drive</button></div>
+  <p id="driveStatus" class="note" aria-live="polite"></p>
+  <ul id="driveErr" class="note"></ul>
+</section>
+<section id="drafts" aria-labelledby="draftsH">
+  <div class="shead"><div><h2 id="draftsH">New pieces</h2><p>Each piece in 4:5, 9:16 and 1:1 (dark navy), with its own music.</p></div></div>
+  <div class="grid" id="draftGrid"></div>
+</section>
+<div class="bar" role="toolbar" aria-label="Filter renders">
+  <div class="group" id="fFormat"><b>Format</b></div>
+  <div class="group" id="fTheme"><b>Theme</b></div>
+  <span id="status" aria-live="polite"></span>
+</div>
+<main id="main"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const M = /*MANIFEST*/null;
+const UPLOADS = /*UPLOADS*/null;
+const DRAFTS = /*DRAFTS*/null;
+const LABEL = {
+  "signature-proud":"“Proudly serving South Benfleet”", "signature-more":"“A little more local.”",
+  "outro-address":"Address · Parking on site", "outro-website":"cocolocal.co.uk", "outro-wheel":"Spin the Coco Wheel · /wheel", "outro-follow":"Follow us · /follow",
+  "outro-address-tail":"Tail: address", "outro-website-tail":"Tail: website", "outro-wheel-tail":"Tail: wheel", "outro-follow-tail":"Tail: follow",
+  "sting":"Intro sting"
+};
+const FORMATS = [["1080x1350","4:5 feed"],["1080x1920","9:16 reels"],["1080x1080","1:1 square"],["all","All"]];
+const THEMES = [["all","All"],["navy","Navy"],["indigo","Indigo"],["light","Light"]];
+let fmt = "1080x1350", theme = "all";
+try { fmt = localStorage.getItem("fmt") || fmt; theme = localStorage.getItem("theme") || theme; } catch(e) {}
+const $ = s => document.querySelector(s);
+const status = t => { $("#status").textContent = t; };
+
+function chips(el, list, get, set){
+  list.forEach(([v,l]) => { const b = document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=l;
+    b.setAttribute("aria-pressed", String(get()===v)); b.onclick = () => { set(v); el.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", String(c===b))); render(); };
+    el.appendChild(b); });
+}
+chips($("#fFormat"), FORMATS, () => fmt, v => { fmt = v; try{localStorage.setItem("fmt",v)}catch(e){} });
+chips($("#fTheme"), THEMES, () => theme, v => { theme = v; try{localStorage.setItem("theme",v)}catch(e){} });
+
+const visible = it => (fmt==="all" || it.wh===fmt) && (theme==="all" || it.theme===theme);
+function render(){
+  const main = $("#main"); main.textContent = "";
+  for (const [p,[title,desc]] of Object.entries(M.pieces)) {
+    const its = M.items.filter(i => i.piece===p && visible(i));
+    const all = M.items.filter(i => i.piece===p);
+    const s = document.createElement("section"); s.id = p;
+    const h = document.createElement("div"); h.className="shead";
+    h.innerHTML = `<div><h2></h2><p></p></div>`; h.querySelector("h2").textContent = title; h.querySelector("p").textContent = desc;
+    const zb = document.createElement("button"); zb.type="button"; zb.className="btn ghost"; zb.textContent = `Save ${title.toLowerCase()} (${all.length*2} files, .zip)`;
+    zb.onclick = () => zip(all, `coco-motion-${p}.zip`, zb); h.appendChild(zb); s.appendChild(h);
+    const g = document.createElement("div"); g.className="grid";
+    if (!its.length) { const e=document.createElement("p"); e.className="empty"; e.textContent="Nothing in this filter."; g.appendChild(e); }
+    for (const it of its) g.appendChild(card(it));
+    s.appendChild(g); main.appendChild(s);
+  }
+}
+function card(it){
+  const [w,h] = it.wh.split("x");
+  const c = document.createElement("article"); c.className="card";
+  const m = document.createElement("div"); m.className="media"; m.style.aspectRatio = `${w}/${h}`;
+  const img = document.createElement("img"); img.src = it.poster; img.alt = ""; img.loading = "lazy"; m.appendChild(img);
+  const pb = document.createElement("button"); pb.type="button"; pb.className="play"; pb.setAttribute("aria-label", `Play ${LABEL[it.variant]||it.variant}, ${it.theme}, ${it.wh}`);
+  pb.innerHTML = "<span></span>";
+  pb.onclick = () => { const v = document.createElement("video"); v.src = it.file; v.controls = true; v.autoplay = true; v.playsInline = true; v.loop = true; m.replaceChildren(v); };
+  m.appendChild(pb); c.appendChild(m);
+  const meta = document.createElement("div"); meta.className="meta";
+  const st = document.createElement("strong"); st.innerHTML = `<span class="tag"></span>`; st.querySelector(".tag").textContent = it.theme; st.append(LABEL[it.variant]||it.variant);
+  const sm = document.createElement("small"); sm.textContent = `${it.file.split("/")[1]} · ${it.mb} MB`;
+  meta.append(st, sm); c.appendChild(meta);
+  const r = document.createElement("div"); r.className="row";
+  const b1 = document.createElement("button"); b1.type="button"; b1.className="btn"; b1.textContent="Save"; b1.onclick = () => saveOne(it.file, b1);
+  const b2 = document.createElement("button"); b2.type="button"; b2.className="btn ghost"; b2.textContent="Silent"; b2.onclick = () => saveOne(it.silent, b2);
+  r.append(b1,b2); c.appendChild(r);
+  return c;
+}
+
+let dl = null;
+const dlReady = (window.claude && claude.use) ? claude.use("downloads").then(d => { dl = d; if (!d) noSave(); return d; }) : Promise.resolve(null).then(()=>{noSave();return null;});
+function noSave(){ status("Saving isn't available in this view. Open the page on claude.ai to save files."); document.querySelectorAll(".btn:not(#driveGo)").forEach(b=>b.disabled=true); }
+async function offer(filename, data){
+  const d = dl || await dlReady; if (!d) return;
+  try { await d.save({filename, data}); status(`Saved ${filename}`); }
+  catch(e){ status(e && e.code==="declined" ? "Save cancelled." : e && e.code==="rate_limited" ? "Finish the open save prompt first." : `Couldn't save: ${e && e.message || "unknown error"}`); }
+}
+async function saveOne(path, btn){
+  btn.disabled = true; status("Preparing…");
+  try { const r = await fetch(path); if (!r.ok) throw new Error(r.status); await offer(path.split("/")[1], await r.blob()); }
+  catch(e){ status(`Couldn't load ${path}: ${e.message}`); }
+  btn.disabled = false;
+}
+async function zip(items, name, btn){
+  if (!window.JSZip) { status("The zip library didn't load. Save files one by one instead."); return; }
+  btn.disabled = true; const z = new JSZip(); const files = items.flatMap(i => [i.file, i.silent]); let n = 0;
+  try {
+    for (const f of files) { const r = await fetch(f); if (!r.ok) throw new Error(`${f}: ${r.status}`); z.file(f, await r.blob()); status(`Collecting ${++n} of ${files.length}…`); }
+    status("Building zip…"); const blob = await z.generateAsync({type:"blob", compression:"STORE"});
+    await offer(name, blob);
+  } catch(e){ status(`Couldn't build the zip: ${e.message}`); }
+  btn.disabled = false;
+}
+$("#zipAll").onclick = e => zip(M.items, "coco-motion-kit-renders.zip", e.currentTarget);
+render();
+
+// Drafts
+for (const d of DRAFTS) {
+  const c = card({file:d.file, silent:d.file, poster:d.sheet, wh:"1080x1350", theme:"navy", variant:d.title, mb:"", piece:"drafts"});
+  c.querySelector(".media img").style.objectFit = "contain";
+  c.querySelector(".meta small").textContent = d.desc;
+  const silentBtn = c.querySelector(".row .btn.ghost"); silentBtn.textContent = "Contact sheet"; silentBtn.onclick = () => saveOne(d.sheet, silentBtn);
+  $("#draftGrid").appendChild(c);
+}
+
+// Google Drive upload through the viewer's own connector
+const DRIVE = "Google Drive";
+const dStatus = t => { $("#driveStatus").textContent = t; };
+const dErr = t => { const li = document.createElement("li"); li.textContent = t; $("#driveErr").appendChild(li); };
+const toB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+const STOP = { needs_reauth: `Reconnect ${DRIVE} in claude.ai Settings → Connectors, then press Upload again.`,
+  server_not_connected: `Add ${DRIVE} in claude.ai Settings → Connectors, then press Upload again.`,
+  selection_required: `Choose which ${DRIVE} connection to use when claude.ai asks, then press Upload again.`,
+  not_in_manifest: `${DRIVE} isn't allowed for this page. Allow it when asked, then press Upload again.`,
+  blocked_by_policy: `Your organisation's policy blocks ${DRIVE} uploads from this page.`,
+  approval_required: `Your organisation requires approval for ${DRIVE} uploads, which this page can't request.`,
+  not_granted: "Connectors aren't available in this view. Open the page on claude.ai.",
+  capability_disabled: "Connectors aren't available in this view. Open the page on claude.ai." };
+async function listFolder(mcp, folder){
+  const titles = new Set(); let tok = null, guard = 0;
+  do {
+    const input = { query: `parentId = '${folder}'`, excludeContentSnippets: true, pageSize: 200 }; if (tok) input.pageToken = tok;
+    const r = await mcp.callTool(DRIVE, "search_files", input, { cache: false });
+    const p = (r && r.payload) || {}; (p.files || []).forEach(f => titles.add(f.title));
+    tok = p.next_page_token || p.nextPageToken || null;
+  } while (tok && ++guard < 10);
+  return titles;
+}
+$("#driveGo").onclick = async e => {
+  const btn = e.currentTarget; btn.disabled = true; $("#driveErr").textContent = "";
+  const mcp = await claude.use("mcp");
+  if (!mcp) { dStatus(STOP.not_granted); btn.disabled = false; return; }
+  let fileArgs = false; try { fileArgs = !!(await mcp.listTools()).fileArgs; } catch (err) {}
+  let done = 0, skipped = 0, failed = 0; const have = {};
+  try {
+    dStatus("Checking what's already in Drive…");
+    for (const f of new Set(UPLOADS.map(u => u.folder))) have[f] = await listFolder(mcp, f);
+    for (const [i, u] of UPLOADS.entries()) {
+      if (have[u.folder].has(u.title)) { skipped++; continue; }
+      dStatus(`Uploading ${i + 1} of ${UPLOADS.length}: ${u.title}`);
+      const r = await fetch(u.src); if (!r.ok) { failed++; dErr(`${u.title}: couldn't read the file (${r.status})`); continue; }
+      const blob = await r.blob();
+      let content;
+      if (fileArgs) content = { $file: { data: blob, name: u.title, type: u.mime } };
+      else if (blob.size < 700000) content = await toB64(blob);
+      else { failed++; dErr(`${u.title}: too big to send from this view (${(blob.size/1e6).toFixed(1)} MB). Use "Save everything (.zip)" for this one.`); continue; }
+      try {
+        await mcp.callTool(DRIVE, "create_file", { title: u.title, parentId: u.folder, base64Content: content, contentMimeType: u.mime, disableConversionToGoogleType: true });
+        done++; have[u.folder].add(u.title);
+      } catch (err) {
+        if (err && STOP[err.code]) throw err;
+        failed++; dErr(`${u.title}: ${err && err.code === "tool_error" ? (err.message || "Drive refused the file") : "the upload may not have finished (" + (err && err.code || "error") + "). Press Upload again to retry; files already in Drive are skipped."}`);
+      }
+    }
+    dStatus(`Finished: ${done} uploaded, ${skipped} already in Drive${failed ? `, ${failed} not uploaded (listed below)` : ""}.`);
+  } catch (err) {
+    dStatus(STOP[err && err.code] || `Stopped: ${err && err.message || "unknown error"}. ${done} uploaded so far; press Upload again to continue.`);
+  }
+  btn.disabled = false;
+};
+</script>

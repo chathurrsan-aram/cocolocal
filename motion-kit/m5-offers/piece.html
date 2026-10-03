@@ -1,0 +1,104 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--navy:__NAVY__;--foot:__FOOT__;--ink:#FFFFFF;--peach:#FEC091;--yellow:#FFE36B;--lav:#B2C1EE}
+html,body{margin:0;background:var(--navy);overflow:hidden}
+svg{display:block;font-family:Poppins,sans-serif}
+</style></head><body>
+<svg id="sv" xmlns="http://www.w3.org/2000/svg">
+<defs><clipPath id="h1c"><rect id="h1r"/></clipPath><clipPath id="h2c"><rect id="h2r"/></clipPath></defs>
+<rect id="bg" fill="var(--navy)"/>
+<g id="cam"><g id="content">
+  <text id="eyebrow" fill="var(--peach)" font-weight="600"></text>
+  <g clip-path="url(#h1c)"><text id="h1" fill="var(--ink)" font-weight="700"></text></g>
+  <g clip-path="url(#h2c)"><text id="h2" fill="var(--ink)" font-weight="700"></text></g>
+  <g id="pack"><image id="packImg" preserveAspectRatio="xMidYMax meet"/><g id="ph"><rect id="phR" fill="#1B2746" stroke="#34436A" stroke-dasharray="10 10"/><text id="phT" fill="#6F7BA0" text-anchor="middle" font-weight="600">PACK SHOT</text></g></g>
+  <g id="priceG"><text id="price" fill="var(--yellow)" font-weight="700"></text></g>
+  <text id="unit" fill="var(--ink)" font-weight="600"></text>
+  <text id="detail" fill="var(--lav)" font-weight="500"></text>
+  <text id="prod" fill="var(--lav)" font-weight="600"></text>
+  <g id="chip"><rect id="chipR" fill="none" stroke="var(--lav)"/><text id="chipT" fill="var(--lav)" font-weight="600" dominant-baseline="central"></text></g>
+</g></g>
+<g id="foot">
+  <rect id="footR" fill="var(--foot)"/><line id="footL" stroke="var(--lav)" stroke-opacity=".35"/>
+  <image id="lock" href="__LOCKUP__" preserveAspectRatio="xMinYMid meet"/>
+  <text id="f1" fill="var(--ink)" font-weight="500" text-anchor="end">210 High Road, South Benfleet SS7 5LD</text>
+  <text id="f2" fill="var(--lav)" font-weight="500" text-anchor="end">Parking on site</text>
+  <text id="f3" fill="var(--lav)" font-weight="500" text-anchor="end"></text>
+</g>
+</svg>
+<script>
+"use strict";
+const O=__OFFER__, IMG="__IMG__";
+const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);};
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:15,z:0.9},off:{w:13,z:1}};
+const cl01=x=>Math.min(1,Math.max(0,x));
+// layout (design units, 1080 wide)
+const M=72*k;
+const L=tall?{eb:230,h1:380,hs:118,price:860,ps:220,unit:944,detail:992,prod:1106,chip:1300,pk:[520,600,1012,1530],foot:236}
+            :{eb:112,h1:232,hs:112,price:590,ps:210,unit:662,detail:708,prod:808,chip:1092,pk:[560,400,1012,1040],foot:190};
+const Y=v=>v*k, footH=Y(L.foot), footY=H-footH;
+A($('bg'),{x:0,y:0,width:W,height:H});
+let eb,hs,h1y,h2y,ps;
+function init(){
+// text content + fitting
+eb=O.eyebrow||'SPECIAL OFFERS AT COCO LOCAL';
+A($('eyebrow'),{x:M,y:Y(L.eb),'font-size':26*k,'letter-spacing':5*k});
+function fit(el,size,maxW){el.setAttribute('font-size',size);const w=el.getComputedTextLength();if(w>maxW)el.setAttribute('font-size',size*maxW/w);return +el.getAttribute('font-size');}
+$('h1').textContent=O.headline_lines[0]||''; $('h2').textContent=O.headline_lines[1]||'';
+hs=Math.min(fit($('h1'),L.hs*k,W-2*M),fit($('h2'),L.hs*k,W-2*M)); $('h1').setAttribute('font-size',hs); $('h2').setAttribute('font-size',hs);
+h1y=Y(L.h1); h2y=h1y+hs*1.04;
+A($('h1'),{x:M}); A($('h2'),{x:M});
+A($('h1r'),{x:0,y:h1y-hs*0.9,width:W,height:hs*1.08}); A($('h2r'),{x:0,y:h2y-hs*0.9,width:W,height:hs*1.08});
+$('price').textContent=O.price; ps=fit($('price'),L.ps*k,Y(L.pk[0])-M-20*k);
+A($('price'),{x:M,y:Y(L.price)});
+$('unit').textContent=O.unit||''; A($('unit'),{x:M+4*k,y:Y(L.unit),'font-size':28*k,'letter-spacing':3*k});
+$('detail').textContent=O.detail_line||''; A($('detail'),{x:M+4*k,y:Y(L.detail),'font-size':28*k});
+// product line: wrap to the left column
+(function(){const el=$('prod'),words=(O.product_line||'').toUpperCase().split(' '),maxW=Y(L.pk[0])-M-24*k,fs=38*k;el.setAttribute('font-size',fs);
+ let line=[],lines=[];const NS='http://www.w3.org/2000/svg';const probe=document.createElementNS(NS,'tspan');el.appendChild(probe);
+ for(const w of words){probe.textContent=[...line,w].join(' ');if(probe.getComputedTextLength()>maxW&&line.length){lines.push(line.join(' '));line=[w];}else line.push(w);}
+ if(line.length)lines.push(line.join(' ')); el.removeChild(probe);
+ lines.forEach((s,i)=>{const ts=document.createElementNS(NS,'tspan');A(ts,{x:M+4*k,y:Y(L.prod)+i*fs*1.22});ts.textContent=s;el.appendChild(ts);});})();
+const chipTxt=(O.dates?O.dates.toUpperCase()+' · ':'')+'SUBJECT TO AVAILABILITY';
+$('chipT').textContent=chipTxt; A($('chipT'),{x:M+26*k,y:Y(L.chip),'font-size':22*k,'letter-spacing':2*k});
+// pack shot or neutral placeholder
+const [px0,py0,px1,py1]=L.pk.map(Y);
+if(IMG){A($('packImg'),{href:IMG,x:px0,y:py0,width:px1-px0,height:py1-py0});$('ph').style.display='none';}
+else{A($('phR'),{x:px0+30*k,y:py0+60*k,width:px1-px0-60*k,height:py1-py0-90*k,rx:28*k,'stroke-width':3*k});A($('phT'),{x:(px0+px1)/2,y:(py0+py1)/2+30*k,'font-size':26*k,'letter-spacing':4*k});}
+// footer
+A($('footR'),{x:0,y:footY,width:W,height:footH}); A($('footL'),{x1:0,x2:W,y1:footY,y2:footY,'stroke-width':2*k});
+const lw=300*k; A($('lock'),{x:M,y:footY+footH/2-lw*330/2150/2,width:lw,height:lw*330/2150});
+const fs=24*k, three=!!O.alcohol; $('f3').textContent=three?'18+. Please drink responsibly.':'';
+const fy0=footY+footH/2-(three?fs*1.3:fs*0.62)+fs*0.35;
+['f1','f2','f3'].forEach((id,i)=>A($(id),{x:W-M,y:fy0+i*fs*1.35,'font-size':fs}));
+
+}
+window.seek=function(t){
+  const off=S(t-7.45,SP.off), drift=1+0.018*cl01((t-3.6)/4);
+  $('cam').setAttribute('transform',`translate(${W/2},${H*0.45}) scale(${drift}) translate(${-W/2},${-H*0.45})`);
+  $('content').setAttribute('transform',`translate(${-off*W*1.1},0)`);
+  // 1 footer strip slides up
+  const f=S(t,SP.slide); $('foot').setAttribute('transform',`translate(0,${(1-f)*(footH+10*k)})`);
+  // 2 eyebrow types on (faster than 16ths)
+  const n=Math.max(0,Math.floor((t-0.25)/0.028)); $('eyebrow').textContent=eb.slice(0,Math.min(n,eb.length));
+  // 3–4 headline lines rise, clipped
+  const q1=S(t-1.0,SP.morph), q2=S(t-1.25,SP.morph);
+  $('h1').setAttribute('y',h1y+(1-q1)*hs*1.1); $('h2').setAttribute('y',h2y+(1-q2)*hs*1.1);
+  // 5 pack shot slides in on a spring
+  const p=S(t-1.75,SP.slide); $('pack').setAttribute('transform',`translate(${(1-p)*320*k},0)`); $('pack').style.opacity=cl01(p*1.6);
+  // 6 price drops in on the beat (2.5 s)
+  const pr=S(t-2.4,SP.pop), sc=1+0.1*(1-cl01(pr)), cy=Y(L.price)-ps*0.35;
+  $('priceG').setAttribute('transform',`translate(0,${(1-pr)*-150*k}) translate(${M},${cy}) scale(${sc}) translate(${-M},${-cy})`); $('priceG').style.opacity=cl01(pr*3);
+  // 7 unit + detail + product line
+  const u=S(t-3.0,SP.enter), d=S(t-3.12,SP.enter), pl=S(t-3.25,SP.enter);
+  [['unit',u],['detail',d],['prod',pl]].forEach(([id,v])=>{$(id).setAttribute('transform',`translate(0,${(1-v)*24*k})`);$(id).style.opacity=cl01(v);});
+  // 8 dates chip
+  const c=S(t-3.5,SP.pop), cw=$('chipT').getComputedTextLength()+52*k, chh=50*k;
+  A($('chipR'),{x:M,y:Y(L.chip)-chh/2,width:cw*cl01(c),height:chh,rx:chh/2,'stroke-width':2.5*k}); $('chipT').style.opacity=cl01((c-0.4)*2);
+};
+const imgs=[...document.querySelectorAll('image')].filter(i=>i.getAttribute('href')).map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('700 100px Poppins'),document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{init();seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>

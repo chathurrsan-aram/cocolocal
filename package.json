@@ -7,9 +7,12 @@
     "build": "next build && node scripts/check-site.mjs",
     "start": "next start",
     "lint": "next lint",
-    "check:site": "node scripts/check-site.mjs"
+    "check:site": "node scripts/check-site.mjs",
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
+    "@upstash/redis": "^1.39.0",
+    "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.34.4",
     "lucide-react": "^0.576.0",
     "next": "^15.5.24",
@@ -17,6 +20,7 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

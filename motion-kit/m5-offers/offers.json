@@ -1,0 +1,142 @@
+{
+  "_help": "One entry per offer. status: live (renders) or sample (only with --samples). price and status are required. alcohol: true adds '18+. Please drink responsibly.' image: a pack shot / photo panel in packshots/ or null for a placeholder. reel: the offer ids (3–5) for the weekly reel, in order. products: cut-out PNGs (prep_cutouts.py) shown and animated in the reel; spin: can (label wraps and turns), bottle (slower turn) or flask (rocks).",
+  "part": 1,
+  "offers": [
+    {
+      "id": "yazoo-bogof",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": [
+        "BUY ONE.",
+        "GET ONE FREE."
+      ],
+      "product_line": "Yazoo Inspired 300ml milkshakes",
+      "price": "2 for 1",
+      "unit": "300ML BOTTLES",
+      "detail_line": "Varieties as stocked",
+      "dates": "9 Sep – 6 Oct 2026",
+      "alcohol": false,
+      "image": "packshots/yazoo-inspired-300ml.png",
+      "image_note": "Cut from the Canva artwork YAZOO - Option 1; swap for a clean pack shot when available",
+      "status": "live",
+      "products": [
+        "packshots/yazoo-inspired-300ml.png"
+      ],
+      "spin": "flask"
+    },
+    {
+      "id": "beer-4pack",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": [
+        "FOUR-PACK",
+        "FAVOURITES."
+      ],
+      "product_line": "Poretti · Guinness Draught · Red Stripe · Desperados",
+      "price": "£6.50",
+      "unit": "FOUR-CAN PACK",
+      "detail_line": "Price per pack",
+      "dates": null,
+      "alcohol": true,
+      "image": "packshots/beer-4pack.jpg",
+      "status": "live",
+      "products": [
+        "cutouts/beer-4pack-1.png",
+        "cutouts/beer-4pack-2.png",
+        "cutouts/beer-4pack-3.png",
+        "cutouts/beer-4pack-4.png"
+      ],
+      "spin": "can"
+    },
+    {
+      "id": "beer-4pints",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": [
+        "BIG CANS.",
+        "BIG VALUE."
+      ],
+      "product_line": "Heineken · Stella Artois · Budweiser · 1664",
+      "price": "£7.50",
+      "unit": "FOUR PINT CANS",
+      "detail_line": "Price per pack",
+      "dates": null,
+      "alcohol": true,
+      "image": "packshots/beer-4pints.jpg",
+      "status": "live",
+      "products": [
+        "cutouts/beer-4pints-1.png",
+        "cutouts/beer-4pints-2.png",
+        "cutouts/beer-4pints-3.png",
+        "cutouts/beer-4pints-4.png"
+      ],
+      "spin": "can"
+    },
+    {
+      "id": "wine-lvf",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": [
+        "WINE DEALS.",
+        "WORTH A LOOK."
+      ],
+      "product_line": "La Vieille Ferme White or Rosé",
+      "price": "£8.49",
+      "unit": "75CL · PER BOTTLE",
+      "detail_line": "Special price",
+      "dates": null,
+      "alcohol": true,
+      "image": "packshots/wine-lvf.jpg",
+      "status": "live",
+      "products": [
+        "cutouts/wine-lvf-1.png",
+        "cutouts/wine-lvf-2.png"
+      ],
+      "spin": "bottle"
+    },
+    {
+      "id": "wine-mcguigan",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": [
+        "WINE DEALS.",
+        "WORTH A LOOK."
+      ],
+      "product_line": "McGuigan Black Label Merlot or Red",
+      "price": "£7",
+      "unit": "75CL · PER BOTTLE",
+      "detail_line": "Special price",
+      "dates": null,
+      "alcohol": true,
+      "image": "packshots/wine-mcguigan.jpg",
+      "status": "live",
+      "products": [
+        "cutouts/wine-mcguigan-1.png",
+        "cutouts/wine-mcguigan-2.png"
+      ],
+      "spin": "bottle"
+    },
+    {
+      "id": "spirits-35cl",
+      "eyebrow": "SPECIAL OFFERS AT COCO LOCAL",
+      "headline_lines": [
+        "A LITTLE",
+        "LOCAL VALUE."
+      ],
+      "product_line": "Captain Morgan Spiced Gold or Gordon's Gin",
+      "price": "£9.49",
+      "unit": "35CL · EACH",
+      "detail_line": "Our price · £1 below the £10.49 marked price",
+      "dates": null,
+      "alcohol": true,
+      "image": "packshots/spirits-35cl.jpg",
+      "status": "live",
+      "products": [
+        "cutouts/spirits-35cl-1.png",
+        "cutouts/spirits-35cl-2.png"
+      ],
+      "spin": "flask"
+    }
+  ],
+  "reel": [
+    "beer-4pack",
+    "beer-4pints",
+    "wine-lvf",
+    "spirits-35cl"
+  ]
+}
