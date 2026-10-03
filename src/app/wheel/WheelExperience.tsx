@@ -6,17 +6,21 @@
 // Motion (owner's brief, 26 Sep): Higgsfield-style chrome wheel with bulbs, pull lever or SPIN
 // hub, wind-up → fast spin with motion blur and peg clacks → tense crawl → small bounce,
 // then a gift-box reveal per outcome with confetti on wins. The spin is a pure function of
-// time (src/lib/wheel/motion.ts). Mouse movement tilts the machine, moves the spotlight and
-// the floating props. Reduced motion: no tilt, blur, confetti or bounce; results show at once.
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
+// time (src/lib/wheel/motion.ts). With a mouse, movement tilts the machine, moves the spotlight
+// and the floating props. Reduced motion: no tilt, blur, confetti or bounce; results show at once.
+//
+// Performance (phones especially): everything that moves per frame is a transform or an opacity
+// on its own layer. No filters are recomputed while the wheel turns, and the wheel and the result
+// card share one grid cell, so swapping them never re-lays out or squashes the text.
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
 import { ArrowDown, Volume2, VolumeX } from "lucide-react";
 import { outcomes, segments, wheelConfig } from "@/data/wheel";
 import { segmentAngle } from "@/lib/wheel/geometry";
 import { detectContact } from "@/lib/wheel/contact";
 import { spinPlan, blurFor, pointerKick, sliceUnder } from "@/lib/wheel/motion";
-import { WheelDisc, WheelPointer, WheelRim, WheelShade, WheelStand } from "./WheelArt";
+import { WheelDisc, WheelLabels, WheelPointer, WheelRim, WheelShade, WheelStand } from "./WheelArt";
 import Lever from "./Lever";
 import Reveal from "./Reveal";
 import EntrySheet, { type Details } from "./EntrySheet";
@@ -24,6 +28,7 @@ import { play, setSound, soundPreference } from "./sfx";
 import { savePrizeImage, sendToWhatsApp, type PrizeCard } from "./share";
 
 const MORPH_SPRING = { type: "spring", stiffness: 260, damping: 30 } as const; // ζ ≈ 0.93
+const MAX_BLUR = 3.2; // blurFor()'s ceiling
 const CARD_POP = { type: "spring", stiffness: 320, damping: 22 } as const; // ζ ≈ 0.61: a lively pop
 const PRESS_SPRING = { type: "spring", stiffness: 500, damping: 40 } as const;
 const SLICE = 360 / segments.length;
@@ -71,6 +76,17 @@ export default function WheelExperience() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
   const reduce = hydrated && prefersReduced;
+  // Tilt, parallax and motion blur only with a mouse: on touch screens they cost frames and
+  // nobody hovers anyway.
+  const [fine, setFine] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const set = () => setFine(mq.matches);
+    set();
+    mq.addEventListener("change", set);
+    return () => mq.removeEventListener("change", set);
+  }, []);
+  const rich = fine && !reduce;
   const [phase, setPhase] = useState<Phase>("idle");
   const [card, setCard] = useState<Card | null>(null);
   const [bulbs, setBulbs] = useState<Bulbs>("intro"); // bulbs light up in turn on arrival (CSS)
@@ -88,6 +104,7 @@ export default function WheelExperience() {
   const respinToken = useRef<string | null>(null);
   const lastSavedAt = useRef<string | null>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const stack = useRef<HTMLDivElement>(null);
   const wheelEl = useRef<HTMLDivElement>(null);
   const backCanvas = useRef<HTMLCanvasElement>(null);
   const frontCanvas = useRef<HTMLCanvasElement>(null);
@@ -97,15 +114,18 @@ export default function WheelExperience() {
   const rotation = useMotionValue(-SLICE / 2);
   const pointer = useMotionValue(0);
   const blurPx = useMotionValue(0);
-  const blur = useTransform(blurPx, v => (v > 0.05 ? `blur(${v.toFixed(2)}px)` : "none"));
+  // Motion blur as a cross-fade between sharp labels and a copy blurred once (see WheelLabels).
+  const blurMix = useTransform(blurPx, v => Math.min(1, v / MAX_BLUR));
+  const sharpOpacity = useTransform(blurMix, k => 1 - 0.8 * k);
 
   // Mouse-reactive tilt, spotlight and parallax (springs so it feels weighty, not twitchy).
   const mx = useSpring(0, { stiffness: 90, damping: 16 });
   const my = useSpring(0, { stiffness: 90, damping: 16 });
   const tiltX = useTransform(my, v => v * -7);
   const tiltY = useTransform(mx, v => v * 9);
-  const spotX = useTransform(mx, v => `${50 + v * 18}%`);
-  const spotY = useTransform(my, v => `${38 + v * 14}%`);
+  // The spotlight glow moves by transform (18% / 14% of the stage), not by repainting a gradient.
+  const spotX = useTransform(mx, v => `${v * 28.6}%`);
+  const spotY = useTransform(my, v => `${v * 25}%`);
   const near = useTransform(mx, v => v * 14);
   const nearY = useTransform(my, v => v * 10);
   const far = useTransform(mx, v => v * -8);
@@ -170,8 +190,25 @@ export default function WheelExperience() {
     burst("front", true);
   }, [burst]);
 
+  // The wheel and the result card share one grid cell; the stack's height eases between them.
+  const stackH = useMotionValue(0);
+  const [stackMeasured, setStackMeasured] = useState(false);
+  useLayoutEffect(() => {
+    const el = stack.current;
+    if (!el) return;
+    let first = true;
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight;
+      if (first || reduce) { stackH.set(h); first = false; setStackMeasured(true); }
+      else animate(stackH, h, MORPH_SPRING);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [reduce, stackH]);
+
   function track(e: ReactPointerEvent) {
-    if (reduce || e.pointerType !== "mouse" || !stage.current) return;
+    // Not while a button is held (pulling the lever): the machine stays still under your hand.
+    if (!rich || e.pointerType !== "mouse" || e.buttons !== 0 || !stage.current) return;
     const r = stage.current.getBoundingClientRect();
     mx.set(Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1)));
     my.set(Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1)));
@@ -373,17 +410,18 @@ export default function WheelExperience() {
         <p className="wheel-small">{wheelConfig.minimumAge}+. No purchase needed. Online only. Prizes are collected at 210 High Road within {wheelConfig.prizeValidDays} days. <Link href="/wheel/terms">Terms (draft)</Link> · <Link href="/wheel/privacy">Privacy (draft)</Link></p>
       </div>
 
-      <motion.div ref={stage} layout={!reduce} transition={reduce ? { duration: 0.2 } : MORPH_SPRING}
-        className={`wheel-stage ${card ? "is-card" : ""}`} onPointerMove={track} onPointerLeave={untrack}>
-        <motion.div className="wheel-spotlight" aria-hidden="true" style={{ ["--sx" as string]: spotX, ["--sy" as string]: spotY }} />
+      <div ref={stage} className={`wheel-stage ${card ? "is-card" : ""} ${phase === "spinning" ? "is-spinning" : ""}`}
+        onPointerMove={track} onPointerLeave={untrack}>
+        <div className="wheel-spotlight" aria-hidden="true"><motion.div className="wheel-spotlight-glow" style={{ x: spotX, y: spotY }} /></div>
         <canvas ref={backCanvas} className="confetti-back" aria-hidden="true" />
         <button type="button" className="sound-toggle" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? "Sound on. Turn sound off" : "Sound off. Turn sound on"}>
           {sound ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}
         </button>
-        <AnimatePresence mode="popLayout" initial={false}>
-          {!card ? (
-            <motion.div key="wheel" className="wheel-body" layout={!reduce}
-              exit={reduce ? { opacity: 0, transition: { duration: 0.2 } } : { opacity: 0, scale: 0.86, y: 10, transition: { duration: 0.35, ease: [0.4, 0, 1, 1] } }}>
+        <motion.div className="wheel-stack-frame" style={stackMeasured ? { height: stackH } : undefined}>
+          <div ref={stack} className="wheel-stack">
+            <motion.div className="wheel-body" inert={Boolean(card)} initial={false}
+              animate={card ? { opacity: 0, scale: reduce ? 1 : 0.9, transitionEnd: { visibility: "hidden" } } : { opacity: 1, scale: 1, visibility: "visible" }}
+              transition={reduce ? { duration: 0.2 } : { duration: card ? 0.3 : 0.45, ease: card ? [0.4, 0, 1, 1] : [0.22, 1, 0.36, 1] }}>
               <div className="wheel-scene">
                 {!reduce && <>
                   {/* eslint-disable @next/next/no-img-element */}
@@ -394,11 +432,15 @@ export default function WheelExperience() {
                   <motion.img src="/wheel/props/cookie.webp" alt="" className="float-prop p-cookie" style={{ x: near, y: nearY }} draggable={false} />
                   {/* eslint-enable @next/next/no-img-element */}
                 </>}
-                <motion.div className="wheel-machine" style={reduce ? undefined : { rotateX: tiltX, rotateY: tiltY }}>
+                <motion.div className={`wheel-machine ${rich ? "is-tilting" : ""}`} style={rich ? { rotateX: tiltX, rotateY: tiltY } : undefined}>
                   <div ref={wheelEl} className={`wheel-rotor-wrap bulbs-${bulbs}`}>
                     <WheelRim />
                     <motion.div className="wheel-rotor" style={{ rotate: rotation }}>
-                      <div className="wheel-spin-in"><WheelDisc blur={blur} highlight={highlight} /></div>
+                      <div className="wheel-spin-in">
+                        <WheelDisc highlight={highlight} />
+                        <motion.div className="wheel-labels-layer" style={rich ? { opacity: sharpOpacity } : undefined}><WheelLabels /></motion.div>
+                        {rich && <motion.div className="wheel-labels-layer" style={{ opacity: blurMix }}><WheelLabels blurred /></motion.div>}
+                      </div>
                     </motion.div>
                     <WheelShade />
                     <motion.div className="wheel-pointer" style={{ rotate: pointer }}><WheelPointer /></motion.div>
@@ -406,8 +448,8 @@ export default function WheelExperience() {
                       aria-label={phase === "respin" ? "Spin again" : "Spin the wheel"}
                       whileHover={idle && !reduce ? { scale: 1.06 } : undefined}
                       whileTap={idle && !reduce ? { scale: 0.94 } : undefined}
-                      animate={phase === "loading" ? { scale: 0.7 } : idle && !reduce ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-                      transition={phase === "loading" ? PRESS_SPRING : idle && !reduce ? { duration: 0.6, repeat: Infinity, repeatDelay: 3.4, ease: "easeInOut" } : PRESS_SPRING}>
+                      animate={phase === "loading" ? { scale: 0.7 } : idle && !reduce && !card ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+                      transition={phase === "loading" ? PRESS_SPRING : idle && !reduce && !card ? { duration: 0.6, repeat: Infinity, repeatDelay: 3.4, ease: "easeInOut" } : PRESS_SPRING}>
                       <AnimatePresence mode="wait" initial={false}>
                         {phase === "loading" ? (
                           <motion.span key="ring" className="hub-ring" aria-hidden="true" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} />
@@ -422,7 +464,7 @@ export default function WheelExperience() {
                   </div>
                   <WheelStand />
                 </motion.div>
-                <Lever disabled={unavailable || busy} reduce={reduce} onPull={start} label={leverLabel} />
+                <Lever disabled={unavailable || busy || Boolean(card)} reduce={reduce} onPull={start} label={leverLabel} />
               </div>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.p key={landed ? `l-${landed.text}` : phase} className={`wheel-caption ${landed?.win ? "is-win" : ""}`} aria-live="polite"
@@ -432,17 +474,21 @@ export default function WheelExperience() {
                 </motion.p>
               </AnimatePresence>
             </motion.div>
-          ) : (
-            <motion.div key="card" className={`result-card ${card.kind}`} layout={!reduce}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.86, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={reduce ? { duration: 0.2 } : { ...CARD_POP, delay: 0.12 }}>
-              <ResultCard card={card} onBack={backToWheel} reduce={reduce} onOpen={onRevealOpen} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+            <AnimatePresence initial={false}>
+              {card && (
+                <motion.div key="card" className={`result-card ${card.kind}`}
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 14 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, transition: { duration: reduce ? 0.15 : 0.22 } }}
+                  transition={reduce ? { duration: 0.2 } : { ...CARD_POP, delay: 0.18 }}>
+                  <ResultCard card={card} onBack={backToWheel} reduce={reduce} onOpen={onRevealOpen} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
         <canvas ref={frontCanvas} className="confetti-front" aria-hidden="true" />
         <p className="sr-only" aria-live="assertive">{announce}</p>
-      </motion.div>
+      </div>
 
       <EntrySheet open={sheetOpen} reduce={reduce} details={details} onChange={setDetails}
         bonusCode={bonusCode} onBonusChange={setBonusCode} bonusOpen={bonusOpen} onBonusOpen={setBonusOpen} bonusReady={bonusReady}
