@@ -1,0 +1,38 @@
+{
+  "_read_me": "ONE file for every editable field of the hot food carousel motion. Leave a price as null until it is confirmed: the page then shows the £[0.00] placeholder and that export is a DRAFT TEMPLATE. Set confirmed=true only when the product, name, price and photo are approved. Public COMING-SOON exports never include product or menu pages.",
+  "launch_status": "coming_soon",
+  "launch_date": null,
+  "bpm": 120,
+  "copy": {
+    "label": "HOT FOOD",
+    "status": "COMING SOON",
+    "address": "210 High Road, South Benfleet · SS7 5LD",
+    "handle": "@cocolocal_",
+    "website": "cocolocal.co.uk",
+    "footnote": "Coming soon · Product images are illustrative",
+    "price_placeholder": "£[0.00]",
+    "unit_placeholder": "Price to confirm · [each / portion]"
+  },
+  "cover": {
+    "eyebrow": "SOMETHING NEW AT YOUR LOCAL",
+    "line1": "Hot food.",
+    "line2": "Coming soon.",
+    "cta_feed": "Take a first look →",
+    "cta_reel": null,
+    "image": "assets/photo-p1.png"
+  },
+  "products": [
+    {"slot": 1, "name": "Sausage roll", "description": "", "price": null, "unit": null, "image": "assets/photo-p2.png", "confirmed": false, "note": "Example from the Canva template — name, price, unit and photo to confirm"},
+    {"slot": 2, "name": "Four cheese & onion toastie", "description": "", "price": null, "unit": null, "image": "assets/photo-p3.png", "confirmed": false, "note": "Example from the Canva template — name, price, unit and photo to confirm"},
+    {"slot": 3, "name": "Cheeseburger", "description": "", "price": null, "unit": null, "image": "assets/photo-p4.png", "confirmed": false, "note": "Example from the Canva template — name, price, unit and photo to confirm"}
+  ],
+  "menu": {"eyebrow": "COMING SOON", "line1": "Take your pick."},
+  "closing": {
+    "eyebrow": "YOUR FRIENDLY LOCAL",
+    "line1": "Something hot",
+    "line2": "is on the way.",
+    "body1": "Follow along for the first look",
+    "body2": "and launch details.",
+    "footnote": "Coming soon · Follow @cocolocal_ for updates"
+  }
+}

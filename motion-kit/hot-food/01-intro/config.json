@@ -1,0 +1,41 @@
+{
+  "_note": "Editable copy and media for the hot food teaser. Keep it COMING SOON until products, prices and a launch date are confirmed. Each version names its photo slot (hero) and where the steam rises from (steam_from = [x, y] as fractions of the photo panel). hero = null renders the typography-only version.",
+  "copy": {
+    "label": "HOT FOOD",
+    "eyebrow1": "PSST… NEWS FROM YOUR LOCAL",
+    "line1a": "Something hot",
+    "line1b": "is on the way.",
+    "eyebrow2": "SOMETHING NEW AT YOUR LOCAL",
+    "line2a": "Hot food at",
+    "line2b": "Coco Local.",
+    "status": "COMING SOON",
+    "end1": "Follow @cocolocal_",
+    "end2": "for launch details.",
+    "address_line1": "210 High Road, South Benfleet",
+    "address_line2": "SS7 5LD",
+    "website": "cocolocal.co.uk",
+    "address": "210 High Road, South Benfleet · SS7 5LD",
+    "footnote": "Coming soon · Follow @cocolocal_ for updates"
+  },
+  "versions": {
+    "a-paper-bag": {
+      "hero": "assets/hero-paper-bag.jpg",
+      "hero_focus_y": 0.6,
+      "steam_from": [
+        0.5,
+        0.42
+      ]
+    },
+    "b-kitchen-glow": {
+      "hero": "assets/hero-kitchen-glow.jpg",
+      "hero_focus_y": 0.55,
+      "steam_from": [
+        0.5,
+        0.5
+      ]
+    },
+    "alt-typography-only": {
+      "hero": null
+    }
+  }
+}

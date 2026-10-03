@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Coco Local — Hot food teaser</title><style>__FONTS__
+html,body{margin:0;background:#F7F3EA;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c"></canvas><script>
+__LIB__
+/* Introducing hot food — 15 s teaser, 1080×1920, 96 BPM (one beat = .625 s).
+   0–3 s   logo, "Something hot is on the way."         (beats 0–4.8)
+   3–8 s   a warm panel opens: glow, light sweep, real steam, slow push (4.8–12.8)
+   8–11 s  "Hot food at Coco Local." + COMING SOON pill (12.8–17.6)
+   11–15 s follow @cocolocal_ for launch details, address, logo — held for reading (17.6–24) */
+const CFG=__CFG__, MEDIA=__MEDIA__;
+const BPM=96, B=60/BPM, DUR=24*B, C=CFG.copy;
+let IMG={};
+const T=b=>b*B;
+const PANEL={x:56,y:760,w:968,h:760,r:34};
+function header(t){logo(IMG.logo,70,112,56,1,cl(s(t-.05,SP.soft)*1.15));const a=s(t-T(.5),SP.ui);x.save();x.globalAlpha=cl(a*1.5);txt(C.label,1010,152,24,600,NAVY,'right',400,3);x.restore();
+  x.save();x.globalAlpha=.9;x.fillStyle=RULE;x.fillRect(70,198,940*cl(s(t-T(.25),SP.soft)),2);x.restore()}
+function footer(t,a){if(a<=0)return;x.save();x.globalAlpha=a;x.fillStyle=RULE;x.fillRect(70,1640,940,2);txt(C.address,70,1692,27,600,NAVY);txt(C.footnote,70,1736,21,500,MUTED);x.restore()}
+function panel(t,b){const open=s(t-T(4.8),SP.soft),close=s(t-T(17.6),SP.ui);if(open<=0||close>.999)return;
+  const p=PANEL,h=p.h*cl(open)*(1-.18*close),y=p.y+40*close,al=1-cl(close*1.4);
+  x.save();x.globalAlpha=al;x.shadowColor='rgba(40,30,20,.18)';x.shadowBlur=40;x.shadowOffsetY=16;rr(p.x,y,p.w,Math.max(h,1),p.r);x.fillStyle=NAVY;x.fill();x.shadowColor='transparent';
+  rr(p.x,y,p.w,Math.max(h,1),p.r);x.clip();
+  const push=1.02+.06*cl((t-T(4.8))/(T(13)));                                  // the slow push in
+  const cx=p.x+p.w/2,cy=y+p.h/2;x.translate(cx,cy);x.scale(push,push);x.translate(-cx,-cy);
+  if(IMG.hero){cover(IMG.hero,p.x,y,p.w,p.h,1,.5,CFG.hero_focus_y??.55)}
+  else{ // typography version: navy with a warm glow breathing up from below
+    const br=.85+.15*Math.sin(t*1.3);const g=x.createRadialGradient(cx,y+p.h+60,0,cx,y+p.h+60,p.h*1.05);
+    g.addColorStop(0,`rgba(255,206,140,${.98*br})`);g.addColorStop(.4,`rgba(242,166,90,${.62*br})`);g.addColorStop(.8,'rgba(140,80,64,.22)');g.addColorStop(1,'rgba(16,16,57,0)');x.fillStyle=g;x.fillRect(p.x,y,p.w,p.h);
+    const g2=x.createRadialGradient(p.x+p.w*.2,y+p.h*.15,0,p.x+p.w*.2,y+p.h*.15,p.w*.7);g2.addColorStop(0,'rgba(254,192,145,.10)');g2.addColorStop(1,'rgba(254,192,145,0)');x.fillStyle=g2;x.fillRect(p.x,y,p.w,p.h)}
+  // a soft diagonal light sweep, once
+  const sw=easeIO(cl((t-T(6))/T(6)));if(sw>0&&sw<1){const sx=lerp(p.x-500,p.x+p.w+500,sw);const g=x.createLinearGradient(sx-260,y,sx+260,y+p.h*.4);
+    g.addColorStop(0,'rgba(255,240,220,0)');g.addColorStop(.5,`rgba(255,240,220,${IMG.hero?.16:.10})`);g.addColorStop(1,'rgba(255,240,220,0)');x.fillStyle=g;x.fillRect(p.x,y,p.w,p.h)}
+  const sa=cl((t-T(5.2))/T(1.6));
+  if(IMG.hero){const so=CFG.steam_from||[.5,.45];x.save();x.globalCompositeOperation='screen';steam(IMG.steam,p.x+p.w*so[0],y+p.h*so[1]+30,430,700,t,{n:3,alpha:.85*sa,speed:.09,seed:1});x.restore()}  // steam rises out of the bag
+  else steam(IMG.steam,cx,y+p.h+80,760,1150,t,{n:3,alpha:.42*sa,speed:.07,seed:1});
+  x.restore()}
+function scribble(t,t0,tx){const d=cl((t-t0)/.45),o=s(t-tx,SP.snap);if(d<=0||o>=1)return;   // a quick marker swipe under "hot"
+  x.font='700 118px Poppins';x.letterSpacing='-3px';const pre=x.measureText(C.line1a.replace(/hot$/,'')).width,w=x.measureText('hot').width;x.letterSpacing='0px';
+  const x0=66+pre-6,x1=x0+w+14,y0=518;x.save();x.globalAlpha=1-cl(o*1.6);x.strokeStyle=PILL;x.lineWidth=16;x.lineCap='round';x.beginPath();
+  for(let i=0;i<=30;i++){const u=i/30;if(u>d)break;const px=lerp(x0,x1,u),py=y0+Math.sin(u*Math.PI*1.1)*-5+u*6;i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();x.restore()}
+function frame(t){const b=t/B;x.fillStyle=CREAM;x.fillRect(0,0,W,H);
+  header(t);footer(t,cl(s(t-T(.75),SP.soft)));
+  // act 1: the teaser line
+  const ex1=T(12.8);
+  lineUp(C.eyebrow1,70,338,26,T(1),t,{weight:600,color:MUTED,track:5,exitT:ex1});
+  wordsUp(C.line1a,66,500,118,T(1.5),t,{exitT:ex1,gap:.09,track:-3,bounce:1});
+  wordsUp(C.line1b,66,628,118,T(2.1),t,{exitT:ex1+.05,gap:.09,track:-3,bounce:1});
+  scribble(t,T(2.9),ex1);
+  panel(t,b);
+  // act 2: what it is
+  const ex2=T(17.6);
+  lineUp(C.eyebrow2,70,338,26,T(13.1),t,{weight:600,color:MUTED,track:5,exitT:ex2});
+  wordsUp(C.line2a,66,500,118,T(13.3),t,{exitT:ex2,gap:.09,track:-3,bounce:1});
+  wordsUp(C.line2b,66,628,118,T(13.75),t,{exitT:ex2+.05,gap:.09,track:-3,bounce:1});
+  const pa=s(t-T(14.6),SP.pop)*(1-cl(s(t-ex2,SP.snap)*1.4));{const wg=Math.sin((t-T(14.6))*14)*Math.exp(-Math.max(0,t-T(14.6))*3)*.06*(t>T(14.6));x.save();x.translate(250,706);x.rotate(wg);x.translate(-250,-706);pill(C.status,70,668,30,pa,{h:76,padX:34});x.restore()}
+  // act 3: follow for launch details — the reading hold
+  const e3=T(17.9);
+  pill(C.status,70,420,28,s(t-e3,SP.pop),{h:68,padX:30});
+  wordsUp(C.end1,66,620,96,e3+T(.4),t,{gap:.08,track:-3,bounce:.7});
+  wordsUp(C.end2,66,738,96,e3+T(.8),t,{gap:.08,track:-3,bounce:.7});
+  lineUp(C.address_line1,70,900,42,e3+T(1.5),t,{weight:600});
+  lineUp(C.address_line2,70,960,38,e3+T(1.7),t,{weight:500,color:MUTED});
+  lineUp(C.website,70,1022,38,e3+T(1.9),t,{weight:500,color:MUTED});
+  const lg=s(t-(e3+T(2.3)),SP.ui);if(lg>0){const h=100,w=h*IMG.logo.width/IMG.logo.height;x.save();x.globalAlpha=cl(lg*1.6);x.fillStyle=RULE;x.fillRect(70,1160,940*cl(lg),2);x.restore();logo(IMG.logo,540-w/2,1250+(1-lg)*40,h,cl(lg*1.6),1)}
+}
+setup(1080,1920);
+loadAll({logo:MEDIA.logo,steam:MEDIA.steam,hero:MEDIA.hero}).then(I=>{IMG=I;boot(frame,DUR)});
+</script></body></html>

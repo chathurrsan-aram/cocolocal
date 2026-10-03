@@ -1,0 +1,93 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Coco Local — Hot food carousel motion</title><style>__FONTS__
+html,body{margin:0;background:#F7F3EA;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c"></canvas><script>
+__LIB__
+/* The cream hot food carousel (Canva DAHW-UOG9ZM), animated page by page.
+   Feed layout = the Canva pages' own measured positions and type sizes; reel layout = the same pages recomposed for 9:16.
+   Everything editable lives in hot-food-carousel.config.json; this file is motion only. */
+const CFG=__CFG__, MEDIA=__MEDIA__;
+const B=60/CFG.bpm, FMT=CFG.format, PAGES=CFG.pages, NP=PAGES.length;
+const starts=[];{let acc=0;PAGES.forEach(p=>{starts.push(acc);acc+=p.beats});var TOTALB=acc}
+const DUR=TOTALB*B;
+let IMG={};
+const L=FMT==='feed'?{
+  w:1080,h:1350, logo:{x:63.8,y:56.8,h:52.2}, label:{x:980,y:90,size:20,track:2},
+  eyebrow:{x:64,y:180,size:21.5,track:3.33}, head:{x:61,y1:294,y2:393,size:94,track:-3.76}, head6:{x:65,y1:295,y2:391,size:89,track:-3.12},
+  pill1:{x:64,y:444,w:342,h:64,size:22,tx:87}, cta:{x:645,y:471,size:25.5},
+  photo1:{x:40,y:535,w:1000,h:671}, photo:{x:40,y:514,w:1000,h:671},
+  name:{x:61,y:272,size:67.5,track:-2.36,max:692}, desc:{x:65,y:318,size:26}, price:{x:60,y:415,size:111,track:-3.88}, unit:{x:65,y:471,size:26},
+  menu:{top:508,step:221,name:{x:65,size:44},price:{x:980,size:75,track:-2.6},head:{y1:300}},
+  pill6:{x:64,y:550,w:460,h:84,size:33,tx:88}, body:{x:65,y1:795,y2:859,size:37.5}, handle:{x:65,y:1038,size:40}, web:{x:65,y:1114,size:40}, addr6:null,
+  rule:{y:1234,x0:64,x1:1015}, addr:{x:65,y:1274,size:20,track:.5}, counter:{x:968,y:1274,size:20}, disc:{x:65,y:1303,size:16.5}
+}:{
+  w:1080,h:1920, logo:{x:62,y:104,h:62}, label:{x:1012,y:150,size:24,track:2.4},
+  eyebrow:{x:64,y:368,size:28,track:4.2}, head:{x:60,y1:512,y2:636,size:118,track:-4.7}, head6:{x:62,y1:512,y2:630,size:112,track:-4},
+  pill1:{x:64,y:690,w:430,h:82,size:28,tx:94}, cta:{x:64,y:1500,size:30},
+  photo1:{x:40,y:820,w:1000,h:671}, photo:{x:40,y:820,w:1000,h:671},
+  name:{x:61,y:500,size:88,track:-3,max:940}, desc:{x:65,y:560,size:32}, price:{x:60,y:690,size:150,track:-5.2}, unit:{x:65,y:768,size:32},
+  menu:{top:760,step:270,name:{x:65,size:56},price:{x:1012,size:104,track:-3.4},head:{y1:512}},
+  pill6:{x:64,y:700,w:560,h:104,size:40,tx:98}, body:{x:65,y1:968,y2:1044,size:46}, handle:{x:65,y:1196,size:48}, web:{x:65,y:1276,size:48}, addr6:{x:65,y:1400,size:36},
+  rule:{y:1640,x0:64,x1:1016}, addr:{x:65,y:1692,size:26,track:.5}, counter:{x:1012,y:1692,size:26}, disc:{x:65,y:1734,size:20}
+};
+const C=CFG.copy;
+/* ---- persistent chrome: logo, label, rule, footer with a rolling page counter ---- */
+function chrome(t){const a=cl(s(t-.05,SP.soft)*1.2);logo(IMG.logo,L.logo.x,L.logo.y,L.logo.h,1,a);
+  x.save();x.globalAlpha=cl(s(t-.25,SP.ui)*1.5);txt(C.label,L.label.x,L.label.y,L.label.size,600,NAVY,'right',400,L.label.track);x.restore();
+  x.fillStyle=RULE;x.fillRect(L.rule.x0,L.rule.y,(L.rule.x1-L.rule.x0)*cl(s(t-.2,SP.soft)),1.5);
+  const fa=cl(s(t-.4,SP.soft));if(fa<=0)return;x.save();x.globalAlpha=fa;txt(C.address,L.addr.x,L.addr.y,L.addr.size,600,NAVY,'left',800,L.addr.track);
+  const i=pageAt(t),pi=PAGES[i];txt(pi.footnote||C.footnote,L.disc.x,L.disc.y,L.disc.size,500,MUTED,'left',800,.4);
+  if(CFG.counter){const tot=String(NP).padStart(2,'0');let cur=0;for(let k=1;k<NP;k++)cur+=s(t-starts[k]*B,SP.snap);
+    const lo=Math.floor(cur+1e-6),fr=cur-lo,sz=L.counter.size,wT=tw(' / '+tot,sz,600),cx=L.counter.x-wT;txt(' / '+tot,L.counter.x,L.counter.y,sz,600,NAVY,'right');
+    masked(cx-60,L.counter.y-sz,62,sz*1.35,()=>{x.save();x.globalAlpha=1-fr;txt(String(Math.min(lo+1,NP)).padStart(2,'0'),cx,L.counter.y-fr*sz*1.2,sz,600,NAVY,'right');x.globalAlpha=fr;txt(String(Math.min(lo+2,NP)).padStart(2,'0'),cx,L.counter.y+(1-fr)*sz*1.2,sz,600,NAVY,'right');x.restore()})}
+  x.restore()}
+function pageAt(t){let i=0;for(let k=0;k<NP;k++)if(t>=starts[k]*B-.02)i=k;return i}
+/* ---- photo slot: wipe-up reveal, settle, slow push, a little real steam ---- */
+function photo(key,r,lt,{steamOn=true,label='[Product photo]'}={}){const e=s(lt-.1,SP.soft),wipe=cl(e*1.05);if(wipe<=0)return;
+  const im=IMG[key];x.save();x.beginPath();x.rect(r.x,r.y+r.h*(1-wipe),r.w,r.h*wipe+1);x.clip();
+  if(im){const z=1.1-.1*cl(e)+.035*cl((lt-.6)/4);cover(im,r.x,r.y,r.w,r.h,z,.5,.55)}
+  else{x.fillStyle='#EFE7D8';x.fillRect(r.x,r.y,r.w,r.h);x.setLineDash([14,10]);x.strokeStyle='rgba(16,16,57,.35)';x.lineWidth=3;x.strokeRect(r.x+18,r.y+18,r.w-36,r.h-36);x.setLineDash([]);txt(label,r.x+r.w/2,r.y+r.h/2+14,40,600,MUTED,'center')}
+  if(im&&steamOn&&IMG.steam)steam(IMG.steam,r.x+r.w*.5,r.y+r.h*.62,560,820,lt+3,{n:3,alpha:.22*cl((lt-.8)/1.2),speed:.07,seed:2});
+  x.restore()}
+/* ---- page bodies; each gets its local time lt ---- */
+function cover_(p,lt){lineUp(p.eyebrow,L.eyebrow.x,L.eyebrow.y,L.eyebrow.size,.2,lt,{weight:600,color:MUTED,track:L.eyebrow.track});
+  wordsUp(p.line1,L.head.x,L.head.y1,L.head.size,.35,lt,{track:L.head.track,gap:.08});wordsUp(p.line2,L.head.x,L.head.y2,L.head.size,.6,lt,{track:L.head.track,gap:.08});
+  pillAt(p.status,L.pill1,lt-1.0);
+  const ca=s(lt-1.3,SP.ui);if(ca>0&&p.cta){const nud=6*Math.sin(Math.max(0,lt-1.8)*4)*Math.exp(-Math.max(0,lt-1.8)*.6);const ga=x.globalAlpha;x.save();x.globalAlpha=ga*cl(ca*1.6);txt(p.cta,L.cta.x+(1-ca)*30+nud,L.cta.y,L.cta.size,600,NAVY,'left',600);x.restore()}
+  photo(p.image,L.photo1,lt-.5)}
+function pillAt(label,P,lt){const a=s(lt,SP.pop);if(a<=0)return;const ga=x.globalAlpha;x.save();x.globalAlpha=ga*cl(a*1.6);const k=lerp(.7,1,cl(a))+.05*(a-cl(a));x.translate(P.x+P.w/2,P.y+P.h/2);x.scale(k,k);
+  rr(-P.w/2,-P.h/2,P.w,P.h,P.h/2);x.fillStyle=PILL;x.fill();txt(label,-P.w/2+(P.tx-P.x),P.size*.36,P.size,600,NAVY,'left',P.w,0);x.restore()}
+function priceStr(pr){return pr.price==null||pr.price===''?C.price_placeholder:(String(pr.price).startsWith('£')?pr.price:'£'+pr.price)}
+function unitStr(pr){if(pr.price==null||pr.price==='')return C.unit_placeholder;return pr.unit||''}
+function product_(p,lt){const pr=CFG.products[p.product];
+  lineUp(pr.status_label||C.status,L.eyebrow.x,L.eyebrow.y,L.eyebrow.size,.15,lt,{weight:600,color:NAVY,track:L.eyebrow.track});
+  wordsUp(pr.name,L.name.x,L.name.y,L.name.size,.3,lt,{track:L.name.track,gap:.07,max:L.name.max});
+  if(pr.description)lineUp(pr.description,L.desc.x,L.desc.y,L.desc.size,.5,lt,{weight:500,color:MUTED});
+  // price emphasis: lands with a small overshoot, then a soft settle
+  const pe=s(lt-.75,SP.pop);if(pe>0){const k=lerp(1.18,1,cl(pe))-.04*(pe-cl(pe));const ga=x.globalAlpha;x.save();x.globalAlpha=ga*cl(pe*1.8);const py=L.price.y+(pr.description?28:0);
+    x.translate(L.price.x,py);x.scale(k,k);txt(priceStr(pr),0,0,L.price.size,700,NAVY,'left',940,L.price.track);x.restore()}
+  lineUp(unitStr(pr),L.unit.x,L.unit.y+(pr.description?28:0),L.unit.size,1.0,lt,{weight:600});
+  photo(pr.image,L.photo,lt-.35)}
+function menu_(p,lt){lineUp(p.eyebrow,L.eyebrow.x,L.eyebrow.y,L.eyebrow.size,.15,lt,{weight:600,color:MUTED,track:L.eyebrow.track});
+  wordsUp(p.line1,L.head.x,L.menu.head.y1,L.head.size,.3,lt,{track:L.head.track,gap:.08});
+  CFG.products.forEach((pr,k)=>{const t0=.75+k*.22,y=L.menu.top+k*L.menu.step,e=s(lt-t0,SP.ui);if(e<=0)return;
+    const nb=y+L.menu.price.size*.66;const ga=x.globalAlpha;x.save();x.globalAlpha=ga*cl(e*1.7);
+    {const maxW=L.menu.price.x-L.menu.name.x-tw(priceStr(pr),L.menu.price.size,700,L.menu.price.track)-48,nx=L.menu.name.x-(1-e)*40,ny=nb-L.menu.price.size*.12,ns=L.menu.name.size;
+     if(tw(pr.name,ns,700)<=maxW)txt(pr.name,nx,ny,ns,700,NAVY,'left',maxW);
+     else{const w_=pr.name.split(' ');let best=1,bd=1e9;for(let j=1;j<w_.length;j++){const d=Math.abs(tw(w_.slice(0,j).join(' '),ns,700)-tw(w_.slice(j).join(' '),ns,700));if(d<bd){bd=d;best=j}}   // long names wrap onto two lines
+       txt(w_.slice(0,best).join(' '),nx,ny-ns*.55,ns,700,NAVY,'left',maxW);txt(w_.slice(best).join(' '),nx,ny+ns*.62,ns,700,NAVY,'left',maxW)}}
+    const pe=s(lt-t0-.18,SP.pop),k2=lerp(1.2,1,cl(pe))-.04*(pe-cl(pe));x.translate(L.menu.price.x,nb);x.scale(k2,k2);x.globalAlpha=ga*cl(e*1.7)*cl(pe*1.8);txt(priceStr(pr),0,0,L.menu.price.size,700,NAVY,'right',700,L.menu.price.track);x.restore()})}
+function closing_(p,lt){lineUp(p.eyebrow,L.eyebrow.x,L.eyebrow.y,L.eyebrow.size,.15,lt,{weight:600,color:MUTED,track:L.eyebrow.track});
+  wordsUp(p.line1,L.head6.x,L.head6.y1,L.head6.size,.3,lt,{track:L.head6.track,gap:.08});wordsUp(p.line2,L.head6.x,L.head6.y2,L.head6.size,.55,lt,{track:L.head6.track,gap:.08});
+  pillAt(p.status,L.pill6,lt-.95);
+  lineUp(p.body1,L.body.x,L.body.y1,L.body.size,1.25,lt,{weight:500});lineUp(p.body2,L.body.x,L.body.y2,L.body.size,1.4,lt,{weight:500});
+  lineUp(C.handle,L.handle.x,L.handle.y,L.handle.size,1.75,lt,{weight:500});lineUp(C.website,L.web.x,L.web.y,L.web.size,1.9,lt,{weight:500});
+  if(L.addr6)lineUp(C.address,L.addr6.x,L.addr6.y,L.addr6.size,2.1,lt,{weight:600})}
+const BODY={cover:cover_,product:product_,menu:menu_,closing:closing_};
+/* ---- page transitions: the page body slides as one sheet; the chrome stays put ---- */
+function frame(t){x.fillStyle=CREAM;x.fillRect(0,0,W,H);
+  for(let i=0;i<NP;i++){const t0=starts[i]*B,t1=i<NP-1?starts[i+1]*B:1e9;if(t<t0-.01||t>t1+.9)continue;
+    const enter=i===0?1:s(t-t0,SP.ui),exit=i<NP-1?s(t-t1,SP.ui):0;const dx=(1-enter)*W*.38-exit*W*.38;   // a crossfading slide: never an empty frame
+    x.save();x.globalAlpha=cl(enter*2.4)*(1-cl(exit*1.15));x.translate(dx,0);BODY[PAGES[i].type](PAGES[i],t-t0);x.restore()}
+  chrome(t)}
+setup(L.w,L.h);
+loadAll(MEDIA).then(I=>{IMG=I;boot(frame,DUR)});
+</script></body></html>
