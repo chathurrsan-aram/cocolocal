@@ -22,16 +22,16 @@
       "hero": "assets/hero-paper-bag.jpg",
       "hero_focus_y": 0.6,
       "steam_from": [
-        0.5,
-        0.42
+        0.52,
+        0.37
       ]
     },
     "b-kitchen-glow": {
       "hero": "assets/hero-kitchen-glow.jpg",
-      "hero_focus_y": 0.55,
+      "hero_focus_y": 0.8,
       "steam_from": [
-        0.5,
-        0.5
+        0.6,
+        0.44
       ]
     },
     "alt-typography-only": {

@@ -29,7 +29,7 @@ function panel(t,b){const open=s(t-T(4.8),SP.soft),close=s(t-T(17.6),SP.ui);if(o
   const sw=easeIO(cl((t-T(6))/T(6)));if(sw>0&&sw<1){const sx=lerp(p.x-500,p.x+p.w+500,sw);const g=x.createLinearGradient(sx-260,y,sx+260,y+p.h*.4);
     g.addColorStop(0,'rgba(255,240,220,0)');g.addColorStop(.5,`rgba(255,240,220,${IMG.hero?.16:.10})`);g.addColorStop(1,'rgba(255,240,220,0)');x.fillStyle=g;x.fillRect(p.x,y,p.w,p.h)}
   const sa=cl((t-T(5.2))/T(1.6));
-  if(IMG.hero){const so=CFG.steam_from||[.5,.45];x.save();x.globalCompositeOperation='screen';steam(IMG.steam,p.x+p.w*so[0],y+p.h*so[1]+30,430,700,t,{n:3,alpha:.85*sa,speed:.09,seed:1});x.restore()}  // steam rises out of the bag
+  if(IMG.hero){const so=CFG.steam_from||[.5,.45];x.save();steam(IMG.steam,p.x+p.w*so[0],y+p.h*so[1]+30,470,760,t,{n:4,alpha:1*sa,speed:.09,seed:1});x.restore()}  // steam rises out of the bag
   else steam(IMG.steam,cx,y+p.h+80,760,1150,t,{n:3,alpha:.42*sa,speed:.07,seed:1});
   x.restore()}
 function scribble(t,t0,tx){const d=cl((t-t0)/.45),o=s(t-tx,SP.snap);if(d<=0||o>=1)return;   // a quick marker swipe under "hot"
