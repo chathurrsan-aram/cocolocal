@@ -74,6 +74,7 @@ export default function EntrySheet(props: Props) {
     const before = root.style.overflow;
     root.style.overflow = "hidden";
     const t = setTimeout(() => {
+      if (sheet.current?.contains(document.activeElement)) return; // already typing: don't jump fields
       const target = !details.firstName.trim() ? nameInput.current
         : !detectContact(details.contact).value ? contactInput.current
         : needsBonus ? bonusInput.current : nameInput.current;

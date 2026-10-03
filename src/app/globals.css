@@ -498,7 +498,7 @@ button:disabled { cursor:wait }
 :root { --wheel-accent:#ffdf77 }
 /* Opening screen: headline on the left, the machine on the right. */
 .wheel-open { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:clamp(28px,5vw,72px); align-items:center; min-height:min(900px,calc(100dvh - var(--header-h))); padding-block:clamp(24px,4vw,48px) }
-.wheel-open-copy h1 { font-size:clamp(3rem,5.3vw,4.9rem); letter-spacing:-.05em; line-height:.95 }
+.wheel-open-copy h1 { font-size:clamp(3rem,5.3vw,4.9rem); letter-spacing:-.03em; line-height:1 }
 .wheel-open-sub { font-size:clamp(1.08rem,1.4vw,1.25rem); margin-top:22px; max-width:34ch }
 .wheel-open-copy .actions { margin-top:30px }
 .wheel-open-copy .button { min-height:56px; padding-inline:28px; font-size:1.02rem }
@@ -520,7 +520,7 @@ button:disabled { cursor:wait }
 }
 
 /* Entry pop-up (bottom sheet on phones) */
-.entry-backdrop { position:fixed; inset:0; z-index:80; background:rgba(22,24,61,.45); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px) }
+.entry-backdrop { position:fixed; inset:0; z-index:80; background:rgba(22,24,61,.55) } /* no backdrop blur: it re-blurs the page every frame the sheet moves */
 .entry-layer { position:fixed; inset:0; z-index:81; display:grid; grid-template-columns:minmax(0,1fr); place-items:center; padding:24px; pointer-events:none }
 .entry-sheet { position:relative; pointer-events:auto; width:min(460px,100%); max-height:calc(100dvh - 48px); overflow:auto; overscroll-behavior:contain; background:var(--card); color:var(--ink); border-radius:var(--r-card); padding:28px; box-shadow:var(--shadow-lg) }
 .entry-grab,.entry-grab-zone { display:none }
@@ -652,23 +652,36 @@ button:disabled { cursor:wait }
 .wheel-stage .button:not(.secondary):hover { background:var(--gold); border-color:var(--gold) }
 .wheel-stage .wheel-small { color:rgba(255,255,255,.62) }
 .wheel-stage .bonus-toggle { color:#fff; padding:6px 0 }
-.wheel-spotlight { position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0; background:radial-gradient(45% 40% at var(--sx,50%) var(--sy,38%),rgba(255,223,119,.16),rgba(63,111,224,.08) 45%,transparent 70%) }
+.wheel-spotlight { position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0; overflow:hidden }
+.wheel-spotlight-glow { position:absolute; left:18.5%; top:10%; width:63%; height:56%; background:radial-gradient(closest-side,rgba(255,223,119,.16),rgba(63,111,224,.08) 64%,transparent); will-change:transform }
 .confetti-back,.confetti-front { position:absolute; left:-12%; top:-12%; width:124%; height:124%; pointer-events:none }
 .confetti-back { z-index:1 }
-.confetti-front { z-index:6 }
+.confetti-front { z-index:4 } /* behind the result card, so nothing falls across the prize text */
 .sound-toggle { position:absolute; top:14px; right:14px; z-index:7; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); color:#fff; transition:transform .2s,background .2s }
 .sound-toggle:hover { transform:scale(1.08); background:rgba(255,255,255,.14) }
 .sound-toggle[aria-pressed=true] { color:var(--wheel-accent); border-color:#ffdf7780 }
+/* The wheel and the result card share one grid cell, so swapping them never re-flows the text. */
+.wheel-stack-frame { position:relative } /* no z-index: the card (5) must sit above the front confetti (4) */
+.wheel-stack { display:grid; grid-template-areas:"stack" }
+.wheel-stack > * { grid-area:stack; min-width:0 }
 .wheel-body { position:relative; z-index:2; display:grid; justify-items:center; gap:14px }
-.wheel-scene { position:relative; width:100%; display:grid; grid-template-columns:1fr auto; align-items:center; gap:clamp(4px,1.5vw,18px); perspective:1100px; padding-right:4px; user-select:none; -webkit-user-select:none }
-.wheel-machine { position:relative; width:min(100%,460px); justify-self:center; transform-style:preserve-3d; filter:drop-shadow(0 26px 30px rgba(0,0,0,.45)) }
+.wheel-scene { position:relative; width:100%; display:grid; grid-template-columns:1fr auto; align-items:center; gap:clamp(4px,1.5vw,18px); padding-right:4px; user-select:none; -webkit-user-select:none }
+.wheel-machine { position:relative; width:min(100%,460px); justify-self:center }
+/* 3D tilt follows the mouse; touch screens get a flat (and much cheaper) machine. */
+.wheel-scene:has(.is-tilting) { perspective:1100px }
+.wheel-machine.is-tilting { transform-style:preserve-3d }
 .wheel-rotor-wrap { position:relative; width:100%; aspect-ratio:1; z-index:2 }
+/* A static shadow under the wheel (a drop-shadow filter on the machine was redrawn every frame it turned). */
+.wheel-rotor-wrap::before { content:""; position:absolute; inset:3% 3% 1%; border-radius:50%; box-shadow:0 26px 34px rgba(0,0,0,.42); pointer-events:none }
 .wheel-rim,.wheel-shade { position:absolute; inset:0; width:100%; height:100% }
 .wheel-shade { pointer-events:none; z-index:3 }
-.wheel-rotor { position:absolute; inset:0; z-index:2 }
-.wheel-face { display:block; width:100%; height:100%; font-family:Arial,Helvetica,sans-serif }
+.wheel-rotor { position:absolute; inset:0; z-index:2; will-change:transform; backface-visibility:hidden }
+.wheel-labels-layer { position:absolute; inset:0; pointer-events:none; will-change:opacity }
+.wheel-labels { display:block; width:100%; height:100%; font-family:var(--display); text-rendering:geometricPrecision }
+.wheel-labels.is-blurred { filter:blur(2.6px) }
+.wheel-face { position:absolute; inset:0; display:block; width:100%; height:100% }
 .wheel-stand { display:block; width:78%; margin:-16% auto 0; position:relative; z-index:1 }
-.wheel-pointer { position:absolute; left:50%; top:-3.5%; width:11%; margin-left:-5.5%; transform-origin:50% 14%; z-index:5; filter:drop-shadow(0 4px 4px rgba(0,0,0,.45)) }
+.wheel-pointer { position:absolute; left:50%; top:-3.5%; width:11%; margin-left:-5.5%; transform-origin:50% 14%; z-index:5; will-change:transform; filter:drop-shadow(0 4px 4px rgba(0,0,0,.45)) }
 .wheel-pointer-art { display:block; width:100%; height:auto }
 .slice-highlight { fill:rgba(255,255,255,.35); stroke:#ffdf77; stroke-width:6; stroke-linejoin:round; opacity:0; filter:drop-shadow(0 0 8px rgba(255,223,119,.9)); animation:slice-glow .55s ease-in-out 5 alternate forwards }
 @keyframes slice-glow { from { opacity:.15 } to { opacity:1 } }
@@ -700,16 +713,23 @@ button:disabled { cursor:wait }
 .float-prop.p-sweet { width:11%; left:4%; bottom:28%; animation-delay:-3s }
 .float-prop.p-cookie { width:7%; left:12%; bottom:16%; animation-delay:-.2s }
 @keyframes prop-float { 0%,100% { translate:0 0; rotate:-3deg } 50% { translate:0 -10px; rotate:3deg } }
+/* While the wheel turns, everything else holds still so the spin gets every frame. */
+.is-spinning .float-prop,.is-spinning .lever-hint,.is-spinning .lever-knob { animation-play-state:paused }
+.wheel-body[inert] * { animation-play-state:paused }
+@media (hover:none),(pointer:coarse) {
+  .float-prop { filter:none }
+  .wheel-pointer { filter:none }
+}
 /* Lever (front view: the knob comes down towards you) */
 .lever { position:relative; align-self:center; width:clamp(50px,8vw,72px); height:clamp(170px,27vw,250px); margin-top:-10%; touch-action:none; user-select:none; -webkit-user-select:none }
 .lever-slot { position:absolute; left:14%; right:14%; bottom:0; height:30%; border-radius:12px; background:linear-gradient(90deg,#6c7384,#f2f4f8 42%,#8d94a4 70%,#5b6172); box-shadow:0 6px 10px rgba(0,0,0,.4) }
 .lever-slot::after { content:""; position:absolute; left:50%; top:12%; bottom:12%; width:22%; margin-left:-11%; border-radius:6px; background:#1b1e2a; box-shadow:inset 0 2px 4px rgba(0,0,0,.7) }
-.lever-arm { position:absolute; left:0; right:0; top:0; bottom:16%; padding:0; border:0; background:none; cursor:grab; touch-action:none }
+.lever-arm { position:absolute; left:-8px; right:-8px; top:-10px; bottom:16%; padding:0; border:0; background:none; cursor:grab; touch-action:none }
 .lever-arm:active { cursor:grabbing }
 .lever-arm:disabled { cursor:default }
 .lever-arm:focus-visible { outline:3px solid #fff; outline-offset:4px; border-radius:12px }
-.lever-rod { position:absolute; left:50%; width:10px; margin-left:-5px; top:22px; bottom:0; border-radius:5px; transform-origin:50% 100%; background:linear-gradient(90deg,#5b6172,#f6f7fa 45%,#8d94a4 70%,#4f5566) }
-.lever-knob { position:absolute; left:50%; top:0; width:clamp(38px,6vw,48px); aspect-ratio:1; margin-left:calc(clamp(38px,6vw,48px) / -2); border-radius:50%;
+.lever-rod { position:absolute; left:50%; width:10px; margin-left:-5px; top:32px; bottom:0; border-radius:5px; transform-origin:50% 100%; background:linear-gradient(90deg,#5b6172,#f6f7fa 45%,#8d94a4 70%,#4f5566) }
+.lever-knob { position:absolute; left:50%; top:10px; will-change:transform; width:clamp(38px,6vw,48px); aspect-ratio:1; margin-left:calc(clamp(38px,6vw,48px) / -2); border-radius:50%;
   background:radial-gradient(circle at 34% 28%,#fff6d8 0%,#ffd35c 32%,#e0a126 70%,#9a6414 100%); box-shadow:0 8px 12px rgba(0,0,0,.45),inset 0 -4px 8px rgba(0,0,0,.25) }
 .lever-knob-glow { position:absolute; inset:-35%; border-radius:50%; background:radial-gradient(circle,rgba(255,223,119,.55),transparent 65%); z-index:-1 }
 .lever:not(.is-disabled) .lever-arm:hover .lever-knob { animation:knob-wiggle .5s ease-in-out }
@@ -720,7 +740,7 @@ button:disabled { cursor:wait }
 .wheel-caption { min-height:1.5em; font-size:.92rem; color:var(--stage-text); text-align:center }
 .wheel-caption.is-win { color:var(--wheel-accent); font-family:var(--display); font-weight:800; font-size:clamp(1.1rem,2.4vw,1.5rem); letter-spacing:-.01em }
 /* Result card + reveal */
-.result-card { position:relative; z-index:5; display:grid; gap:12px; justify-items:start; max-width:540px; margin-inline:auto }
+.result-card { position:relative; z-index:5; display:grid; gap:12px; justify-items:start; align-self:center; width:100%; max-width:540px; margin-inline:auto }
 .result-card .stagger { display:grid; gap:10px; justify-items:start }
 .result-card h3 { font-size:clamp(1.7rem,2.8vw,2.3rem); letter-spacing:-.03em }
 .result-card strong { color:#fff }

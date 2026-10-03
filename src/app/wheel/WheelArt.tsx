@@ -4,9 +4,10 @@
 //
 // Layers (so lighting stays put while the disc turns, which is what makes it read as 3D):
 //   <WheelRim/>   static: chrome ring, bulbs + glow (animated by CSS: idle / chase / win / dim)
-//   <WheelDisc/>  rotates: slices, labels (motion-blurred when fast), pegs, win highlight
+//   <WheelDisc/>   rotates: slices, pegs, win highlight
+//   <WheelLabels/> rotates with it, on its own layer (plus a pre-blurred copy for motion blur)
 //   <WheelShade/> static: vignette + specular highlight over the disc
-import { motion, type MotionValue } from "framer-motion";
+import { memo } from "react";
 import { outcomes, segments, sliceColours } from "@/data/wheel";
 
 const C = 200, R_DISC = 170, R_RIM_OUT = 198, R_RIM_IN = 174;
@@ -33,16 +34,19 @@ export function WheelRim() {
         <radialGradient id="bulb" cx=".4" cy=".35" r=".7">
           <stop offset="0" stopColor="#fffdf2" /><stop offset=".45" stopColor="#ffe9a8" /><stop offset="1" stopColor="#e3a74a" />
         </radialGradient>
-        <filter id="bulb-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4.5" /></filter>
+        {/* A soft halo drawn as a gradient (an SVG blur filter repaints every frame the bulbs flash). */}
+        <radialGradient id="bulb-halo">
+          <stop offset="0" stopColor="#ffd66b" stopOpacity=".9" /><stop offset=".45" stopColor="#ffd66b" stopOpacity=".45" /><stop offset="1" stopColor="#ffd66b" stopOpacity="0" />
+        </radialGradient>
       </defs>
       <circle cx={C} cy={C} r={R_RIM_OUT} fill="#2a2d3a" />
       <circle cx={C} cy={C} r={R_RIM_OUT - 2.5} fill="url(#chrome)" />
       <circle cx={C} cy={C} r={R_RIM_IN + 3} fill="none" stroke="#5b6172" strokeWidth="1.5" opacity=".7" />
       <circle cx={C} cy={C} r={R_RIM_IN} fill="#3a2a21" />
-      <g className="bulb-glows" filter="url(#bulb-glow)">
+      <g className="bulb-glows">
         {Array.from({ length: BULBS }, (_, i) => {
           const [x, y] = point((R_RIM_OUT + R_RIM_IN) / 2 + 1, i * (360 / BULBS) + 7.5);
-          return <circle key={i} className="bulb-glow" style={{ ["--i" as string]: i }} cx={x} cy={y} r="8" fill="#ffd66b" />;
+          return <circle key={i} className="bulb-glow" style={{ ["--i" as string]: i }} cx={x} cy={y} r="13" fill="url(#bulb-halo)" />;
         })}
       </g>
       {Array.from({ length: BULBS }, (_, i) => {
@@ -58,38 +62,55 @@ export function WheelRim() {
   );
 }
 
-export function WheelDisc({ blur, highlight }: { blur: MotionValue<string>; highlight: number | null }) {
+// Labels run along the radius between the hub and the pegs. Each label gets the largest size
+// that fits that length (and the slice's width at its inner end), so nothing crowds or overlaps.
+const LABEL_R = 110;    // centre of the label along the radius
+const LABEL_LEN = 92;   // usable radial length, hub ring to pegs
+const LABEL_MAX = 16;
+const CHAR_W = 0.62;    // average upper-case advance of the display font (em)
+const labels = segments.map((id, i) => {
+  const lines = outcomes.find(o => o.id === id)!.wheel;
+  const longest = Math.max(...lines.map(l => l.length));
+  const fontSize = +Math.min(LABEL_MAX, LABEL_LEN / (longest * CHAR_W), lines.length > 1 ? 14.5 : LABEL_MAX).toFixed(2);
+  const mid = i * SIZE + SIZE / 2;
+  const flip = mid > 180; // radial text, never upside down relative to the wheel
+  return { id, lines, fontSize, lh: fontSize * 1.08, mid, flip, x: flip ? C - LABEL_R : C + LABEL_R };
+});
+
+/** The turning disc: slices, win highlight and pegs. Memoised, so it never re-renders per frame. */
+export const WheelDisc = memo(function WheelDisc({ highlight }: { highlight: number | null }) {
   return (
-    <svg viewBox="0 0 400 400" className="wheel-face" role="img" aria-labelledby="wheel-title">
-      <title id="wheel-title">{`Coco Wheel prizes: ${segments.map(s => outcomes.find(o => o.id === s)!.label).join(", ")}`}</title>
+    <svg viewBox="0 0 400 400" className="wheel-face" role="img" aria-labelledby="wheel-face-title">
+      <title id="wheel-face-title">{`Coco Wheel prizes: ${segments.map(s => outcomes.find(o => o.id === s)!.label).join(", ")}`}</title>
       {segments.map((id, i) => (
         <path key={i} d={slicePath(i)} fill={sliceColours[id].fill} stroke="#0d0d43" strokeOpacity=".4" strokeWidth="1.2" />
       ))}
       {highlight !== null && <path className="slice-highlight" d={slicePath(highlight)} />}
-      <motion.g style={{ filter: blur }}>
-        {segments.map((id, i) => {
-          const lines = outcomes.find(o => o.id === id)!.wheel;
-          const mid = i * SIZE + SIZE / 2;
-          const flip = mid > 180; // radial text, never upside down relative to the wheel
-          const x = flip ? C - 108 : C + 108;
-          const fontSize = lines.some(l => l.length > 7) ? 13 : 15.5;
-          const lh = fontSize * 1.05;
-          return (
-            <text key={i} transform={`rotate(${flip ? mid + 90 : mid - 90} ${C} ${C})`} x={x} y={C - ((lines.length - 1) * lh) / 2}
-              fill={sliceColours[id].text} fontSize={fontSize} fontWeight={900} textAnchor="middle" dominantBaseline="central" letterSpacing=".02em"
-              style={{ paintOrder: "stroke", stroke: "rgba(0,0,0,.12)", strokeWidth: 1.2 }}>
-              {lines.map((line, n) => <tspan key={n} x={x} dy={n === 0 ? 0 : lh}>{line}</tspan>)}
-            </text>
-          );
-        })}
-      </motion.g>
       {segments.map((_, i) => {
         const [x, y] = point(R_DISC - 6, i * SIZE);
         return <circle key={i} cx={x} cy={y} r="3.4" fill="url(#chrome)" stroke="#4b5060" strokeWidth=".8" />;
       })}
     </svg>
   );
-}
+});
+
+/**
+ * The slice labels, on their own layer above the disc. Drawn twice while spinning on a desktop:
+ * sharp, and a copy blurred once in CSS; their opacities cross-fade with the speed, which is
+ * far cheaper than re-blurring the text every frame.
+ */
+export const WheelLabels = memo(function WheelLabels({ blurred = false }: { blurred?: boolean }) {
+  return (
+    <svg viewBox="0 0 400 400" className={`wheel-labels ${blurred ? "is-blurred" : ""}`} aria-hidden="true">
+      {labels.map(({ id, lines, fontSize, lh, mid, flip, x }, i) => (
+        <text key={i} transform={`rotate(${flip ? mid + 90 : mid - 90} ${C} ${C})`} x={x} y={C - ((lines.length - 1) * lh) / 2}
+          fill={sliceColours[id].text} fontSize={fontSize} fontWeight={800} textAnchor="middle" dominantBaseline="central">
+          {lines.map((line, n) => <tspan key={n} x={x} dy={n === 0 ? 0 : lh}>{line}</tspan>)}
+        </text>
+      ))}
+    </svg>
+  );
+});
 
 export function WheelShade() {
   return (

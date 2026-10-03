@@ -19,7 +19,7 @@ export type Outcome = {
   kind: 'prize' | 'spin-again' | 'lose';
   /** Sentence-case name used in copy, codes and the staff page. */
   label: string;
-  /** Lines printed on the wheel slice (poster style). */
+  /** Lines printed on the wheel slice (poster style). Two lines at most, so they fit the slice. */
   wheel: string[];
   percent: number;
   /** What the winner gets, in plain words (shown on the result card and in the terms). */
@@ -50,7 +50,7 @@ export const outcomes: Outcome[] = [
   { id: 'free-crisps', kind: 'prize', label: 'Free crisps', wheel: ['FREE', 'CRISPS'], percent: 1, reveal: { art: 'crisps', line: 'Crunch time.' },
     claim: 'One free standard bag of crisps.', conditions: '[Range to confirm — e.g. any standard single bag.]' },
   { id: 'spin-again', kind: 'spin-again', label: 'Spin again', wheel: ['SPIN', 'AGAIN'], percent: 10 },
-  { id: 'not-this-time', kind: 'lose', label: 'Not this time', wheel: ['NOT', 'THIS', 'TIME'], percent: 75, reveal: { art: 'basket', line: 'So close. Try again next week.' } },
+  { id: 'not-this-time', kind: 'lose', label: 'Not this time', wheel: ['NOT THIS', 'TIME'], percent: 75, reveal: { art: 'basket', line: 'So close. Try again next week.' } },
 ];
 
 // Clockwise from the pointer, exactly as on Introducing-wheel-poster.png.
