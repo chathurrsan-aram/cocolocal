@@ -1,0 +1,187 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--navy:__FINAL__;--foot:#0A1226;--ink:__INK__;--peach:__PEACHT__;--yellow:__YELLOWT__;--lav:__LAVT__}
+html,body{margin:0;background:var(--navy);overflow:hidden}
+svg,canvas{display:block;position:absolute;left:0;top:0;font-family:Poppins,sans-serif}
+</style></head><body>
+<svg id="back" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="shopC"><rect id="shopR"/></clipPath>
+  <radialGradient id="glowG"><stop offset="0" stop-color="#FFE36B" stop-opacity=".55"/><stop offset=".45" stop-color="#FEC091" stop-opacity=".22"/><stop offset="1" stop-color="#FEC091" stop-opacity="0"/></radialGradient>
+  <radialGradient id="rayG" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(900)"><stop offset="0" stop-color="#FFE36B" stop-opacity=".5"/><stop offset=".6" stop-color="#FEC091" stop-opacity=".08"/><stop offset="1" stop-color="#FEC091" stop-opacity="0"/></radialGradient>
+  <filter id="shw" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".4"/></filter>
+</defs>
+<rect id="bg" fill="var(--navy)"/>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--navy)"/>
+<g id="shopCam"><g id="shop" filter="url(#shw)"><g clip-path="url(#shopC)"><image id="shopImg" href="__IMG_SHOP__" preserveAspectRatio="xMidYMid slice"/><g id="shutter"></g></g></g></g>
+<g id="light"><g id="rays"></g><ellipse id="glow" fill="url(#glowG)"/></g>
+</svg>
+<canvas id="cv"></canvas>
+<svg id="front" xmlns="http://www.w3.org/2000/svg">
+<text id="iEyebrow" fill="var(--peach)" font-weight="600" text-anchor="middle"></text>
+<g id="iHead"><text id="iH1" fill="var(--ink)" font-weight="700" text-anchor="middle">THIS WEEK'S</text><text id="iH2" fill="var(--yellow)" font-weight="700" text-anchor="middle">DRINKS DEALS.</text>
+  <line id="iRule" stroke="var(--peach)" stroke-linecap="round"/><text id="iSub" fill="var(--lav)" font-weight="500" text-anchor="middle">at Coco Local · 18+ · Please drink responsibly</text></g>
+<g id="offers"></g>
+<g id="foot">
+  <rect id="footR" fill="var(--foot)"/><line id="footL" stroke="var(--lav)" stroke-opacity=".35"/>
+  <image id="lockF" href="__LOCKUP_WHITE__" preserveAspectRatio="xMinYMid meet"/>
+  <text id="f1" fill="#FFFFFF" font-weight="500" text-anchor="end">210 High Road, South Benfleet SS7 5LD</text>
+  <text id="f2" fill="#B2C1EE" font-weight="500" text-anchor="end">Parking on site</text>
+  <text id="f3" fill="#B2C1EE" font-weight="500" text-anchor="end">18+. Please drink responsibly.</text>
+</g>
+<g id="outro">
+  <image id="lockO" href="__LOCKUP__" preserveAspectRatio="xMidYMid meet"/>
+  <line id="oRule" stroke="var(--peach)" stroke-linecap="round"/>
+  <text id="o1" fill="var(--ink)" text-anchor="middle" font-weight="600">210 High Road, South Benfleet</text>
+  <text id="o2" fill="var(--peach)" text-anchor="middle" font-weight="500">Parking on site</text>
+  <text id="o3" fill="var(--lav)" text-anchor="middle" font-weight="500">18+. Please drink responsibly. Subject to availability.</text>
+</g>
+<rect id="flash" fill="#FFFFFF"/>
+</svg>
+<script>
+"use strict";
+const R=__REEL__;   // {bpm, offers:[{eyebrow, headline_lines, price, unit, detail_line, product_line, spin, products:[dataURI]}]}
+const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5;
+['back','front'].forEach(id=>{const s=document.getElementById(id); s.setAttribute('width',W); s.setAttribute('height',H); s.setAttribute('viewBox',`0 0 ${W} ${H}`);});
+const cv=document.getElementById('cv'); cv.width=W; cv.height=H; const cx=cv.getContext('2d');
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);}, NS='http://www.w3.org/2000/svg';
+const mk=(tag,attrs,parent,txt)=>{const e=document.createElementNS(NS,tag);A(e,attrs);if(txt!=null)e.textContent=txt;parent.appendChild(e);return e;};
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:22,z:0.78},enter:{w:26,z:1},pop:{w:26,z:0.8},slam:{w:32,z:0.62},land:{w:20,z:0.6},slide:{w:18,z:0.88},off:{w:20,z:1},cam:{w:5,z:1},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), U=v=>v*k;
+const B=60/R.bpm, N=R.offers.length, OUT=8+8*N;
+const kick=(t,t0,amt,dec=7)=>t<t0?0:amt*Math.exp(-(t-t0)*dec);
+const shake=(t,t0,amt)=>{if(t<t0)return[0,0];const e=t-t0,a=amt*Math.exp(-e*10);return[a*Math.sin(e*63),a*Math.cos(e*47)];};
+const M=U(64), footH=U(tall?236:H/W<1.1?170:190), footY=H-footH;
+const sq=H/W<1.1;
+const Y=tall?{eb:230,h1:350,price:780,unit:690,det:734,prod:[870,1560],pl:1600,hs:108,ps:200}:sq?{eb:78,h1:160,price:405,unit:340,det:378,prod:[440,830],pl:862,hs:82,ps:150}:{eb:112,h1:222,price:560,unit:476,det:518,prod:[610,1086],pl:1128,hs:108,ps:200};
+A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H})); A($('flash'),{x:0,y:0,width:W,height:H});
+// ---- intro: shopfront with a roller shutter
+const sw=U(900), shh=sw*0.75, sx=(W-sw)/2, sy=U(tall?420:270);
+A($('shopR'),{x:sx,y:sy,width:sw,height:shh,rx:U(28)}); A($('shopImg'),{x:sx,y:sy,width:sw,height:shh});
+const SLATS=16, slH=shh/SLATS;
+for(let i=0;i<SLATS;i++){ mk('rect',{id:'sl'+i,x:sx,width:sw,height:slH+1,fill:i%2?'#9AA1AE':'#A9B0BC'},$('shutter')); mk('line',{id:'sll'+i,x1:sx,x2:sx+sw,stroke:'#7D8492','stroke-width':U(2)},$('shutter')); }
+const shutterBar=mk('rect',{x:sx,width:sw,height:U(22),fill:'#5E6573'},$('shutter'));
+A($('iEyebrow'),{x:W/2,y:sy-U(46),'font-size':U(28),'letter-spacing':U(6)});
+A($('iH1'),{'font-size':U(118)}); A($('iH2'),{'font-size':U(118)}); A($('iRule'),{'stroke-width':U(10)}); A($('iSub'),{'font-size':U(30)});
+// ---- light behind the products
+for(let i=0;i<16;i++){const a0=(i*22.5-5)*Math.PI/180,a1=(i*22.5+5)*Math.PI/180,Rr=U(1300); mk('path',{d:`M0,0 L${Rr*Math.cos(a0)},${Rr*Math.sin(a0)} L${Rr*Math.cos(a1)},${Rr*Math.sin(a1)} Z`,fill:'url(#rayG)'},$('rays'));}
+const GX=W/2, GY=(U(Y.prod[0])+U(Y.prod[1]))/2;
+A($('glow'),{cx:GX,cy:GY,rx:U(520),ry:U(330)});
+// ---- products: images + cylinder textures for cans
+function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=src;});}
+function prepCan(img){ // unwrap the visible half of the can body into a texture; rims stay static
+  const w=img.width,h=img.height, t=document.createElement('canvas'), tc=t.getContext('2d');
+  const probe=document.createElement('canvas'); probe.width=w; probe.height=h; const pc=probe.getContext('2d'); pc.drawImage(img,0,0);
+  const row=pc.getImageData(0,Math.floor(h*0.5),w,1).data; let xl=0,xr=w-1; while(xl<w&&row[xl*4+3]<128)xl++; while(xr>0&&row[xr*4+3]<128)xr--;
+  const bw=xr-xl+1, Tw=Math.ceil(bw*Math.PI/2); t.width=Tw; t.height=h;
+  for(let j=0;j<Tw;j++){const ph=(j+0.5)/Tw*Math.PI-Math.PI/2, sx0=xl+bw/2+bw/2*Math.sin(ph); tc.drawImage(img,Math.min(w-1,Math.max(0,sx0)),0,1,h,j,0,1,h);}
+  const off=document.createElement('canvas'); off.width=w; off.height=h;
+  return {tex:t,Tw,xl,bw,off,r0:Math.floor(h*0.1),r1:Math.floor(h*0.92)};
+}
+function drawCan(p,rho){ // rho: rotation (rad); label repeats twice per turn
+  const img=p.img,c=p.can,o=c.off.getContext('2d'),w=img.width,h=img.height;
+  o.globalCompositeOperation='source-over'; o.clearRect(0,0,w,h); o.drawImage(img,0,0);
+  o.clearRect(c.xl,c.r0,c.bw,c.r1-c.r0);
+  for(let x=0;x<c.bw;x+=1){const ph=Math.asin(Math.max(-1,Math.min(1,(x+0.5-c.bw/2)/(c.bw/2)))); let a=(ph+Math.PI/2+rho)%Math.PI; if(a<0)a+=Math.PI;
+    const j=Math.min(c.Tw-1,Math.floor(a/Math.PI*c.Tw)); o.drawImage(c.tex,j,c.r0,1,c.r1-c.r0,c.xl+x,c.r0,1.6,c.r1-c.r0);}
+  o.globalCompositeOperation='destination-in'; o.drawImage(img,0,0);     // keep the original silhouette
+  o.globalCompositeOperation='source-atop';                               // fixed cylinder lighting
+  const g=o.createLinearGradient(c.xl,0,c.xl+c.bw,0); g.addColorStop(0,'rgba(0,0,0,.55)'); g.addColorStop(.12,'rgba(0,0,0,.18)'); g.addColorStop(.3,'rgba(255,255,255,.10)'); g.addColorStop(.42,'rgba(255,255,255,0)'); g.addColorStop(.85,'rgba(0,0,0,.14)'); g.addColorStop(1,'rgba(0,0,0,.6)');
+  o.fillStyle=g; o.fillRect(0,0,w,h); return c.off;
+}
+let PRODS=[];
+async function prepProducts(){ PRODS=await Promise.all(R.offers.map(async o=>{const imgs=await Promise.all(o.products.map(loadImg));
+  const top=U(Y.prod[0]), bot=U(Y.prod[1]), hB=bot-top, n=imgs.length;
+  let hs=imgs.map(im=>hB*(o.spin==='can'?0.92:1)), ws=imgs.map((im,i)=>im.width*hs[i]/im.height), gap=U(n>2?22:60), tot=ws.reduce((a,b)=>a+b,0)+gap*(n-1);
+  const maxW=W-2*M; if(tot>maxW){const s=maxW/tot; hs=hs.map(v=>v*s); ws=ws.map(v=>v*s); gap*=s; tot=maxW;}
+  let x=W/2-tot/2; return imgs.map((img,i)=>{const it={img,x:x+ws[i]/2,y:bot,w:ws[i],h:hs[i],tilt:(i-(n-1)/2)*(n>2?3:5),can:o.spin==='can'?prepCan(img):null,spin:o.spin}; x+=ws[i]+gap; return it;});}));}
+// ---- offer texts
+function fit(el,size,maxW){el.setAttribute('font-size',size);const w=el.getComputedTextLength();if(w>maxW)el.setAttribute('font-size',size*maxW/w);return +el.getAttribute('font-size');}
+const OF=R.offers.map((o,i)=>{
+  const g=mk('g',{id:'of'+i},$('offers'));
+  const eb=mk('text',{x:M,y:U(Y.eb),'font-size':U(26),'letter-spacing':U(5),fill:'var(--peach)','font-weight':600},g,'');
+  const c1=mk('clipPath',{id:'h1c'+i},g), c2=mk('clipPath',{id:'h2c'+i},g);
+  const g1=mk('g',{'clip-path':`url(#h1c${i})`},g), g2=mk('g',{'clip-path':`url(#h2c${i})`},g);
+  const h1=mk('text',{x:M,fill:'var(--ink)','font-weight':700},g1,o.headline_lines[0]||''), h2=mk('text',{x:M,fill:'var(--ink)','font-weight':700},g2,o.headline_lines[1]||'');
+  const prG=mk('g',{},g), pr=mk('text',{x:M,y:U(Y.price),fill:'var(--yellow)','font-weight':700},prG,o.price);
+  const un=mk('text',{x:W*0.56,y:U(Y.unit),'font-size':U(28),'letter-spacing':U(3),fill:'var(--ink)','font-weight':600},g,o.unit||'');
+  const de=mk('text',{x:W*0.56,y:U(Y.det),'font-size':U(28),fill:'var(--lav)','font-weight':500},g,o.detail_line||'');
+  const pl=mk('text',{x:W/2,y:U(Y.pl),'font-size':U(26),'letter-spacing':U(2),fill:'var(--lav)','font-weight':600,'text-anchor':'middle'},g,(o.product_line||'').toUpperCase());
+  return {g,eb,ebTxt:o.eyebrow||'SPECIAL OFFERS AT COCO LOCAL',c1,c2,h1,h2,prG,pr,un,de,pl};
+});
+function layoutOffers(){ OF.forEach(o=>{
+  const hs=Math.min(fit(o.h1,U(Y.hs),W-2*M),fit(o.h2,U(Y.hs),W-2*M)); o.h1.setAttribute('font-size',hs); o.h2.setAttribute('font-size',hs); o.hs=hs;
+  o.h1y=U(Y.h1); o.h2y=o.h1y+hs*1.04;
+  mk('rect',{x:0,y:o.h1y-hs*0.9,width:W,height:hs*1.08},o.c1); mk('rect',{x:0,y:o.h2y-hs*0.9,width:W,height:hs*1.08},o.c2);
+  o.ps=fit(o.pr,U(Y.ps),W*0.56-M-U(30)); fit(o.pl,U(26),W-2*M); fit(o.un,U(28),W*0.44-M); fit(o.de,U(28),W*0.44-M); }); }
+A($('footR'),{x:0,y:footY,width:W,height:footH}); A($('footL'),{x1:0,x2:W,y1:footY,y2:footY,'stroke-width':U(2)});
+const lw=U(300); A($('lockF'),{x:M,y:footY+footH/2-lw*330/2150/2,width:lw,height:lw*330/2150});
+const fs=U(24), fy0=footY+footH/2-fs*1.3+fs*0.35; ['f1','f2','f3'].forEach((id,i)=>A($(id),{x:W-M,y:fy0+i*fs*1.35,'font-size':fs}));
+const LW=W*(tall?0.62:0.58), LAR=330/2150, eY=H*0.38;
+A($('lockO'),{x:W/2-LW/2,y:eY-LW*LAR/2,width:LW,height:LW*LAR}); A($('oRule'),{'stroke-width':U(10)});
+A($('o1'),{'font-size':U(44)}); A($('o2'),{'font-size':U(34)}); A($('o3'),{'font-size':U(24)});
+
+window.seek=function(t){
+  const b=t/B;
+  [['w1',0],['w2',B/4],['w3',B/2]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:20,z:1}))));
+  // ---- intro (beats 0–8)
+  const ie='THIS WEEK AT COCO LOCAL', ni=Math.max(0,Math.min(ie.length,Math.floor((b-1)*8)+1)); $('iEyebrow').textContent=b<1?'':ie.slice(0,ni);
+  const rise=S(t-0.5*B,SP.slide); $('shop').setAttribute('transform',`translate(0,${(1-rise)*(H-sy+U(60))})`);
+  const upv=b<2?0:Math.min(1,(1-Math.cos(Math.PI*cl01((b-2)/1.5)))/2);
+  for(let i=0;i<SLATS;i++){ const base=sy+i*slH, yy=lerp(base,sy-slH*0.3+i*slH*0.08,upv)-upv*shh*0.12; A($('sl'+i),{y:yy,height:lerp(slH+1,slH*0.12,upv)}); A($('sll'+i),{y1:yy,y2:yy}); }
+  A(shutterBar,{y:lerp(sy+shh-U(22),sy-U(10),upv)}); $('shutter').style.opacity=upv>0.98?0:1;
+  const push=S(t-4*B,SP.cam), dcx=sx+sw*0.5, dcy=sy+shh*0.62;
+  $('shopCam').setAttribute('transform',`translate(${dcx},${dcy}) scale(${1+2.4*push}) translate(${-dcx},${-dcy})`);
+  $('shopCam').style.opacity=1-cl01((b-4.6)/0.5); $('iEyebrow').style.opacity=1-cl01((b-4.2)/0.4);
+  const q1=S(t-5*B,SP.slam), q2=S(t-5.5*B,SP.slam), iOut=S(t-7.6*B,SP.off), hy=H*0.42;
+  A($('iH1'),{x:W/2,y:hy}); $('iH1').setAttribute('transform',`translate(${W/2},${hy}) scale(${lerp(1.9,1,q1)}) translate(${-W/2},${-hy})`); $('iH1').style.opacity=cl01(q1*2);
+  A($('iH2'),{x:W/2,y:hy+U(128)}); $('iH2').setAttribute('transform',`translate(${W/2},${hy+U(128)}) scale(${lerp(1.9,1,q2)}) translate(${-W/2},${-hy-U(128)})`); $('iH2').style.opacity=cl01(q2*2);
+  const r1=S(t-6*B,SP.lead), r2=S(t-6*B,SP.trail); A($('iRule'),{y1:hy+U(190),y2:hy+U(190),x1:lerp(-U(40),W/2-U(90),r2),x2:lerp(-U(40),W/2+U(90),r1)});
+  const qs=S(t-6.5*B,SP.morph); A($('iSub'),{x:W/2,y:hy+U(262)+(1-qs)*U(24)}); $('iSub').style.opacity=cl01(qs);
+  const [ix,iy]=shake(t,5*B,U(10)); const [ix2,iy2]=shake(t,5.5*B,U(10));
+  $('iHead').setAttribute('transform',`translate(${-iOut*W*1.2+ix+ix2},${iy+iy2})`); $('iHead').style.display=b<8.6?'inline':'none'; $('iEyebrow').style.display=b<8.6?'inline':'none';
+  // ---- offers
+  cx.clearRect(0,0,W,H); let lightK=0, lightPulse=0;
+  OF.forEach((o,i)=>{ const s0=(8+8*i)*B, lb=b-(8+8*i);
+    if(lb<-0.6||lb>8.6){o.g.style.display='none';return;} o.g.style.display='inline';
+    const inK=S(t-s0+0.1*B,SP.off), outK=S(t-s0-7.6*B,SP.off), gx=(1-inK)*W*0.4-outK*W*1.2;
+    const [shx,shy]=shake(t,s0+4*B,U(14));
+    o.g.setAttribute('transform',`translate(${gx+shx},${shy})`); o.g.style.opacity=cl01(inK*1.5);
+    const n=Math.max(0,Math.min(o.ebTxt.length,Math.floor(lb/0.08)+1)); o.eb.textContent=lb<0?'':o.ebTxt.slice(0,n);
+    const a1=S(t-s0-0.5*B,SP.morph), a2=S(t-s0-1*B,SP.morph);
+    o.h1.setAttribute('y',o.h1y+(1-a1)*o.hs*1.1); o.h2.setAttribute('y',o.h2y+(1-a2)*o.hs*1.1);
+    const pr=S(t-s0-3.95*B,SP.slam), sc=lerp(1.9,1,cl01(pr))+0.08*(pr-cl01(pr)), cy=U(Y.price)-o.ps*0.35;
+    o.prG.setAttribute('transform',`translate(${M},${cy}) scale(${sc}) rotate(${(1-cl01(pr))*-6}) translate(${-M},${-cy})`); o.prG.style.opacity=cl01(pr*3);
+    [[o.un,4.5],[o.de,4.75],[o.pl,5]].forEach(([el,bt])=>{const v=S(t-s0-bt*B,SP.enter); el.setAttribute('transform',`translate(0,${(1-v)*U(22)})`); el.style.opacity=cl01(v);});
+    lightK=Math.max(lightK, S(t-s0-1.3*B,SP.enter)*(1-outK)); lightPulse=Math.max(lightPulse, kick(t,s0+4*B,1,5));
+    // products: fly in one by one on 8ths spinning, land with a bounce, hop on every beat after the price
+    const P=PRODS[i]; if(!P) return; const nP=P.length;
+    P.forEach((p,j)=>{ const tl=s0+(1.5+(nP>2?0.5:1)*j)*B, arrive=S(t-tl+0.25*B,SP.land);
+      if(t<tl-0.3*B) return;
+      let y=p.y+(1-arrive)*U(700), rot=p.tilt+(1-cl01(arrive))*(j%2?14:-14), sc=1;
+      const bf=b-(8+8*i); if(bf>=4){ const ph=(bf-Math.floor(bf)); y-=U(bf<5?46:16)*Math.exp(-ph*(bf<5?6:9))*(bf<5?Math.max(0,1-ph*1.6):1); sc+=0.03*Math.exp(-ph*8); }
+      const px=p.x+gx;
+      cx.save(); cx.translate(px+shx,y+shy); cx.rotate(rot*Math.PI/180); cx.scale(sc,sc);
+      cx.shadowColor='rgba(255,210,120,0.55)'; cx.shadowBlur=U(34)*(0.7+0.6*kick(t,s0+4*B,1,4));
+      if(p.spin==='can'){ const spinIn=(1-S(t-tl,{w:9,z:1}))*Math.PI*6, te=Math.max(0,t-(s0+4.5*B)), drift=0.28*Math.sin(te*2.4)*cl01(te*2); /* face front for the price, then rock gently (keeps the label seam in the shaded edge) */ const off=drawCan(p,spinIn+drift);
+        cx.drawImage(off,-p.w/2,-p.h,p.w,p.h); }
+      else { const sway=Math.sin((t-tl)*2.4+j)*4; cx.rotate(sway*Math.PI/180); cx.drawImage(p.img,-p.w/2,-p.h,p.w,p.h); }
+      cx.restore(); });
+  });
+  $('light').style.opacity=lightK; $('rays').setAttribute('transform',`translate(${GX},${GY}) rotate(${t*18}) scale(${0.9+0.25*lightPulse})`);
+  A($('glow'),{rx:U(520)*(1+0.12*lightPulse),ry:U(330)*(1+0.12*lightPulse)});
+  // footer + outro + flash on each price
+  const fu=S(t-7.8*B,SP.slide)-S(t-(OUT-0.3)*B,SP.slide); $('foot').setAttribute('transform',`translate(0,${(1-fu)*(footH+U(10))})`);
+  let fl=0; for(let i=0;i<N;i++) fl=Math.max(fl,kick(t,(8+8*i+4)*B,0.3,10)); fl=Math.max(fl,kick(t,4*B,0.35,8)); $('flash').style.opacity=fl;
+  const ob=b-OUT; $('outro').style.display=ob>-0.2?'inline':'none';
+  const e0=S(t-OUT*B,SP.enter), er1=S(t-(OUT+0.5)*B,SP.lead), er2=S(t-(OUT+0.5)*B,SP.trail), p1=S(t-(OUT+1)*B,SP.morph), p2=S(t-(OUT+1.5)*B,SP.morph), p3=S(t-(OUT+2)*B,SP.morph);
+  $('lockO').style.opacity=cl01(e0*1.3); $('lockO').setAttribute('transform',`translate(0,${(1-e0)*U(50)})`);
+  const ry=eY+LW*LAR/2+U(46); A($('oRule'),{y1:ry,y2:ry,x1:lerp(-U(40),W/2-U(75),er2),x2:lerp(-U(40),W/2+U(75),er1)});
+  A($('o1'),{x:W/2,y:ry+U(100)+(1-p1)*U(30)}); $('o1').style.opacity=cl01(p1);
+  A($('o2'),{x:W/2,y:ry+U(160)+(1-p2)*U(30)}); $('o2').style.opacity=cl01(p2);
+  A($('o3'),{x:W/2,y:ry+U(240)+(1-p3)*U(30)}); $('o3').style.opacity=cl01(p3);
+};
+const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('700 100px Poppins'),document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),prepProducts(),...imgs]).then(()=>requestAnimationFrame(()=>{layoutOffers();seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>

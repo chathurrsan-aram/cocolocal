@@ -1,0 +1,27 @@
+/* Coco Local logo reveal (motion kit M1, shortened to ~1.3 s for the web). */
+.logo { display:inline-flex; align-items:flex-end; gap:.32em; font-size:clamp(1.9rem, 4vw, 2.6rem); line-height:1; color:#fff; }
+.basket { width:1.08em; height:auto; flex:none; overflow:visible; margin-bottom:-.02em; }
+.word { display:inline-flex; overflow:hidden; padding-bottom:.08em; margin-bottom:-.1em; letter-spacing:-.01em; font-weight:600; }
+.letter { display:inline-block; }
+
+/* armed = mounted but not yet on screen: hold the start state */
+.armed path, .armed rect { stroke-dasharray:1 1; stroke-dashoffset:1; }
+.armed .letter { transform:translateY(110%); opacity:0; }
+
+.play path, .play rect { stroke-dasharray:1 1; stroke-dashoffset:1; animation:draw .5s cubic-bezier(.3,.8,.3,1) forwards; }
+.play .p1 { animation-delay:0s; }
+.play .p2 { animation-delay:.08s; }
+.play .p3 { animation-delay:.18s; animation-duration:.55s; }
+.play .p4 { animation-delay:.3s; animation-duration:.6s; }
+.play .p5 { animation-delay:.52s; animation-duration:.2s; }
+.play .p6 { animation-delay:.585s; animation-duration:.2s; }
+.play .p7 { animation-delay:.65s; animation-duration:.2s; }
+.play .letter { transform:translateY(110%); opacity:0; animation:rise .5s cubic-bezier(.2,.9,.25,1) forwards; }
+
+@keyframes draw { to { stroke-dashoffset:0; } }
+@keyframes rise { to { transform:none; opacity:1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .armed path, .armed rect, .play path, .play rect { stroke-dashoffset:0; animation:none; }
+  .armed .letter, .play .letter { transform:none; opacity:1; animation:none; }
+}

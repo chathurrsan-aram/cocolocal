@@ -130,7 +130,7 @@ button:disabled { cursor:wait }
 .site-footer p,.site-footer dt { color:rgba(255,255,255,.72) }
 .site-footer h2 { color:#fff; font-family:var(--display); font-size:1.05rem; letter-spacing:0; margin-bottom:18px }
 .footer-grid { display:grid; grid-template-columns:1.2fr 1fr 1.1fr; gap:48px }
-.footer-logo { display:block; width:170px; height:auto; margin-bottom:18px }
+.footer-logo { margin-bottom:18px }
 .footer-grid p,.footer-grid a { font-size:.92rem }
 .footer-grid a:hover,.footer-bottom a:hover { color:var(--gold) }
 .site-footer .hours { margin:0 }
@@ -532,7 +532,7 @@ button:disabled { cursor:wait }
 .entry-field { display:grid; gap:7px }
 .entry-field > label,.entry-label { font-weight:700; font-size:.94rem; color:var(--ink) }
 .entry-input { position:relative }
-.entry-form input[type=text],.entry-form input[type=email],.entry-form input[type=tel],.entry-form input:not([type]) { width:100%; min-height:54px; padding:0 16px; border-radius:var(--r-input); border:1.5px solid var(--line-strong); background:#fff; color:var(--ink); font:inherit; font-size:1.05rem; transition:border-color .15s,box-shadow .15s }
+.entry-form input[type=text],.entry-form input[type=email],.entry-form input[type=tel],.entry-form input[type=password],.entry-form input:not([type]) { width:100%; min-height:54px; padding:0 16px; border-radius:var(--r-input); border:1.5px solid var(--line-strong); background:#fff; color:var(--ink); font:inherit; font-size:1.05rem; transition:border-color .15s,box-shadow .15s }
 .entry-input input { padding-right:50px !important }
 .entry-form input::placeholder { color:#9a9cb4 }
 .entry-form input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft) }
@@ -773,4 +773,20 @@ button:disabled { cursor:wait }
   .hub-ring { animation:none; border-color:#fff }
   .bulb-lamp,.bulb-glow,.float-prop,.reveal-rays,.prize-code::after,.slice-highlight,.lever-hint,.lever-knob { animation:none !important }
   .slice-highlight { opacity:.3 }
+}
+
+/* Coco Wheel password screen (/wheel/unlock) */
+.gate { display:grid; grid-template-columns:minmax(0,280px) minmax(0,460px); justify-content:center; align-items:center; gap:clamp(28px,5vw,64px); min-height:calc(100dvh - var(--header-h) - 40px); padding-block:40px }
+.gate-art { width:100%; height:auto; border-radius:var(--r-media); box-shadow:var(--shadow-lg); rotate:-3deg }
+.gate-card { background:var(--card); border:1px solid var(--line); border-radius:var(--r-card); padding:clamp(24px,4vw,36px); box-shadow:var(--shadow-md) }
+.gate-card h1 { font-size:clamp(2.2rem,4vw,3rem); line-height:1 }
+.gate-card > p:not(.wheel-small) { margin-top:14px }
+.gate-form { margin-top:22px }
+@media (prefers-reduced-motion:no-preference) {
+  .gate-art { animation:settle-photo .9s var(--ease-out) both }
+  .gate-card { animation:settle .8s var(--ease-out) .08s both }
+}
+@media (max-width:700px) {
+  .gate { grid-template-columns:1fr; min-height:0; padding-block:24px 48px; gap:20px }
+  .gate-art { width:140px; justify-self:center }
 }

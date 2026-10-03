@@ -46,7 +46,13 @@ assert(guide.includes('noindex') && guide.includes('guide-password'), 'Guide mus
 assert(!guide.includes('srcdoc='), 'Guide must not ship decrypted in server-rendered output');
 const sitemap = await readFile('.next/server/app/sitemap.xml.body', 'utf8');
 const wheel = pages.get('/wheel');
-assert(sitemap.includes('/wheel<'), 'Wheel must be in sitemap');
+// While /wheel is password-protected it stays out of the sitemap, and the gate must exist.
+assert(!sitemap.includes('/wheel<'), 'Password-protected wheel must not be in sitemap');
+const { readFile: rf } = await import('node:fs/promises');
+const middleware = await rf('src/middleware.ts', 'utf8');
+assert(middleware.includes("'/wheel'") && middleware.includes("'/api/wheel/spin'"), 'Wheel page and spin API must be behind the password gate');
+const unlock = await rf('src/app/wheel/unlock/page.tsx', 'utf8');
+assert(unlock.includes('index: false') && unlock.includes('action="/api/wheel/unlock"'), 'Unlock page must be noindex and post to the unlock API');
 assert(wheel.includes('/wheel/og.jpg') && wheel.includes('href="/wheel/terms"') && wheel.includes('href="/wheel/privacy"'), 'Wheel needs OG image and terms/privacy links');
 assert(!pages.get('/').includes('href="/spin"') && pages.get('/').includes('href="/wheel"'), 'Homepage links to the live wheel');
 for (const route of ['/wheel/terms', '/wheel/privacy']) {

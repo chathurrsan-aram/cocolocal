@@ -1,0 +1,178 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Coco Local — Offers Part 2 v4 (simple)</title><style>__FONTS__
+html,body{margin:0;background:#F7F3EA;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c" width="1080" height="1920"></canvas><script>
+/* Offers Part 2 — v4 "simple" motion.  Every frame is a pure function of time: seek(t).
+   Calm, natural moves only: products glide up and settle, splashes and snacks ease in and float, scenes crossfade.
+   No physics throws, no drops from above, no slams, no whips. */
+const CFG=__CFG__, M=__META__, IMG={};
+const B=60/CFG.bpm, W=1080, H=1920, c=document.getElementById('c'); let x=c.getContext('2d');
+const NAVY='#101039', CREAM='#F7F3EA', MUTED='#5E5B6B', PEACH='#F5C49B', RULE='#DDD5C7';
+const cl=v=>Math.min(1,Math.max(0,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const eo3=t=>1-Math.pow(1-cl(t),3), eo5=t=>1-Math.pow(1-cl(t),5), eio=t=>{t=cl(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2};
+const glide=(t,w=9)=>t<=0?0:1-(1+w*t)*Math.exp(-w*t); // critically damped: eases in and settles with no bounce
+function spring(t,w=18,z=.8){if(t<=0)return 0;const wd=w*Math.sqrt(1-z*z);return 1-Math.exp(-z*w*t)*(Math.cos(wd*t)+z*w/wd*Math.sin(wd*t));}
+function txt(s,px,py,size,weight=600,color=NAVY,align='left',max=940,track=0){x.font=`${weight} ${size}px Poppins`;x.letterSpacing=track+'px';let m=x.measureText(s).width;if(m>max){size*=max/m;x.font=`${weight} ${size}px Poppins`;}x.fillStyle=color;x.textAlign=align;x.fillText(s,px,py);x.letterSpacing='0px';return size}
+function measure(s,size,weight=700){x.font=`${weight} ${size}px Poppins`;return x.measureText(s).width}
+function rrect(a,b,w,h,r){x.beginPath();x.roundRect(a,b,w,h,r)}
+
+/* ---------------- stage: warm backdrop, travertine plinth, contact shadows ---------------- */
+const ST={x:56,y:660,w:968,h:900,r:40}, PL={cx:540,cy:1405,rx:400,ry:58,side:96};
+let noise;
+function makeNoise(){noise=document.createElement('canvas');noise.width=noise.height=256;const g=noise.getContext('2d'),d=g.createImageData(256,256);let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+  for(let i=0;i<d.data.length;i+=4){const v=r();const pit=v>.985;d.data[i]=d.data[i+1]=d.data[i+2]=pit?150:(v*40+200);d.data[i+3]=pit?90:18}g.putImageData(d,0,0)}
+function stage(o,t){const g=x.createLinearGradient(0,ST.y,0,ST.y+ST.h);g.addColorStop(0,o.back[0]);g.addColorStop(1,o.back[1]);
+  x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.fillStyle=g;x.fill();x.clip();
+  const lg=x.createRadialGradient(300,ST.y+120,40,300,ST.y+160,760);lg.addColorStop(0,'rgba(255,250,240,.75)');lg.addColorStop(1,'rgba(255,250,240,0)');x.fillStyle=lg;x.fillRect(ST.x,ST.y,ST.w,ST.h);x.restore();}
+function plinth(){x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();
+  const {cx,cy,rx,ry,side}=PL;
+  // soft floor shadow
+  const fs=x.createRadialGradient(cx,cy+side+10,20,cx,cy+side+10,rx*1.25);fs.addColorStop(0,'rgba(90,70,50,.22)');fs.addColorStop(1,'rgba(90,70,50,0)');x.fillStyle=fs;x.beginPath();x.ellipse(cx,cy+side+14,rx*1.25,ry*1.3,0,0,7);x.fill();
+  // side band
+  const sg=x.createLinearGradient(cx-rx,0,cx+rx,0);sg.addColorStop(0,'#CDBFAC');sg.addColorStop(.35,'#E6DBCC');sg.addColorStop(.7,'#DCCFBE');sg.addColorStop(1,'#BFAF9A');
+  x.beginPath();x.moveTo(cx-rx,cy);x.lineTo(cx-rx,cy+side);x.ellipse(cx,cy+side,rx,ry,0,Math.PI,0,true);x.lineTo(cx+rx,cy);x.ellipse(cx,cy,rx,ry,0,0,Math.PI,false);x.closePath();x.fillStyle=sg;x.fill();
+  x.save();x.clip();x.globalAlpha=.9;x.fillStyle=x.createPattern(noise,'repeat');x.fillRect(cx-rx,cy-ry,rx*2,side+ry*2);x.restore();
+  // top
+  const tg=x.createLinearGradient(0,cy-ry,0,cy+ry);tg.addColorStop(0,'#F4EDE3');tg.addColorStop(1,'#E7DDCF');x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.fillStyle=tg;x.fill();
+  x.save();x.clip();x.fillStyle=x.createPattern(noise,'repeat');x.fillRect(cx-rx,cy-ry,rx*2,ry*2);x.restore();
+  x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=2;x.beginPath();x.ellipse(cx,cy,rx-2,ry-2,0,Math.PI*1.05,Math.PI*1.95);x.stroke();x.restore();}
+function contact(px,w,k){if(k<=0)return;x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();const g=x.createRadialGradient(px,PL.cy,2,px,PL.cy,w*.62);g.addColorStop(0,`rgba(60,45,30,${.32*k})`);g.addColorStop(1,'rgba(60,45,30,0)');x.fillStyle=g;x.beginPath();x.ellipse(px,PL.cy+2,w*.62,w*.12,0,0,7);x.fill();x.restore();}
+
+/* ---------------- products: solid, land on one shared baseline ---------------- */
+function layout(o){const P=o.items||M.products[o.id],n=P.length,hgt=o.prodH,gap=o.gap;const ws=P.map(p=>p.w/p.h*hgt);const tw=ws.reduce((a,v)=>a+v,0)+gap*(n-1);let px=540-tw/2;
+  return P.map((p,j)=>{const cx=px+ws[j]/2;px+=ws[j]+gap;return {img:IMG[p.src],cx,w:ws[j],h:hgt,base:PL.cy+6,kind:p.kind}})}
+function drawProduct(p,lt){ // lt = seconds since this product starts to arrive
+  if(lt<=0)return 0;const e=glide(lt,8.5),a=cl(lt/.3);
+  x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();x.globalAlpha=a;x.translate(p.cx,p.base+(1-e)*70);const sc=lerp(.965,1,e);x.scale(sc,sc);
+  x.shadowColor='rgba(40,30,20,.18)';x.shadowBlur=22;x.shadowOffsetY=10;x.drawImage(p.img,-p.w/2,-p.h,p.w,p.h);x.restore();return e}
+
+/* ---------------- liquid: poured along its own path (geodesic progress map) ---------------- */
+const LQ={};
+function prepLiquid(name){const L=M.liquids[name],u=IMG[L.umap],uw=u.width,uh=u.height;const cv=document.createElement('canvas');cv.width=uw;cv.height=uh;const g=cv.getContext('2d');g.drawImage(u,0,0);
+  const ud=g.getImageData(0,0,uw,uh).data,U=new Float32Array(uw*uh);for(let i=0;i<U.length;i++)U[i]=ud[i*4]/255;
+  const mask=document.createElement('canvas');mask.width=uw;mask.height=uh;const work=document.createElement('canvas');work.width=L.w;work.height=L.h;
+  LQ[name]={L,U,uw,uh,mask,mctx:mask.getContext('2d'),md:mask.getContext('2d').createImageData(uw,uh),work,wctx:work.getContext('2d')};}
+function liquidLayer(name,p,shine){ // p: pour front 0..1+, shine: 0..1 position of a travelling highlight (or -1)
+  const Q=LQ[name],{U,md}=Q,d=md.data,f=.045;
+  for(let i=0;i<U.length;i++){const u=U[i];let a=cl((p-u)/f);d[i*4+3]=a*255;d[i*4]=d[i*4+1]=d[i*4+2]=255;}
+  Q.mctx.putImageData(md,0,0);const w=Q.wctx;w.globalCompositeOperation='source-over';w.clearRect(0,0,Q.work.width,Q.work.height);w.drawImage(IMG[Q.L.ribbon],0,0);
+  w.globalCompositeOperation='destination-in';w.imageSmoothingEnabled=true;w.drawImage(Q.mask,0,0,Q.work.width,Q.work.height);w.globalCompositeOperation='source-over';
+  if(shine>=0){ // slow travelling sheen: the liquid keeps flowing in slow motion while it holds still
+    for(let i=0;i<U.length;i++){const du=U[i]-shine;d[i*4+3]=255*Math.exp(-du*du/.0035)*(U[i]<p?1:0);}Q.mctx.putImageData(md,0,0);
+    const tmp=Q.tmp||(Q.tmp=document.createElement('canvas'));tmp.width=Q.work.width;tmp.height=Q.work.height;const tg=tmp.getContext('2d');tg.drawImage(IMG[Q.L.ribbon],0,0);tg.globalCompositeOperation='destination-in';tg.drawImage(Q.mask,0,0,tmp.width,tmp.height);
+    w.globalCompositeOperation='screen';w.globalAlpha=.28;w.drawImage(tmp,0,0);w.globalAlpha=1;w.globalCompositeOperation='source-over';}
+  return Q.work;}
+const LQS={};
+function liquidStill(name){if(!LQS[name]){const w=liquidLayer(name,2,-1),cv=document.createElement('canvas');cv.width=w.width;cv.height=w.height;cv.getContext('2d').drawImage(w,0,0);LQS[name]=cv}return LQS[name]}
+function pourTime(u,t0,dur){const q=cl(u/1.06);return t0+dur*(1-Math.cbrt(1-q));} // inverse of p = 1.06*eo3((t-t0)/dur)
+function drawDroplets(name,tf,t,t0,dur,front){const L=M.liquids[name];x.save();x.translate(tf.x,tf.y);x.scale(tf.s,tf.s);x.rotate(tf.r||0);
+  L.drops.forEach((d,j)=>{const isFront=d.area<260&&(j%3===0);if(isFront!==front)return;
+    const ts=pourTime(d.u,t0,dur),dt=t-ts;if(dt<0)return;
+    const fx=d.x+d.w/2,fy=d.y+d.h/2,fl=eo3(dt/.42),drift=1-Math.exp(-Math.max(0,dt-.42)*.5);
+    const vx=fx-d.sx,vy=fy-d.sy,px=d.sx+vx*fl+vx*.06*drift,py=d.sy+vy*fl+vy*.06*drift+10*drift;
+    const sc=lerp(.45,1,eo3(dt/.3));x.globalAlpha=cl(dt*12);x.drawImage(IMG[d.src],px-d.w/2*sc,py-d.h/2*sc,d.w*sc,d.h*sc)});x.restore();}
+
+/* ---------------- crisps: purposeful ballistic bursts that hang at their apex (speed ramp) ---------------- */
+const G=2600,K=2.2;
+function crispPos(c,tau){const e=1-Math.exp(-K*tau);return [c.x0+c.vx*e/K, c.y0+(c.vy-G/K)*e/K+G*tau/K]}
+function setupCrisp(c){ // canvas y points down; reach (tx,ty) exactly at the top of the arc at physics time th
+  const th=c.th,e=1-Math.exp(-K*th);c.vy=G/K-(G/K)*Math.exp(K*th);const dy=(c.vy-G/K)*e/K+G*th/K;c.y0=c.ty-dy;c.vx=(c.tx-c.x0)*K/e;return c}
+function warp(t,t0,th,tExit){ // physics time: real speed up to just before the apex, a smooth slow-down to 2% (speed ramp), then fast again for the exit
+  let tau=0,dt=1/480;const a0=Math.max(.05,th-.12);for(let u=t0;u<t;u+=dt){const a=u-t0;let s=a<a0?1:a<a0+.32?lerp(1,.02,eio((a-a0)/.32)):.02;if(u>tExit)s=lerp(.02,1.6,eio((u-tExit)/.35));tau+=s*Math.min(dt,t-u);}return tau}
+const CR=document.createElement('canvas'),crx=CR.getContext('2d');CR.width=CR.height=420;
+function drawCrisp(c,t,t0,tExit){const lt=t-t0-c.delay;if(lt<0)return;const tau=warp(t,t0+c.delay,c.th,tExit),[px,py]=crispPos(c,tau),dth=tau-c.th;
+  const rot=c.rot+c.wz*dth,flip=c.flip+c.wf*dth,cf=Math.cos(flip),sp=M[c.sheet||'crisps'][c.sprite],im=IMG[sp.src],sz=c.size,sh=sz*sp.h/sp.w;
+  // shade on a private canvas: the far side of a tumbling crisp is a little darker and oilier
+  crx.clearRect(0,0,420,420);crx.globalCompositeOperation='source-over';crx.drawImage(im,210-sz/2,210-sh/2,sz,sh);
+  const dark=cf<0?.22+.18*(1-Math.abs(cf)):.12*(1-Math.abs(cf));if(dark>0){crx.globalCompositeOperation='source-atop';crx.fillStyle=`rgba(110,60,5,${dark})`;crx.fillRect(0,0,420,420);}
+  x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();x.translate(px,py);x.rotate(rot);x.scale(c.mirror,Math.max(.12,Math.abs(cf)));
+  if(c.back)x.filter='blur(1.4px) saturate(.9)';x.globalAlpha=cl(lt*10);x.drawImage(CR,-210,-210);x.filter='none';x.restore();}
+
+function floatCrisp(c,t,t0,k){ // eases up into its spot, then drifts gently
+  const lt=t-t0-k*.045;if(lt<=0)return;const e=glide(lt,6.5),ph=k*1.7,sp=M[c.sheet||'crisps'][c.sprite],im=IMG[sp.src],sz=c.size,sh=sz*sp.h/sp.w;
+  const px=c.tx+Math.sin(t*.7+ph)*4,py=c.ty+(1-e)*55+Math.sin(t*1.1+ph)*7,rot=c.rot*.5+.05*Math.sin(t*.8+ph);
+  x.save();rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip();x.translate(px,py);x.rotate(rot);x.scale(c.mirror*lerp(.9,1,e),lerp(.9,1,e));
+  if(c.back)x.filter='blur(1.2px) saturate(.92)';x.globalAlpha=cl(lt/.35);x.drawImage(im,-sz/2,-sh/2,sz,sh);x.filter='none';x.restore();}
+
+/* ---------------- copy ---------------- */
+function header(){const lg=IMG.logo,lh=58,lw=lh*lg.width/lg.height;x.drawImage(lg,70,112,lw,lh);txt('OFFERS · PART 2',1010,152,24,600,NAVY,'right',400,2.4);x.fillStyle=RULE;x.fillRect(70,198,940,2)}
+function footer(o){x.fillStyle=RULE;x.fillRect(70,1618,940,2);txt('210 High Road, South Benfleet · SS7 5LD',70,1682,29,600);txt('@cocolocal_',1010,1682,27,600,NAVY,'right');
+  txt(o.alcohol?'Varieties as stocked · Subject to availability · 18+ · Please drink responsibly':'Varieties as stocked · Subject to availability',70,1730,22,500,MUTED,'left',940)}
+function masked(y0,h,fn){x.save();x.beginPath();x.rect(0,y0,W,h);x.clip();fn();x.restore()}
+
+/* ---------------- one offer scene ---------------- */
+function offer(o,t,tt){ // t = seconds into the scene; tt = timing table (beats)
+  const b=t/B; x.fillStyle=CREAM;x.fillRect(0,0,W,H);header();
+  // eyebrow types on 16ths, headline lines rise out of a mask
+  const ne=Math.max(0,Math.min(o.eyebrow.length,Math.floor((b-tt.copy)*16)));txt(b<tt.copy?'':o.eyebrow.slice(0,ne),70,272,25,600,'#8A5A2E','left',940,2.8);
+  const h1=glide(t-(tt.copy+.15)*B,10);masked(288,92,()=>txt(o.headline,70,358+(1-h1)*96,72,700));
+  // price: qualifier leads in, value slams on the beat
+  const q=glide(t-(tt.price-.45)*B,11);
+  const size=o.priceSize,lead=o.priceLead,val=o.priceValue,lw=lead?measure(lead+' ',size):0,vw=measure(val,size);let s=Math.min(1,940/(lw+vw)),fs=size*s;
+  masked(400,130,()=>{if(lead)txt(lead,70,502+(1-q)*120,fs,700,NAVY,'left',2000);});
+  const pe=glide(t-(tt.price-.2)*B,11);if(pe>0)masked(400,130,()=>{x.save();x.globalAlpha=cl(pe*2);txt(val,70+lw*s,502+(1-pe)*120,fs,700,o.valueColor||NAVY,'left',2000);x.restore();});
+  const d1=eo3((t-(tt.price+.5)*B)/.35),d2=eo3((t-(tt.price+.75)*B)/.35);
+  x.save();x.globalAlpha=d1;txt(o.detail,70,572+(1-d1)*16,31,500);x.restore();
+  if(o.saving){x.save();x.globalAlpha=d2;txt(o.saving,70,616+(1-d2)*14,25,500,MUTED);x.restore();}
+  // stage with a slow camera push through the hold
+  const push=1+.025*eio(t/((tt.exit+.5)*B)); // one slow push across the whole scene
+  x.save();x.translate(540,1110);x.scale(push,push);x.translate(-540,-1110);
+  stage(o,t);o.scene(o,t,tt);x.restore();
+  footer(o);}
+
+/* ---------------- end card: logo centred on its visible ink ---------------- */
+function endCard(t,alcohol,isReel){x.fillStyle=CREAM;x.fillRect(0,0,W,H);const k=spring(t,14,.86);
+  const lg=IMG.logo,ink=M.logoInk,lw=700,sc=lw/ink.w,lh=ink.h*sc;x.save();x.globalAlpha=cl(k*2);x.translate(540,720+(1-k)*40);x.drawImage(lg,ink.x,ink.y,ink.w,ink.h,-lw/2,-lh/2,lw,lh);x.restore();
+  const it=[[isReel?'Worth popping in for.':'Find this offer in store.',900,44,600,NAVY],['210 High Road, South Benfleet',1010,40,600,NAVY],['SS7 5LD',1062,36,500,NAVY],['@cocolocal_ · cocolocal.co.uk',1290,32,600,NAVY]];
+  it.forEach(([s,y,sz,wt,col],j)=>{const a=eo3((t-.12-j*.09)/.4);x.save();x.globalAlpha=a;txt(s,540,y+(1-a)*22,sz,wt,col,'center');x.restore()});
+  const a=eo3((t-.5)/.4);x.save();x.globalAlpha=a;const pw=measure('PARKING ON SITE · OPEN SEVEN DAYS',24,600)+80;rrect(540-pw/2,1140,pw,58,29);x.fillStyle='#FBDC8E';x.fill();txt('PARKING ON SITE · OPEN SEVEN DAYS',540,1178,24,600,NAVY,'center',900,2);x.restore();
+  txt(alcohol?'Varieties as stocked · Subject to availability · 18+ · Please drink responsibly':'Varieties as stocked · Subject to availability',540,1760,22,500,MUTED,'center',940);}
+
+/* ---------------- scenes: one hero action each ---------------- */
+function landAt(o,tt,j){const n=M.products[o.id].length;return (tt.land+(n>2?1/3:.5)*j)*B}
+function stageClip(){rrect(ST.x,ST.y,ST.w,ST.h,ST.r);x.clip()}
+function pourScene(o,t,tt){const P=layout(o),L=M.liquids[o.liquid],f=o.pour,t0=tt.action*B;
+  const lt=t-t0,e=glide(lt,5.5),drift=1+.02*cl(lt/(10*B));
+  if(lt>0){x.save();stageClip();if(f.mirror){x.translate(1080,0);x.scale(-1,1);}
+    x.translate(f.cx,f.cy);const sc=f.s*lerp(.9,1,e)*drift;x.scale(sc,sc);x.rotate((1-e)*-.04);x.globalAlpha=cl(lt/.45)*(f.alpha||1);
+    x.drawImage(liquidStill(o.liquid),-L.w/2,-L.h/2);
+    L.drops.forEach((d,k)=>{const dx=d.x+d.w/2-L.w/2,dy=d.y+d.h/2-L.h/2,out=lerp(.82,1,glide(lt-.04*(k%5),4.5))+.03*cl(lt/(10*B));
+      x.drawImage(IMG[d.src],dx*out-d.w/2,dy*out-d.h/2+Math.sin(t*1.2+k)*3/f.s,d.w,d.h)});x.restore();}
+  plinth();P.forEach((q,j)=>{const lt=t-landAt(o,tt,j)+.12;contact(q.cx,q.w,lt>0?glide(lt,8.5):0);drawProduct(q,lt)});}
+function burstScene(o,t,tt){const P=layout(o),t0=tt.action*B,C=o.crisps;
+  C.forEach((c,k)=>{if(c.back)floatCrisp(c,t,t0,k)});
+  plinth();P.forEach((q,j)=>{const lt=t-landAt(o,tt,j)+.12;contact(q.cx,q.w,lt>0?glide(lt,8.5):0);drawProduct(q,lt)});
+  C.forEach((c,k)=>{if(!c.back)floatCrisp(c,t,t0,k)});}
+function sceneFor(o){return o.kind==='pour'?pourScene:burstScene}
+
+/* ---------------- reel intro (cover) ---------------- */
+function intro(t){const b=t/B,o=CFG.intro;x.fillStyle=CREAM;x.fillRect(0,0,W,H);header();
+  const ne=Math.max(0,Math.min(o.eyebrow.length,Math.floor(b*16)));txt(o.eyebrow.slice(0,ne),70,272,25,600,'#8A5A2E','left',940,2.8);
+  o.lines.forEach((ln,j)=>{const k=glide(t-(1+.5*j-.15)*B,10),y=372+j*104;masked(y-100,132,()=>{x.save();x.globalAlpha=cl(k*2);txt(ln,70,y+(1-k)*110,98,700,NAVY,'left',940);x.restore()});});
+  const c1=eo3((t-2.5*B)/.4);x.save();x.globalAlpha=c1;txt(o.caption,70,546+(1-c1)*14,34,500,NAVY);x.restore();
+  const pl=eo3((t-3*B)/.4);x.save();x.globalAlpha=pl;const pw=measure(o.pill,22,600)+56;rrect(70,584,pw,50,25);x.fillStyle='#FBDC8E';x.fill();txt(o.pill,70+pw/2,617,22,600,NAVY,'center',900,1.6);x.restore();
+  const push=1+.025*eio(t/(8*B));x.save();x.translate(540,1110);x.scale(push,push);x.translate(-540,-1110);
+  stage(o,t);const P=layout(o);
+  plinth();P.forEach((q,j)=>{const lt=t-(2+.25*j)*B+.12;contact(q.cx,q.w,lt>0?glide(lt,8.5):0);drawProduct(q,lt)});x.restore();footer({});}
+
+/* ---------------- timelines ---------------- */
+const TT={copy:0,land:1,action:2,price:4,exit:13.5,end:14,total:20};
+const RT={copy:0,land:.5,action:1.5,price:3,exit:7.5};
+const OC=document.createElement('canvas');OC.width=W;OC.height=H;const OX=OC.getContext('2d');
+function dip(k,drawOut,drawIn,full){ // out fades to cream, in fades up from cream; header and footer hold still between offers
+  const y0=full?0:206,h=full?H:1406;if(k<.5){drawOut();x.globalAlpha=eio(k*2)}else{drawIn();x.globalAlpha=1-eio(k*2-1)}x.fillStyle=CREAM;x.fillRect(0,y0,W,h);x.globalAlpha=1;}
+function short(id,t){const o=CFG.offers[id];const b=t/B,run=()=>{o.scene=sceneFor(o);offer(o,t,TT)};
+  if(b<TT.exit-.1)return run();dip(cl((b-TT.exit+.1)/.8),run,()=>endCard(Math.max(0,t-(TT.exit+.35)*B),o.alcohol,false),true);}
+function reel(t){const b=t/B,ids=CFG.order;
+  const at=i=>i<0?(tt=>intro(tt)):i>=ids.length?(tt=>endCard(Math.max(0,tt-.3*B),true,true)):(tt=>{const o=CFG.offers[ids[i]];o.scene=sceneFor(o);offer(o,tt,RT)});
+  // section i: -1 intro [0,8), 0..7 offers [8+8i, 16+8i), 8 end card [72,80); whips on the last half-beat of each section
+  const sec=b<8?-1:Math.min(8,Math.floor((b-8)/8)), s0=sec<0?0:8+8*sec, lb=b-s0, k=lb>=7.3&&sec<8?cl((lb-7.3)/.8):0;
+  if(k<=0)return at(sec)(t-s0*B);
+  dip(k,()=>at(sec)(t-s0*B),()=>at(sec+1)(Math.max(0,t-(s0+8)*B)),sec===7);}
+window.seek=t=>CFG.play==='reel'?reel(t):short(CFG.play,t);
+window.DURATION=(CFG.play==='reel'?80:TT.total)*B;
+const srcs={logo:'__LOGO__'};[...Object.values(M.products).flat(),...M.crisps,...(M.fruit||[])].forEach(p=>{if(CFG.uri[p.src])srcs[p.src]=CFG.uri[p.src]});
+Object.values(M.liquids).forEach(L=>{[L.ribbon,L.umap,...L.drops.map(d=>d.src)].forEach(s=>{if(CFG.uri[s])srcs[s]=CFG.uri[s]})});
+Promise.all([document.fonts.load('700 80px Poppins'),document.fonts.load('600 30px Poppins'),document.fonts.load('500 30px Poppins'),
+  ...Object.entries(srcs).map(([k,s])=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{IMG[k]=i;res()};i.onerror=()=>rej(k);i.src=s}))]).then(()=>{
+  [...Object.values(CFG.offers),CFG.intro||{}].forEach(o=>(o.crisps||[]).forEach(setupCrisp));makeNoise();Object.keys(M.liquids).forEach(n=>{if(IMG[M.liquids[n].umap])prepLiquid(n)});seek(0);window.READY=true;
+  if(!location.search.includes('render')){let st=null;const f=n=>{st??=n;seek(((n-st)/1000)%window.DURATION);requestAnimationFrame(f)};requestAnimationFrame(f)}});
+</script></body></html>

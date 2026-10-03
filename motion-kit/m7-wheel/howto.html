@@ -1,0 +1,142 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+__FONTFACES__
+:root{--peachT:__PEACHT__;--yellowT:__YELLOWT__;--bg:__BG__;--navy:__NAVY__;--final:__FINAL__;--peach:__PEACH__;--ink:__INK__}
+html,body{margin:0;background:var(--final);overflow:hidden}
+svg{display:block;font-family:Poppins,sans-serif;font-weight:600}
+</style></head><body>
+<svg id="sv" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="cc"><rect id="ccr"/></clipPath>
+  <clipPath id="nameC"><rect id="nameR"/></clipPath>
+  <clipPath id="mailC"><rect id="mailR"/></clipPath>
+  <filter id="shw" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".35"/></filter>
+  <filter id="csh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+<rect id="bg" fill="var(--bg)"/>
+<rect id="w1" fill="#8EA9DC"/><rect id="w2" fill="#FEC091"/><rect id="w3" fill="var(--final)"/>
+<g id="cam">
+  <g id="win" filter="url(#shw)">
+    <rect id="winR" fill="#FFFFFF"/><rect id="barPill" fill="#EEF0F3"/>
+    <text id="url" fill="#4A5163" font-weight="500" dominant-baseline="central"></text>
+    <g clip-path="url(#cc)">
+      <rect id="pageBg"/>
+      <g id="pI"><rect id="pIbg" fill="rgb(12,16,19)"/><image id="imI" href="__IMG_IG__" preserveAspectRatio="none"/></g>
+      <g id="pF"><rect id="pFbg" fill="rgb(233,233,227)"/><image id="imF" href="__IMG_FOLLOW__" preserveAspectRatio="none"/><rect id="hov" fill="#f3edda" style="mix-blend-mode:multiply"/></g>
+      <g id="pW"><rect id="pWbg" fill="rgb(251,246,238)"/>
+        <image id="imW" href="__IMG_PAGE__" preserveAspectRatio="none"/>
+        <g id="ov"><image id="oDisc" href="__L_DISC__"/><image id="oRimF" href="__L_RIMF__"/><image id="oPtr" href="__L_PTR__"/><image id="oHub" href="__L_HUB__"/></g>
+        <g id="sheet"><rect id="dim" fill="rgb(148,146,159)"/><image id="imS0" href="__IMG_SHEET0__" preserveAspectRatio="none"/>
+          <g clip-path="url(#nameC)"><image id="imS1" href="__IMG_SHEET1__" preserveAspectRatio="none"/></g>
+          <g clip-path="url(#mailC)"><image id="imS2" href="__IMG_SHEET2__" preserveAspectRatio="none"/></g></g>
+        <image id="imWin" href="__IMG_WIN__" preserveAspectRatio="none"/>
+      </g>
+    </g>
+  </g>
+  <g id="cursor" filter="url(#csh)"><path d="M0,0 L0,34 L9,26 L15,40 L21,37 L15,24 L27,24 Z" fill="#FFFFFF" stroke="#0F1A33" stroke-width="2.4" stroke-linejoin="round"/></g>
+</g>
+<text id="title" fill="var(--ink)" text-anchor="middle"></text>
+<g id="cap"><rect id="capR" fill="var(--peach)"/><text id="capN" fill="#0F1A33" text-anchor="middle" dominant-baseline="central"></text><text id="capT" fill="var(--ink)" dominant-baseline="central"></text></g>
+<g id="end">
+  <image id="lock" href="__LOCKUP__" preserveAspectRatio="xMidYMid meet"/>
+  <line id="eRule" stroke="var(--peach)" stroke-linecap="round"/>
+  <text id="e1" fill="var(--ink)" text-anchor="middle">One free spin every week</text>
+  <text id="e2" fill="var(--ink)" text-anchor="middle" font-weight="500">No purchase needed</text>
+  <text id="e3" fill="var(--peachT)" text-anchor="middle" font-weight="500">cocolocal.co.uk/wheel</text>
+</g>
+</svg>
+<script>
+"use strict";
+const B=60/110;   // 110 BPM, 7 bars
+const W=innerWidth,H=innerHeight,k=W/1080,tall=H/W>1.5,sq=H/W<1.1;
+const sv=document.getElementById('sv'); sv.setAttribute('width',W); sv.setAttribute('height',H); sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const $=id=>document.getElementById(id), A=(el,o)=>{for(const n in o)el.setAttribute(n,o[n]);};
+function S(e,sp){if(e<=0)return 0;const{w,z}=sp;if(z<1){const wd=w*Math.sqrt(1-z*z),ex=Math.exp(-z*w*e);return 1-ex*(Math.cos(wd*e)+(z*w/wd)*Math.sin(wd*e));}const ex=Math.exp(-w*e);return 1-ex*(1+w*e);}
+const SP={morph:{w:17,z:0.82},enter:{w:22,z:1},pop:{w:26,z:0.8},slide:{w:20,z:0.86},page:{w:20,z:1},scroll:{w:12,z:1},cam:{w:8,z:0.95},lead:{w:30,z:0.84},trail:{w:15,z:0.9}};
+const lerp=(a,b,q)=>a+(b-a)*q, cl01=x=>Math.min(1,Math.max(0,x)), ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2, U=v=>v*k;
+// ---------- layout ----------
+const titleY=U(sq?96:tall?360:130), titleSm=U(sq?46:54), titleBig=U(84), capY=U(sq?160:tall?442:212);
+const wx=U(60), ww=U(960), wy=U(sq?205:tall?500:270), wh=tall?U(1100):H-wy-U(sq?30:50), barH=U(72), cx0=wx, cy0=wy+barH, cw=ww, ch=wh-barH;
+const sI=cw/820, sF=cw/1008, sW=cw/2560, css=cw/1280;         // IG crop px, follow card px, page capture px (2x), page css px
+const fScroll=Math.max(0,1234*sF-ch*0.55);
+const P=(x,y)=>[cx0+x,cy0+y], PC=(x,y)=>[cx0+x*css,cy0+y*css];  // PC: page css → screen
+const tBio=P(476*sI,236*sI), tWheelBtn=P(504*sF+U(70),1234*sF-fScroll), tLever=PC(1174,372), tName=PC(470,316), tMail=PC(480,419), tSpin=PC(640,661);
+A($('bg'),{x:0,y:0,width:W,height:H}); ['w1','w2','w3'].forEach(id=>A($(id),{y:0,width:W*1.06,height:H}));
+A($('winR'),{x:wx,y:wy,width:ww,height:wh,rx:U(28)}); A($('barPill'),{x:wx+U(28),y:wy+U(14),width:ww-U(56),height:U(44),rx:U(22)});
+A($('url'),{x:wx+U(56),y:wy+U(36),'font-size':U(24)}); A($('ccr'),{x:cx0,y:cy0,width:cw,height:ch});
+A($('pageBg'),{x:cx0,y:cy0,width:cw,height:ch,fill:'rgb(12,16,19)'});
+A($('pIbg'),{x:0,y:0,width:cw,height:ch}); A($('imI'),{x:0,y:0,width:cw,height:765*sI});
+A($('pFbg'),{x:0,y:0,width:cw,height:ch+U(800)}); A($('imF'),{x:0,y:0,width:cw,height:1788*sF});
+A($('hov'),{x:504*sF-844*sF/2,y:1234*sF-157.4*sF/2,width:844*sF,height:157.4*sF,rx:U(12)});
+A($('pWbg'),{x:0,y:0,width:cw,height:ch}); A($('dim'),{x:0,y:0,width:cw,height:ch});
+['imW','imS0','imS1','imS2','imWin'].forEach(id=>A($(id),{x:0,y:0,width:cw,height:1800*sW}));
+// wheel layers over the page's own wheel (stage at css 587,193; layers are stage-sized, 653.2 x 555 css)
+['oDisc','oRimF','oPtr','oHub'].forEach(id=>A($(id),{x:587*css,y:193*css,width:653.2*css,height:555*css}));
+const DC=[(587+279.59)*css,(193+260)*css], PV=[(587+279.6)*css,(193+20)*css];
+A($('nameR'),{x:448*css,y:289*css,width:0,height:54*css}); A($('mailR'),{x:448*css,y:392*css,width:0,height:80*css});
+A($('capR'),{width:U(44),height:U(44),rx:U(22)}); A($('capN'),{'font-size':U(24)}); A($('capT'),{'font-size':U(36)});
+const LW=W*(tall?0.62:0.56), LAR=330/2150, eY=H*0.40;
+A($('lock'),{x:W/2-LW/2,y:eY-LW*LAR/2,width:LW,height:LW*LAR}); A($('eRule'),{'stroke-width':U(10)});
+A($('e1'),{'font-size':U(46)}); A($('e2'),{'font-size':U(32)}); A($('e3'),{'font-size':U(38)});
+// ---------- timeline (beats) ----------
+const T={rise:3.5*B, bio:6*B, toF:6.5*B, scrollF:7*B, wheelBtn:10*B, toW:10.5*B, lever:13*B, sheet:13.5*B, name0:13.75*B, name1:14.5*B, mail0:14.5*B, mail1:15.5*B, spin:16.5*B, land:20*B, win:21*B, end:24*B};
+const STEPS=[[4*B,'1','Tap the link in our bio'],[8*B,'2','Choose Spin the Coco Wheel'],[12*B,'3','Pull the lever, add your name'],[21*B,'4','Show your code at the till']];
+const OFF=[W+U(80),H*0.85];
+const KF=[[4.5*B,OFF[0],OFF[1],0],[T.bio-0.1,tBio[0],tBio[1],0],[T.bio,tBio[0],tBio[1],1],[T.bio+0.12,tBio[0],tBio[1],0],
+ [T.wheelBtn-0.12,tWheelBtn[0],tWheelBtn[1],0],[T.wheelBtn,tWheelBtn[0],tWheelBtn[1],1],[T.wheelBtn+0.12,tWheelBtn[0],tWheelBtn[1],0],
+ [T.lever-0.1,tLever[0],tLever[1],0],[T.lever,tLever[0],tLever[1],1],[T.lever+0.12,tLever[0],tLever[1],0],
+ [T.name0,tName[0],tName[1]+U(10),0],[T.mail0,tMail[0],tMail[1]+U(10),0],[T.spin-0.12,tSpin[0],tSpin[1],0],[T.spin,tSpin[0],tSpin[1],1],[T.spin+0.12,tSpin[0],tSpin[1],0],
+ [T.land,tSpin[0]+U(160),tSpin[1]+U(120),0],[T.win+0.5,OFF[0],OFF[1],0]];
+function cursor(t){ if(t<KF[0][0]||t>KF[KF.length-1][0])return null; let i=0; while(i<KF.length-2&&t>KF[i+1][0])i++;
+  const a=KF[i],b=KF[i+1],u=ease(cl01((t-a[0])/(b[0]-a[0]))); return {x:lerp(a[1],b[1],u),y:lerp(a[2],b[2],u),p:lerp(a[3],b[3],u)}; }
+const TH=3*360+150, theta=t=>TH*(1-Math.pow(1-cl01((t-T.spin-0.1)/(T.land-T.spin-0.1)),3));
+const TITLE='How to spin the Coco Wheel';
+
+window.seek=function(t){
+  [['w1',0],['w2',B/4],['w3',B/2]].forEach(([id,t0])=>$(id).setAttribute('x',lerp(-W*1.06,0,S(t-t0,{w:18,z:1}))));
+  const n=Math.max(0,Math.min(TITLE.length,Math.floor((t-B)/0.035)+1)); $('title').textContent=t<B?'':TITLE.slice(0,n);
+  const up=S(t-3*B,SP.slide), ty=lerp(H/2+titleBig*0.35,titleY+titleSm*0.35,up), ts=lerp(titleBig,titleSm,up);
+  A($('title'),{x:W/2,y:ty,'font-size':ts});
+  // step caption (number chip + text), swaps on each step
+  let si=-1; STEPS.forEach((s,i)=>{if(t>=s[0])si=i;});
+  const endK=S(t-T.end,SP.enter);
+  if(si<0){$('cap').style.opacity=0;} else { const q=S(t-STEPS[si][0],SP.morph); $('capN').textContent=STEPS[si][1]; $('capT').textContent=STEPS[si][2];
+    const tw=$('capT').getComputedTextLength(), tot=U(44)+U(16)+tw, x0=W/2-tot/2;
+    A($('capR'),{x:x0,y:capY-U(22)}); A($('capN'),{x:x0+U(22),y:capY}); A($('capT'),{x:x0+U(60),y:capY});
+    $('cap').style.opacity=cl01(q*1.5)*(1-endK); $('cap').setAttribute('transform',`translate(${W/2},${capY}) scale(${lerp(1.5,1,S(t-STEPS[si][0],{w:30,z:0.62}))}) translate(${-W/2},${-capY})`); }
+  // window
+  const rise=S(t-T.rise,SP.slide), leave=S(t-T.end+0.05,SP.enter);
+  $('win').setAttribute('transform',`translate(0,${(1-rise)*(H-wy+U(60))+leave*U(90)})`); $('win').style.opacity=1-cl01(leave*1.4);
+  const toF=S(t-T.toF,SP.page), toW=S(t-T.toW,SP.page);
+  $('pI').setAttribute('transform',`translate(${cx0-0.28*cw*toF},${cy0})`);
+  $('pF').setAttribute('transform',`translate(${cx0+cw*(1-toF)-0.28*cw*toW},${cy0-fScroll*S(t-T.scrollF,SP.scroll)})`);
+  $('pW').setAttribute('transform',`translate(${cx0+cw*(1-toW)},${cy0})`);
+  $('url').textContent=t<T.toF+0.1?'instagram.com/cocolocal_':t<T.toW+0.1?'cocolocal.co.uk/follow':'cocolocal.co.uk/wheel';
+  $('hov').style.opacity=cl01((t-T.wheelBtn+0.25)/0.15)*(1-cl01((t-T.toW)/0.1));
+  // wheel page: sheet opens on the lever, name + email type in, sheet closes on Spin
+  const sh=cl01((t-T.sheet)/0.18)*(1-cl01((t-T.spin-0.08)/0.18));
+  $('sheet').style.opacity=sh;
+  A($('nameR'),{width:180*css*cl01((t-T.name0)/(T.name1-T.name0))}); A($('mailR'),{width:380*css*cl01((t-T.mail0)/(T.mail1-T.mail0))});
+  $('ov').style.opacity=t>T.spin?1:0;
+  const th=theta(t); $('oDisc').setAttribute('transform',`rotate(${th},${DC[0]},${DC[1]})`);
+  const d=(((th+15)%30)+30)%30/30, kick=t>T.spin&&t<T.land+0.3?-18*Math.max(0,1-d*4):0; $('oPtr').setAttribute('transform',`rotate(${kick},${PV[0]},${PV[1]})`);
+  $('imWin').style.opacity=cl01((t-T.win)/0.2);
+  // camera: push into the code on the result
+  const z3=S(t-T.toW-0.4,SP.cam)-S(t-T.win,SP.cam), zq=S(t-T.win-0.3,SP.cam)-S(t-T.end+0.3,SP.cam);
+  const fx=cx0+lerp(820,760,cl01(zq/(z3+zq+1e-6)))*css, fy=wy, z=1+0.16*z3+0.24*zq;
+  const kk=(t0,a,d=8)=>t<t0?0:a*Math.exp(-(t-t0)*d);
+  const punch=1+[4,8,12,21].reduce((a,b)=>a+kk(b*B,0.02),0)+[T.bio,T.wheelBtn,T.lever,T.spin].reduce((a,b)=>a+kk(b,0.025,9),0)+kk(T.land,0.04,6);
+  $('cam').setAttribute('transform',`translate(${fx},${fy}) scale(${z*punch}) translate(${-fx},${-fy})`);
+  const c=cursor(t); if(!c){$('cursor').style.opacity=0;} else {$('cursor').style.opacity=1; $('cursor').setAttribute('transform',`translate(${c.x},${c.y}) scale(${k*1.5*(1-0.12*c.p)})`);}
+  // end card
+  $('title').style.opacity=1;
+  const e0=S(t-T.end-0.05,SP.enter), r1=S(t-T.end-0.25,SP.lead), r2=S(t-T.end-0.25,SP.trail), q1=S(t-T.end-0.4,SP.morph), q2=S(t-T.end-0.55,SP.morph), q3=S(t-T.end-0.7,SP.morph);
+  $('end').style.display=t>T.end?'inline':'none';
+  const e0s=S(t-T.end,{w:30,z:0.62}); $('lock').style.opacity=cl01(e0s*2); $('lock').setAttribute('transform',`translate(${W/2},${eY}) scale(${lerp(1.7,1,e0s)}) translate(${-W/2},${-eY})`);
+  const ry=eY+LW*LAR/2+U(46), rr=U(75); A($('eRule'),{y1:ry,y2:ry,x1:lerp(-U(40),W/2-rr,r2),x2:lerp(-U(40),W/2+rr,r1)});
+  A($('e1'),{x:W/2,y:ry+U(100)+(1-q1)*U(30)}); $('e1').style.opacity=cl01(q1);
+  A($('e2'),{x:W/2,y:ry+U(156)+(1-q2)*U(30)}); $('e2').style.opacity=cl01(q2)*0.85;
+  A($('e3'),{x:W/2,y:ry+U(236)+(1-q3)*U(30)}); $('e3').style.opacity=cl01(q3);
+};
+const imgs=[...document.querySelectorAll('image')].map(im=>{const i=new Image();i.src=im.getAttribute('href');return i.decode().catch(()=>{});});
+Promise.all([document.fonts.ready,document.fonts.load('600 100px Poppins'),document.fonts.load('500 100px Poppins'),...imgs]).then(()=>requestAnimationFrame(()=>{seek(0);requestAnimationFrame(()=>{window.READY=true;});}));
+</script></body></html>

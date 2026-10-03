@@ -1,0 +1,18 @@
+/* Price drop (motion kit M5): drop from above with a small settle, then a yellow underline sweep. */
+.price { position:relative; display:inline-block; padding-bottom:6px; }
+.value { display:inline-block; }
+.bar { position:absolute; left:0; bottom:0; width:100%; height:4px; border-radius:2px; background:var(--peach, #FFE36B); transform-origin:left center; }
+
+.armed .value { transform:translateY(-70%); opacity:0; }
+.armed .bar { transform:scaleX(0); }
+
+.play .value { transform:translateY(-70%); opacity:0; animation:drop .55s var(--d, 0s) cubic-bezier(.2,1.18,.42,1) forwards; }
+.play .bar { transform:scaleX(0); animation:sweep .35s calc(var(--d, 0s) + .3s) cubic-bezier(.3,.8,.3,1) forwards; }
+
+@keyframes drop { 60% { opacity:1; } to { transform:none; opacity:1; } }
+@keyframes sweep { to { transform:scaleX(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .armed .value, .play .value { transform:none; opacity:1; animation:none; }
+  .armed .bar, .play .bar { transform:none; animation:none; }
+}

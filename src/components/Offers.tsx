@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import PriceDrop from "./motion/PriceDrop";
 import { offers, standingPromos, activeOffers, ALCOHOL_NOTE, type Offer } from "@/data/offers";
 
 const terms = (o: Offer) => [o.terms, o.alcohol && ALCOHOL_NOTE].filter(Boolean).join(" ");
@@ -36,12 +37,12 @@ export default function Offers() {
         {active.length > 0 && <>
           <h3 className="offers-subhead">Current deals</h3>
           <div className="offers-grid">
-            {active.map(offer => (
+            {active.map((offer, i) => (
               <article className="offer-card" key={offer.id}>
                 {offer.image && <button className="offer-art" aria-label={`Enlarge ${offer.title} offer artwork`} onClick={() => {setSelected(offer); dialog.current?.showModal();}}>
                   <Image src={`/images/offers/${offer.image}.webp`} alt={`${offer.title}: ${offer.headline}`} fill sizes="(max-width: 700px) 44vw, (max-width: 1000px) 30vw, 200px"/>
                 </button>}
-                <div className="offer-copy"><h4>{offer.title}</h4><p className="offer-price">{offer.headline}</p><p>{offer.detail}</p>{terms(offer) && <p className="offer-terms">{terms(offer)}</p>}</div>
+                <div className="offer-copy"><h4>{offer.title}</h4><PriceDrop className="offer-price" index={i}>{offer.headline}</PriceDrop><p>{offer.detail}</p>{terms(offer) && <p className="offer-terms">{terms(offer)}</p>}</div>
               </article>
             ))}
           </div>

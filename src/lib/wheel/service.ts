@@ -273,6 +273,11 @@ export async function checkStaffPin(ctx: WheelContext, pin: string, expected: st
   return { ok: false, locked: attempt >= 5 };
 }
 
+/** Password attempts on the /wheel preview gate: 10 a minute per IP. */
+export async function gateRateLimit(ctx: WheelContext, ip: string) {
+  return rateLimit(ctx, 'gate', ip, 10);
+}
+
 export async function staffRateLimit(ctx: WheelContext, ip: string) {
   return rateLimit(ctx, 'staff', ip, wheelConfig.staffLookupsPerIpPerMinute);
 }
