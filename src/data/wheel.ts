@@ -74,6 +74,12 @@ export const sliceColours: Record<OutcomeId, { fill: string; text: string }> = {
 };
 
 export const wheelConfig = {
+  /**
+   * The wheel isn't open yet: /wheel shows it behind a "Coming soon" layer (even with the
+   * preview password), spins are refused by the server, and the homepage and /follow say
+   * "coming soon" instead of linking to it. Set to false to open it.
+   */
+  comingSoon: true,
   timeZone: 'Europe/London',
   freeSpinsPerWeek: 1,
   maxRespins: 1,

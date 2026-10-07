@@ -7,6 +7,7 @@ import { ArrowUpRight, MapPin, Phone, RotateCw, ChevronLeft, ChevronRight, Pause
 import Photo from "./Photo";
 import Hours from "@/components/Hours";
 import { shop } from "@/lib/shop";
+import { wheelConfig } from "@/data/wheel";
 
 const slides = ["Inside your local", "Coco Local", "Everyday favourites"];
 export default function Hero() {
@@ -39,7 +40,7 @@ export default function Hero() {
         <h1 id="hero-title">Your local.</h1>
         <p className="home-hero-sub">Groceries, drinks and everyday essentials on High Road. Open seven days, with free parking on site.</p>
         <div className="home-hero-hours"><Hours /></div>
-        <div className="actions"><a href={shop.directions} className="button"><MapPin size={18} aria-hidden="true" />Get directions</a><Link href="/wheel" className="button secondary"><RotateCw size={18} aria-hidden="true" />Spin the Coco Wheel</Link><a href={shop.telephone} className="text-link"><Phone size={16} aria-hidden="true" />Call the shop</a></div>
+        <div className="actions"><a href={shop.directions} className="button"><MapPin size={18} aria-hidden="true" />Get directions</a>{!wheelConfig.comingSoon && <Link href="/wheel" className="button secondary"><RotateCw size={18} aria-hidden="true" />Spin the Coco Wheel</Link>}<a href={shop.telephone} className="text-link"><Phone size={16} aria-hidden="true" />Call the shop</a></div>
       </div>
       <div className="hero-slideshow" role="region" aria-roledescription="carousel" aria-label="A look at Coco Local" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setPlaying(false)}>
         <div className="hero-slide-stage">

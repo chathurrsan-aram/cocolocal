@@ -394,9 +394,15 @@ button:disabled { cursor:wait }
 
 /* Coco Wheel strip */
 .wheel-soon { position:relative; display:grid; grid-template-columns:112px 1fr auto; gap:28px; align-items:center; margin-bottom:clamp(56px,7vw,88px); padding:20px 28px 20px 20px; border-radius:var(--r-card); background:radial-gradient(80% 140% at 0% 0%,#23236a,var(--navy) 60%); color:#fff; box-shadow:var(--shadow-md); overflow:hidden }
-.wheel-soon img { width:112px; height:auto; aspect-ratio:480/853; object-fit:cover; object-position:50% 35%; border-radius:12px; transition:transform .4s var(--ease-out) }
+.wheel-soon img { display:block; width:112px; height:auto; aspect-ratio:480/853; object-fit:cover; object-position:50% 35%; border-radius:12px; transition:transform .4s var(--ease-out) }
 .wheel-soon:hover img { transform:rotate(-3deg) scale(1.04) }
 .wheel-soon h2 { color:#fff; font-size:clamp(1.7rem,2.8vw,2.4rem) }
+/* Coming soon: the poster under a see-through layer. */
+.wheel-soon-art { position:relative; border-radius:12px; overflow:hidden }
+.wheel-soon.is-soon { grid-template-columns:112px 1fr }
+.wheel-soon.is-soon img { filter:saturate(.75) }
+.wheel-soon.is-soon:hover img { transform:none }
+.wheel-soon-tag { position:absolute; inset:0; display:grid; place-items:center; background:rgba(11,11,56,.5); color:var(--wheel-accent); font-family:var(--display); font-weight:800; font-size:1.05rem; letter-spacing:.06em; text-transform:uppercase }
 .wheel-soon p { margin-top:8px; max-width:54ch; color:rgba(255,255,255,.78) }
 .sticker { display:inline-block; margin-bottom:10px; padding:4px 12px; border-radius:999px; background:var(--gold); color:var(--ink); font-size:.78rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; rotate:-3deg }
 
@@ -487,6 +493,8 @@ button:disabled { cursor:wait }
   .visit-map,.visit-map iframe { min-height:320px }
   .wheel-soon { grid-template-columns:76px 1fr; gap:16px; padding:18px }
   .wheel-soon img { width:76px }
+  .wheel-soon.is-soon { grid-template-columns:76px 1fr }
+  .wheel-soon-tag { font-size:.8rem }
   .wheel-soon .button { grid-column:1/-1 }
 }
 @media (prefers-reduced-motion:reduce) {
@@ -509,6 +517,7 @@ button:disabled { cursor:wait }
 .wheel-small { font-size:.84rem; line-height:1.55; color:var(--muted); margin-top:18px }
 .wheel-small a { text-decoration:underline; text-underline-offset:3px }
 .wheel-note { margin-top:18px; padding:14px 16px; border-radius:var(--r-input); background:var(--card); border:1px solid var(--line); font-size:.94rem; max-width:44ch }
+.wheel-note a { color:var(--accent); font-weight:600; text-decoration:underline; text-underline-offset:3px }
 .wheel-demo { margin-top:16px; font-size:.84rem; color:var(--muted); border-left:3px solid var(--peach); padding-left:10px }
 .wheel-error { padding:12px 14px; border-radius:var(--r-input); background:#fdecea; color:#8a1c1c; font-size:.94rem }
 .wheel-open-copy .wheel-error { margin-top:18px; max-width:44ch }
@@ -737,6 +746,10 @@ button:disabled { cursor:wait }
 .lever-hint { position:absolute; left:50%; bottom:-22px; transform:translateX(-50%); font-size:.7rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.7); animation:hint-bob 2.4s ease-in-out infinite }
 @keyframes hint-bob { 0%,100% { translate:0 0 } 50% { translate:0 4px } }
 .lever.is-disabled .lever-hint { opacity:.4; animation:none }
+/* Coming soon: the machine stays visible through a see-through layer, but can't be used. */
+.wheel-soon-veil { position:absolute; inset:0; z-index:6; border-radius:inherit; display:grid; place-content:center; justify-items:center; gap:10px; padding:24px; text-align:center; background:radial-gradient(70% 60% at 50% 45%,rgba(11,11,56,.62),rgba(11,11,56,.4)); cursor:default }
+.wheel-soon-label { font-family:var(--display); font-weight:800; font-size:clamp(2.4rem,6vw,4rem); line-height:1; letter-spacing:-.02em; color:var(--wheel-accent); text-shadow:0 4px 24px rgba(0,0,0,.45) }
+.wheel-stage .wheel-soon-veil p { max-width:26ch; color:#fff; font-weight:600; text-shadow:0 2px 10px rgba(0,0,0,.5) }
 .wheel-caption { min-height:1.5em; font-size:.92rem; color:var(--stage-text); text-align:center }
 .wheel-caption.is-win { color:var(--wheel-accent); font-family:var(--display); font-weight:800; font-size:clamp(1.1rem,2.4vw,1.5rem); letter-spacing:-.01em }
 /* Result card + reveal */

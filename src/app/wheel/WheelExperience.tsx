@@ -65,10 +65,14 @@ const ERRORS: Record<string, string> = {
   "respin-invalid": "That extra spin has already been used.",
   "rate-limited": "That’s a lot of spins in a minute. Please wait a moment and try again.",
   unavailable: "The Coco Wheel isn’t open just now. Please try again later.",
+  "coming-soon": "The Coco Wheel is coming soon. Follow us to hear when it opens.",
 };
 // Problems with what was typed in the pop-up reopen it; anything else shows beside the wheel.
 const SHEET_ERRORS = new Set(["invalid-name", "invalid-contact", "bonus-invalid", "bonus-used"]);
 const looksLikeBonus = (v: string) => /^(bonus)?[\s-]*[2-9a-hjkmnp-z]{6}$/i.test(v.trim().replace(/[\s-]/g, ""));
+
+// Not open yet: the wheel shows behind a see-through "Coming soon" layer and can't be spun.
+const SOON = wheelConfig.comingSoon;
 
 export default function WheelExperience() {
   // The server can't know the visitor's motion setting, so apply it only after hydration.
@@ -142,6 +146,8 @@ export default function WheelExperience() {
       if (saved) setDetails(d => ({ ...d, firstName: saved.firstName ?? "", contact: saved.contact ?? "" }));
     } catch { /* storage blocked */ }
     setSoundState(soundPreference()); // shown as on; audio itself starts on the next tap
+    const settle = setTimeout(() => setBulbs(b => (b === "intro" ? "idle" : b)), 1900);
+    if (SOON) { setStatus({ available: false }); return () => clearTimeout(settle); }
     // Sets the device cookie, and brings back a prize or re-spin from an earlier visit
     // (or from a spin whose response never arrived).
     fetch("/api/wheel/status", { cache: "no-store" }).then(r => r.json()).then((s: Status) => {
@@ -156,7 +162,6 @@ export default function WheelExperience() {
         setPhase("respin");
       }
     }).catch(() => setStatus({ available: true }));
-    const settle = setTimeout(() => setBulbs(b => (b === "intro" ? "idle" : b)), 1900);
     return () => clearTimeout(settle);
   }, []);
 
@@ -360,7 +365,7 @@ export default function WheelExperience() {
     if (next) play("pop", 0.7);
   }
 
-  const unavailable = Boolean(status && !status.available);
+  const unavailable = SOON || Boolean(status && !status.available);
   const known = Boolean(details.firstName.trim() && detectContact(details.contact).value);
   const needsBonus = Boolean(status?.freeSpinUsed) && !bonusReady;
 
@@ -393,7 +398,9 @@ export default function WheelExperience() {
       <div className="wheel-open-copy">
         <h1 id="wheel-title">Spin the <span>Coco Wheel</span></h1>
         <p className="wheel-open-sub">One free spin every week. Win a coffee, a slushie or a little treat, then collect it in store.</p>
-        {unavailable ? <p className="wheel-note">{ERRORS.unavailable}</p> : (
+        {SOON ? (
+          <p className="wheel-note"><strong>Coming soon.</strong> Follow us on <a href="https://www.instagram.com/cocolocal_/">Instagram</a> or <a href="https://www.facebook.com/profile.php?id=61577283069366">Facebook</a> to hear when it opens.</p>
+        ) : unavailable ? <p className="wheel-note">{ERRORS.unavailable}</p> : (
           <div className="actions">
             <button type="button" className="button" onClick={start} disabled={busy}>{cta}</button>
             <a href="#how-it-works" className="text-link">How it works <ArrowDown size={16} aria-hidden="true" /></a>
@@ -406,7 +413,7 @@ export default function WheelExperience() {
           <p className="wheel-note">You’ve had this week’s free spin. The next one unlocks on {dayText(status.nextFreeSpinAt)}. Spent over {wheelConfig.bonusMinimumSpend}? Ask at the till for a bonus code.</p>
         )}
         {error && !sheetOpen && <p className="wheel-error" role="alert">{error}</p>}
-        {status?.demo && <p className="wheel-demo">Preview demo: spins and codes here aren’t saved.</p>}
+        {status?.demo && !SOON && <p className="wheel-demo">Preview demo: spins and codes here aren’t saved.</p>}
         <p className="wheel-small">{wheelConfig.minimumAge}+. No purchase needed. Online only. Prizes are collected at 210 High Road within {wheelConfig.prizeValidDays} days. <Link href="/wheel/terms">Terms (draft)</Link> · <Link href="/wheel/privacy">Privacy (draft)</Link></p>
       </div>
 
@@ -470,7 +477,7 @@ export default function WheelExperience() {
                 <motion.p key={landed ? `l-${landed.text}` : phase} className={`wheel-caption ${landed?.win ? "is-win" : ""}`} aria-live="polite"
                   initial={reduce ? false : landed ? { opacity: 0, scale: 0.6, y: 6 } : { opacity: 0, y: 4 }} animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, transition: { duration: 0.12 } }} transition={landed ? { type: "spring", stiffness: 420, damping: 16 } : { duration: 0.2 }}>
-                  {landed ? landed.text : slow ? "Still working on it…" : phase === "respin" ? "Spin again: you get one more go." : phase === "spinning" || phase === "loading" ? "Good luck…" : "Pull the lever or tap SPIN."}
+                  {SOON ? "Coming soon." : landed ? landed.text : slow ? "Still working on it…" : phase === "respin" ? "Spin again: you get one more go." : phase === "spinning" || phase === "loading" ? "Good luck…" : "Pull the lever or tap SPIN."}
                 </motion.p>
               </AnimatePresence>
             </motion.div>
@@ -487,6 +494,12 @@ export default function WheelExperience() {
           </div>
         </motion.div>
         <canvas ref={frontCanvas} className="confetti-front" aria-hidden="true" />
+        {SOON && (
+          <div className="wheel-soon-veil" role="status">
+            <span className="wheel-soon-label">Coming soon</span>
+            <p>The Coco Wheel opens soon. One free spin every week.</p>
+          </div>
+        )}
         <p className="sr-only" aria-live="assertive">{announce}</p>
       </div>
 

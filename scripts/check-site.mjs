@@ -54,7 +54,12 @@ assert(middleware.includes("'/wheel'") && middleware.includes("'/api/wheel/spin'
 const unlock = await rf('src/app/wheel/unlock/page.tsx', 'utf8');
 assert(unlock.includes('index: false') && unlock.includes('action="/api/wheel/unlock"'), 'Unlock page must be noindex and post to the unlock API');
 assert(wheel.includes('/wheel/og.jpg') && wheel.includes('href="/wheel/terms"') && wheel.includes('href="/wheel/privacy"'), 'Wheel needs OG image and terms/privacy links');
-assert(!pages.get('/').includes('href="/spin"') && pages.get('/').includes('href="/wheel"'), 'Homepage links to the live wheel');
+// While the wheel is coming soon (wheelConfig.comingSoon) nothing public links to it.
+const wheelData = await rf('src/data/wheel.ts', 'utf8');
+const comingSoon = /comingSoon:\s*true/.test(wheelData);
+assert(!pages.get('/').includes('href="/spin"'), 'Homepage must not link to the old /spin address');
+assert(comingSoon ? !pages.get('/').includes('href="/wheel"') : pages.get('/').includes('href="/wheel"'),
+  comingSoon ? 'Homepage must not link to the wheel while it is coming soon' : 'Homepage links to the live wheel');
 for (const route of ['/wheel/terms', '/wheel/privacy']) {
   assert(pages.get(route).includes('noindex') && pages.get(route).includes('DRAFT'), `${route}: must be marked DRAFT and noindex until approved`);
 }

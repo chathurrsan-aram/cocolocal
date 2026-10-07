@@ -8,7 +8,9 @@
 // To remove the gate entirely, delete src/middleware.ts.
 
 export const GATE_COOKIE = 'coco_wheel_gate';
-export const GATE_DAYS = 30;
+export const GATE_DAYS = 1;
+/** Bump to sign everyone out of the preview (old passes stop working at once). */
+const GATE_VERSION = 2;
 
 /** sha256("coco-wheel-gate:" + password) for the default password. */
 const DEFAULT_HASH = '5c0cc9a44600441f9b90a7e355e6333312661c0cfda43b5ee80b188188951366';
@@ -32,5 +34,5 @@ export async function checkGatePassword(input: string) {
 
 /** The cookie value that proves the password was entered. */
 export async function gateToken() {
-  return sha256(`gate-cookie:${await passwordHash()}:${process.env.WHEEL_SECRET ?? 'demo-mode-secret'}`);
+  return sha256(`gate-cookie:v${GATE_VERSION}:${await passwordHash()}:${process.env.WHEEL_SECRET ?? 'demo-mode-secret'}`);
 }
