@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { spin } from '@/lib/wheel/service';
+import { wheelConfig } from '@/data/wheel';
 import { wheelRuntime, clientIp, sameOrigin, unavailable, deviceCookie, DEVICE_COOKIE } from '@/lib/wheel/runtime';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,7 @@ const STATUS: Record<string, number> = {
 };
 
 export async function POST(req: NextRequest) {
+  if (wheelConfig.comingSoon) return NextResponse.json({ ok: false, error: 'coming-soon' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   const rt = wheelRuntime();
   if (!rt) return unavailable();
   if (!sameOrigin(req)) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
