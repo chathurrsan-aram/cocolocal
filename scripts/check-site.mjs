@@ -64,4 +64,12 @@ for (const route of ['/wheel/terms', '/wheel/privacy']) {
   assert(pages.get(route).includes('noindex') && pages.get(route).includes('DRAFT'), `${route}: must be marked DRAFT and noindex until approved`);
 }
 assert(!sitemap.includes('property-guide'), 'Private guide must not be in sitemap');
+// The cash and carry list is unlisted: noindex, out of the sitemap and not linked from any page.
+const list = await rf('public/list/index.html', 'utf8');
+assert(list.includes('content="noindex, nofollow"'), 'Cash and carry list must be noindex');
+assert(!sitemap.includes('/list<'), 'Cash and carry list must not be in sitemap');
+for (const [route, html] of pages) assert(!html.includes('href="/list"'), `${route}: cash and carry list exposed in navigation`);
+let listImages = 0;
+for (const [, src] of list.matchAll(/"img":\s*"(\/list\/img\/[^"]+)"/g)) { await access(`public${src}`); listImages++; }
+assert(listImages > 0, 'Cash and carry list must reference its handwriting crops');
 console.log(`Site checks passed: ${pages.size} routes, ${checkedLinks} internal links, image files, canonical URLs and private-guide safeguards.`);

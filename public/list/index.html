@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#D4561A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Coco list">
+<link rel="manifest" href="/list/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/list/img/icon-180.png">
+<title>Coco Local Cash and Carry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}
+/* Layout: one narrow column of shelf strips, each strip an aisle section with its lines beneath, like walking the shelves at Booker. */
+:root {
+  --bg: #F2F3F5;
+  --surface: #FFFFFF;
+  --ink: #14161B;
+  --muted: #59616F;
+  --line: #DADEE5;
+  --shelf: #D4561A;
+  --shelf-ink: #FFFFFF;
+  --tag: #F5CB2B;
+  --tag-ink: #1B1600;
+  --ok: #1E7A3C;
+  --ok-ink: #FFFFFF;
+  --ok-soft: #E2F2E7;
+  --warn: #8A5800;
+  --warn-soft: #FCF0D6;
+  --bad: #B32318;
+  --bad-soft: #FBE3E0;
+  --paper: #FFFFFF;
+  --paper-edge: #E4E7EC;
+  --focus: #2457D6;
+  --scrim: rgba(12, 14, 18, 0.55);
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101216; --surface: #1A1D23; --ink: #ECEEF2; --muted: #A1A9B7; --line: #2C313B;
+    --shelf: #EC7332; --shelf-ink: #160900; --tag: #E9C330; --tag-ink: #1B1600;
+    --ok: #55C682; --ok-ink: #06210F; --ok-soft: #16301F; --warn: #E6B04A; --warn-soft: #33270F;
+    --bad: #F2786D; --bad-soft: #3A1B19; --paper: #F1EFEA; --paper-edge: #3A3F49;
+    --focus: #8DB2FF; --scrim: rgba(0, 0, 0, 0.7); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101216; --surface: #1A1D23; --ink: #ECEEF2; --muted: #A1A9B7; --line: #2C313B;
+  --shelf: #EC7332; --shelf-ink: #160900; --tag: #E9C330; --tag-ink: #1B1600;
+  --ok: #55C682; --ok-ink: #06210F; --ok-soft: #16301F; --warn: #E6B04A; --warn-soft: #33270F;
+  --bad: #F2786D; --bad-soft: #3A1B19; --paper: #F1EFEA; --paper-edge: #3A3F49;
+  --focus: #8DB2FF; --scrim: rgba(0, 0, 0, 0.7); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+.wrap {
+  max-width: 640px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* Header */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg);
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 10px;
+  border-bottom: 1px solid var(--line);
+  display: grid; gap: 10px;
+}
+.eyebrow {
+  font-family: var(--f-mono); font-size: 11.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted); margin: 0;
+}
+.titlerow { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+h1 {
+  margin: 0; font-family: var(--f-display); font-stretch: 78%; font-weight: 800;
+  font-size: 27px; line-height: 1.02; letter-spacing: -0.01em; text-wrap: balance;
+}
+.tally { text-align: right; flex-shrink: 0; }
+.tally b {
+  display: block; font-family: var(--f-display); font-stretch: 70%; font-weight: 800;
+  font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums;
+}
+.tally span { font-size: 12.5px; color: var(--muted); }
+.bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--tag); border-radius: inherit; transition: width .25s ease; }
+.filters { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.filters::-webkit-scrollbar { display: none; }
+.filters button {
+  flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 99px; padding: 7px 13px; font-size: 14.5px; font-weight: 700;
+  display: inline-flex; gap: 6px; align-items: center; cursor: pointer; min-height: 38px;
+}
+.filters button .ct { font-family: var(--f-mono); font-size: 12px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.filters button[aria-pressed="true"] .ct { color: inherit; opacity: .75; }
+
+/* Sections */
+.list { display: grid; gap: 22px; margin-top: 18px; }
+.sec { display: grid; gap: 0; }
+.strip {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--shelf); color: var(--shelf-ink);
+  border-radius: var(--r) var(--r) 0 0; padding: 9px 12px 9px 14px;
+}
+.strip h2 {
+  margin: 0; font-family: var(--f-display); font-stretch: 72%; font-weight: 800;
+  font-size: 19px; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.1;
+}
+.left {
+  background: var(--tag); color: var(--tag-ink); font-family: var(--f-mono); font-weight: 700;
+  font-size: 12.5px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.rows {
+  background: var(--surface); border: 1px solid var(--line); border-top: 0;
+  border-radius: 0 0 var(--r) var(--r); overflow: hidden;
+}
+.row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 12px 12px 12px 10px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.row .tap { display: contents; cursor: pointer; }
+.chk {
+  appearance: none; -webkit-appearance: none; margin: 2px 0 0 4px; width: 32px; height: 32px;
+  border-radius: 50%; border: 2.5px solid var(--muted); background: transparent; cursor: pointer;
+  display: grid; place-items: center; transition: background .15s ease, border-color .15s ease;
+}
+.chk::after {
+  content: ""; width: 9px; height: 16px; border: solid var(--ok-ink); border-width: 0 3px 3px 0;
+  transform: translateY(-2px) rotate(45deg); opacity: 0;
+}
+.chk:checked { background: var(--ok); border-color: var(--ok); }
+.chk:checked::after { opacity: 1; }
+.mark {
+  margin: 4px 0 0 6px; width: 28px; height: 28px; display: grid; place-items: center;
+  font-family: var(--f-mono); font-size: 12px; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 50%;
+}
+.body { min-width: 0; display: grid; gap: 7px; }
+.reading { font-weight: 700; font-size: 17.5px; line-height: 1.25; text-wrap: pretty; }
+.hand {
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 6px;
+  padding: 5px 7px; width: fit-content; max-width: 100%;
+}
+.hand img { display: block; height: auto; width: 100%; }
+.note { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.code { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em; }
+.chip { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.chip.L { background: var(--warn-soft); color: var(--warn); }
+.chip.U { background: var(--bad-soft); color: var(--bad); }
+.chip.X { background: var(--line); color: var(--muted); }
+.when { font-family: var(--f-mono); font-size: 11.5px; font-weight: 700; color: var(--ok); }
+.when:empty { display: none; }
+.see {
+  margin-left: auto; border: 0; background: none; padding: 6px 2px; cursor: pointer;
+  font-size: 13.5px; font-weight: 700; color: var(--shelf); text-decoration: underline; text-underline-offset: 3px;
+}
+.row.got .reading { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); }
+.row.got .hand { opacity: .45; }
+.row.got { background: var(--ok-soft); }
+.row.aside .reading { font-weight: 700; font-size: 15.5px; color: var(--muted); }
+.row.crossed .reading { text-decoration: line-through; }
+.empty {
+  background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r);
+  padding: 22px 16px; text-align: center; color: var(--muted); margin-top: 18px;
+}
+.empty b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 4px; }
+
+/* Footer */
+.foot { margin-top: 30px; display: grid; gap: 18px; }
+.foot h3 { margin: 0; font-family: var(--f-display); font-stretch: 78%; font-weight: 800; font-size: 20px; }
+.sheets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sheetbtn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 8px;
+  cursor: pointer; display: grid; gap: 6px; text-align: left;
+}
+.sheetbtn img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: top; border-radius: 6px; max-width: 100%; }
+.sheetbtn span { font-weight: 700; font-size: 14.5px; }
+.status { font-size: 13.5px; color: var(--muted); display: flex; gap: 8px; align-items: flex-start; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-top: 5px; flex-shrink: 0; }
+.status[data-mode="synced"] .dot { background: var(--ok); }
+.status[data-mode="offline"] .dot, .status[data-mode="readonly"] .dot { background: var(--warn); }
+.reset {
+  justify-self: start; border: 1.5px solid var(--line); background: var(--surface); border-radius: 8px;
+  padding: 10px 14px; font-weight: 700; font-size: 14.5px; cursor: pointer; min-height: 44px;
+}
+.reset.armed { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+
+/* Sheet viewer */
+dialog {
+  border: 0; padding: 0; border-radius: 14px; background: var(--surface); color: var(--ink);
+  width: min(calc(100vw - 20px), 760px); max-width: none;
+  max-height: calc(100dvh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+}
+dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+dialog::backdrop { background: var(--scrim); }
+.dhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 10px 10px 16px; border-bottom: 1px solid var(--line); }
+.dhead b { font-size: 15.5px; min-width: 0; }
+.close { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; min-height: 40px; }
+.scroller { overflow: auto; -webkit-overflow-scrolling: touch; background: #2a2d33; }
+.fig { position: relative; margin: 0; }
+.fig img { display: block; width: 100%; height: auto; }
+.hl {
+  position: absolute; border: 3px solid var(--shelf); border-radius: 6px;
+  box-shadow: 0 0 0 9999px rgba(10, 12, 16, 0.42);
+}
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  background: var(--ink); color: var(--bg); border-radius: 10px; padding: 10px 10px 10px 14px;
+  display: flex; gap: 12px; align-items: center; font-size: 14.5px;
+  width: max-content; max-width: calc(100vw - 32px);
+}
+.toast button { border: 0; background: var(--tag); color: var(--tag-ink); border-radius: 6px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 380px) { h1 { font-size: 24px; } .reading { font-size: 16.5px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Coco Local · Booker run</p>
+    <div class="titlerow">
+      <h1>Dad’s cash and carry list</h1>
+      <div class="tally" aria-live="polite"><b id="tally">0 / 0</b><span>got so far</span></div>
+    </div>
+    <div class="bar" aria-hidden="true"><i id="barfill"></i></div>
+    <nav class="filters" aria-label="Show">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">All <span class="ct" id="c-all"></span></button>
+      <button type="button" id="f-left" data-f="left" aria-pressed="false">To get <span class="ct" id="c-left"></span></button>
+      <button type="button" id="f-got" data-f="got" aria-pressed="false">Got <span class="ct" id="c-got"></span></button>
+      <button type="button" id="f-check" data-f="check" aria-pressed="false">Ask Dad <span class="ct" id="c-check"></span></button>
+    </nav>
+  </header>
+
+  <main class="list" id="list"></main>
+  <div class="empty" id="empty" hidden></div>
+
+  <footer class="foot">
+    <section>
+      <h3>Original sheets</h3>
+      <div class="sheets" style="margin-top:10px">
+        <button type="button" class="sheetbtn" id="open-s1"><img id="thumb1" alt="Photo of sheet 1"><span>Sheet 1</span></button>
+        <button type="button" class="sheetbtn" id="open-s2"><img id="thumb2" alt="Photo of sheet 2"><span>Sheet 2</span></button>
+      </div>
+    </section>
+    <p class="status" id="status" data-mode="connecting"><span class="dot"></span><span id="statustext">Connecting…</span></p>
+    <button type="button" class="reset" id="reset">Clear all ticks for the next trip</button>
+  </footer>
+</div>
+
+<dialog id="viewer" aria-labelledby="vtitle">
+  <div class="dhead"><b id="vtitle">Sheet</b><button type="button" class="close" id="vclose">Close</button></div>
+  <div class="scroller" id="vscroll"><figure class="fig"><img id="vimg" alt=""><div class="hl" id="vhl" hidden></div></figure></div>
+</dialog>
+<div class="toast" id="toast" hidden role="status"><span id="toasttext"></span><button type="button" id="undo">Undo</button></div>
+
+<script>
+const ITEMS = [{"id": "i01", "n": 1, "s": 1, "sec": "Top of sheet 1", "r": "66.53, 61.53, 65.32", "c": "L", "note": "Figures, not products. The second and third are crossed through, so these look like his own sums. Nothing to buy here.", "k": "note", "img": "/list/img/i01.jpg", "w": 420, "h": 200, "bx": [5.521, 19.022, 28.986, 7.764]}, {"id": "i02", "n": 2, "s": 1, "sec": "Top of sheet 1", "r": "4,729.52", "c": "L", "note": "Also a figure, not a product. The digit after the point could be a 3.", "k": "note", "img": "/list/img/i02.jpg", "w": 390, "h": 85, "bx": [7.591, 27.756, 26.915, 3.3]}, {"id": "i03", "n": 3, "s": 1, "sec": "Top of sheet 1", "r": "Dog food", "c": "U", "note": "Enhanced, the brand still reads ‘Chubb Kolb’ and I could not match it to a dog food brand. A pencil line runs over it, so ask which brand and whether it is still needed.", "k": "item", "img": "/list/img/i03.jpg", "w": 720, "h": 190, "bx": [44.168, 15.916, 49.689, 7.376]}, {"id": "i04", "n": 4, "s": 1, "sec": "Top of sheet 1", "r": "Booker (heading)", "c": "C", "note": "The cash and carry. The two lines under it are things to pick up there.", "k": "heading", "img": "/list/img/i04.jpg", "w": 200, "h": 80, "bx": [20.014, 32.22, 13.803, 3.106]}, {"id": "i05", "n": 5, "s": 1, "sec": "Top of sheet 1", "r": "Häagen-Dazs ice cream", "c": "C", "note": "", "k": "item", "img": "/list/img/i05.jpg", "w": 435, "h": 75, "bx": [19.669, 35.52, 30.021, 2.911]}, {"id": "i06", "n": 6, "s": 1, "sec": "Top of sheet 1", "r": "Ice ?", "c": "L", "note": "Bagged ice. The question mark is his.", "k": "item", "img": "/list/img/i06.jpg", "w": 260, "h": 70, "bx": [20.704, 37.849, 17.943, 2.717]}, {"id": "i07", "n": 7, "s": 1, "sec": "Alcohol", "r": "K Cider", "c": "C", "note": "", "k": "item", "img": "/list/img/i07.jpg", "w": 260, "h": 85, "bx": [19.669, 50.854, 17.943, 3.3]}, {"id": "i08", "n": 8, "s": 1, "sec": "Alcohol", "r": "AU Vodka, Gold (Original) and Blue Raspberry", "c": "L", "note": "AU sells its original vodka in a gold bottle, alongside Blue Raspberry.", "k": "item", "img": "/list/img/i08.jpg", "w": 390, "h": 75, "bx": [19.324, 53.183, 26.915, 2.911]}, {"id": "i09", "n": 9, "s": 1, "sec": "Alcohol", "r": "BuzzBallz, red", "c": "C", "note": "Red is the colour of the ball.", "k": "item", "img": "/list/img/i09.jpg", "w": 410, "h": 80, "bx": [19.324, 55.901, 28.295, 3.106]}, {"id": "i10", "n": 10, "s": 1, "sec": "Alcohol", "r": "Peroni, large", "c": "C", "note": "(L) read as large bottles.", "k": "item", "img": "/list/img/i10.jpg", "w": 300, "h": 65, "bx": [19.324, 59.394, 20.704, 2.523]}, {"id": "i11", "n": 11, "s": 1, "sec": "Alcohol", "r": "Yellow Tail red", "c": "C", "note": "Y.T. is Yellow Tail.", "k": "item", "img": "/list/img/i11.jpg", "w": 320, "h": 65, "bx": [19.324, 61.335, 22.084, 2.523]}, {"id": "i12", "n": 12, "s": 1, "sec": "Alcohol", "r": "Yellow Tail Shiraz", "c": "C", "note": "Written Y.T. Shiraz. Also appears on sheet 2, so check whether it is one order or two.", "k": "item", "img": "/list/img/i12.jpg", "w": 390, "h": 100, "bx": [19.324, 63.665, 26.915, 3.882]}, {"id": "i13", "n": 13, "s": 1, "sec": "Alcohol", "r": "Jam Shed", "c": "C", "note": "Australian red wine.", "k": "item", "img": "/list/img/i13.jpg", "w": 315, "h": 70, "bx": [18.288, 67.935, 21.739, 2.717]}, {"id": "i14", "n": 14, "s": 1, "sec": "Alcohol", "r": "Captain Morgan with Pepsi Max (premix cans)", "c": "C", "note": "Sold as 330ml cans, 250ml slimline cans and 6 x 250ml packs. He has not said which.", "k": "item", "img": "/list/img/i14.jpg", "w": 505, "h": 70, "bx": [21.394, 70.07, 34.852, 2.717]}, {"id": "i15", "n": 15, "s": 1, "sec": "Household and health", "r": "Washing up liquid", "c": "L", "note": "W. Liquid. Could also mean laundry liquid.", "k": "item", "img": "/list/img/i15.jpg", "w": 415, "h": 90, "bx": [59.351, 48.719, 28.64, 3.494]}, {"id": "i16", "n": 16, "s": 1, "sec": "Household and health", "r": "Bleach", "c": "C", "note": "", "k": "item", "img": "/list/img/i16.jpg", "w": 295, "h": 60, "bx": [62.457, 51.825, 20.359, 2.329]}, {"id": "i17", "n": 17, "s": 1, "sec": "Household and health", "r": "Dettol antiseptic liquid", "c": "C", "note": "", "k": "item", "img": "/list/img/i17.jpg", "w": 515, "h": 75, "bx": [61.077, 55.124, 35.542, 2.911]}, {"id": "i18", "n": 18, "s": 1, "sec": "Household and health", "r": "Gaviscon Double Action", "c": "C", "note": "", "k": "item", "img": "/list/img/i18.jpg", "w": 530, "h": 75, "bx": [61.422, 58.618, 36.577, 2.911]}, {"id": "i19", "n": 19, "s": 1, "sec": "Household and health", "r": "Vaseline", "c": "C", "note": "The circle after it may mean the original round tub.", "k": "item", "img": "/list/img/i19.jpg", "w": 440, "h": 65, "bx": [62.112, 61.53, 30.366, 2.523]}, {"id": "i20", "n": 20, "s": 1, "sec": "Household and health", "r": "Panadol, red pack", "c": "L", "note": "", "k": "item", "img": "/list/img/i20.jpg", "w": 440, "h": 60, "bx": [62.457, 63.859, 30.366, 2.329]}, {"id": "i21", "n": 21, "s": 1, "sec": "Household and health", "r": "Party ice?", "c": "U", "note": "Reads ‘P. Ice’, and the I matches how he writes Ice elsewhere. Bagged party ice is my best guess, which would match the ‘Ice ?’ under Booker.", "k": "item", "img": "/list/img/i21.jpg", "w": 285, "h": 85, "bx": [62.112, 67.352, 19.669, 3.3]}, {"id": "i22", "n": 22, "s": 1, "sec": "Household and health", "r": "Nivea cream", "c": "C", "note": "", "k": "item", "img": "/list/img/i22.jpg", "w": 410, "h": 65, "bx": [62.112, 71.04, 28.295, 2.523]}, {"id": "i23", "n": 23, "s": 2, "sec": "Sweets and snacks", "r": "Haribo Rhubarb and Custard", "c": "C", "note": "140g sharing bag, plain or price marked.", "k": "item", "img": "/list/img/i23.jpg", "w": 675, "h": 65, "bx": [12.422, 18.051, 46.584, 2.523]}, {"id": "i24", "n": 24, "s": 2, "sec": "Sweets and snacks", "r": "Unclear, green", "c": "U", "note": "Enlarged, it reads ‘Kebabo’ with a C in the margin. His R looks like a looped K, so it may start with R. I still could not match it to a product.", "k": "item", "img": "/list/img/i24.jpg", "w": 430, "h": 58, "bx": [9.662, 20.264, 29.676, 2.252]}, {"id": "i25", "n": 25, "s": 2, "sec": "Sweets and snacks", "r": "Chocolate bags", "c": "C", "note": "Chocolate sharing bags.", "k": "item", "img": "/list/img/i25.jpg", "w": 315, "h": 55, "bx": [14.493, 22.127, 21.739, 2.135]}, {"id": "i26", "n": 26, "s": 2, "sec": "Sweets and snacks", "r": "Kinder chocolate, £1.65 ?", "c": "L", "note": "The price and question mark are his.", "k": "item", "img": "/list/img/i26.jpg", "w": 705, "h": 65, "bx": [12.422, 23.486, 48.654, 2.523]}, {"id": "i27", "n": 27, "s": 2, "sec": "Sweets and snacks", "r": "Twirl", "c": "C", "note": "", "k": "item", "img": "/list/img/i27.jpg", "w": 270, "h": 45, "bx": [13.458, 25.621, 18.634, 1.747]}, {"id": "i28", "n": 28, "s": 2, "sec": "Sweets and snacks", "r": "Wispa", "c": "C", "note": "", "k": "item", "img": "/list/img/i28.jpg", "w": 255, "h": 45, "bx": [13.458, 26.98, 17.598, 1.747]}, {"id": "i29", "n": 29, "s": 2, "sec": "Sweets and snacks", "r": "Mentos, blue", "c": "C", "note": "The blue roll.", "k": "item", "img": "/list/img/i29.jpg", "w": 395, "h": 55, "bx": [13.458, 28.339, 27.26, 2.135]}, {"id": "i30", "n": 30, "s": 2, "sec": "Sweets and snacks", "r": "Breakfast bars", "c": "C", "note": "", "k": "item", "img": "/list/img/i30.jpg", "w": 375, "h": 62, "bx": [12.422, 32.143, 25.88, 2.407]}, {"id": "i31", "n": 31, "s": 2, "sec": "Sweets and snacks", "r": "Rice Krispies Squares, Coco Pops bars?", "c": "L", "note": "His examples of breakfast bars, with his own question mark.", "k": "item", "img": "/list/img/i31.jpg", "w": 545, "h": 63, "bx": [12.422, 34.239, 37.612, 2.446]}, {"id": "i32", "n": 32, "s": 2, "sec": "Sweets and snacks", "r": "Grenade", "c": "C", "note": "Protein bars.", "k": "item", "img": "/list/img/i32.jpg", "w": 250, "h": 60, "bx": [12.077, 38.238, 17.253, 2.329]}, {"id": "i33", "n": 33, "s": 2, "sec": "Sweets and snacks", "r": "Rolo", "c": "C", "note": "His R looks like a K with a loop. Ribena, Red and Rich Tea are written the same way, so Kolo is Rolo.", "k": "item", "img": "/list/img/i33.jpg", "w": 160, "h": 55, "bx": [14.838, 40.373, 11.042, 2.135]}, {"id": "i34", "n": 34, "s": 2, "sec": "Sweets and snacks", "r": "Kinder Country", "c": "C", "note": "", "k": "item", "img": "/list/img/i34.jpg", "w": 435, "h": 57, "bx": [13.458, 42.236, 30.021, 2.213]}, {"id": "i35", "n": 35, "s": 2, "sec": "Sweets and snacks", "r": "Extra gum, green, bottle", "c": "C", "note": "Spearmint Extra in the bottle pack.", "k": "item", "img": "/list/img/i35.jpg", "w": 445, "h": 55, "bx": [13.803, 44.255, 30.711, 2.135]}, {"id": "i36", "n": 36, "s": 2, "sec": "Sweets and snacks", "r": "Extra Ice, bottle", "c": "C", "note": "The ditto mark repeats ‘Extra’ from the line above.", "k": "item", "img": "/list/img/i36.jpg", "w": 215, "h": 42, "bx": [17.253, 46.196, 14.838, 1.63]}, {"id": "i37", "n": 37, "s": 2, "sec": "Sweets and snacks", "r": "Wine gums bag ??", "c": "C", "note": "The question marks are his.", "k": "item", "img": "/list/img/i37.jpg", "w": 495, "h": 56, "bx": [15.528, 47.438, 34.161, 2.174]}, {"id": "i38", "n": 38, "s": 2, "sec": "Sweets and snacks", "r": "Squashies Drumstick", "c": "C", "note": "D-St is Drumstick.", "k": "item", "img": "/list/img/i38.jpg", "w": 420, "h": 52, "bx": [15.528, 49.612, 28.986, 2.019]}, {"id": "i39", "n": 39, "s": 2, "sec": "Sweets and snacks", "r": "Squashies, blue", "c": "L", "note": "Blue bag, probably Bubblegum or Banana and Blueberry.", "k": "item", "img": "/list/img/i39.jpg", "w": 300, "h": 50, "bx": [22.774, 51.436, 20.704, 1.941]}, {"id": "i40", "n": 40, "s": 2, "sec": "Sweets and snacks", "r": "Maryland cookies, red pack", "c": "C", "note": "M-Land is Maryland.", "k": "item", "img": "/list/img/i40.jpg", "w": 570, "h": 58, "bx": [15.528, 53.261, 39.337, 2.252]}, {"id": "i41", "n": 41, "s": 2, "sec": "Sweets and snacks", "r": "Popcorn, pink", "c": "C", "note": "The pink pack. Flavour not stated.", "k": "item", "img": "/list/img/i41.jpg", "w": 435, "h": 65, "bx": [14.493, 63.276, 30.021, 2.523]}, {"id": "i42", "n": 42, "s": 2, "sec": "Crisps and biscuits", "r": "Crisps (heading)", "c": "C", "note": "Heading for the lines below.", "k": "heading", "img": "/list/img/i42.jpg", "w": 210, "h": 55, "bx": [14.493, 67.352, 14.493, 2.135]}, {"id": "i43", "n": 43, "s": 2, "sec": "Crisps and biscuits", "r": "Cheese and onion", "c": "L", "note": "Written as C&O.", "k": "item", "img": "/list/img/i43.jpg", "w": 160, "h": 50, "bx": [17.943, 69.488, 11.042, 1.941]}, {"id": "i44", "n": 44, "s": 2, "sec": "Crisps and biscuits", "r": "Kettle Chips, salted", "c": "L", "note": "His K is a straight K, as in K Cider and Kinder, while his R has a loop. This one is a straight K, so Kettle is more likely than ready salted.", "k": "item", "img": "/list/img/i44.jpg", "w": 265, "h": 50, "bx": [16.908, 71.234, 18.288, 1.941]}, {"id": "i45", "n": 45, "s": 2, "sec": "Crisps and biscuits", "r": "Wotsits cheese (crossed out)", "c": "L", "note": "Struck through in red, so probably not needed.", "k": "crossed", "img": "/list/img/i45.jpg", "w": 435, "h": 47, "bx": [15.528, 72.516, 30.021, 1.825]}, {"id": "i46", "n": 46, "s": 2, "sec": "Crisps and biscuits", "r": "Any large crisps", "c": "C", "note": "", "k": "item", "img": "/list/img/i46.jpg", "w": 490, "h": 60, "bx": [15.873, 74.34, 33.816, 2.329]}, {"id": "i47", "n": 47, "s": 2, "sec": "Crisps and biscuits", "r": "Rich Tea", "c": "C", "note": "", "k": "item", "img": "/list/img/i47.jpg", "w": 290, "h": 58, "bx": [13.803, 76.475, 20.014, 2.252]}, {"id": "i48", "n": 48, "s": 2, "sec": "Crisps and biscuits", "r": "Jaffa Cakes", "c": "C", "note": "J. Cake.", "k": "item", "img": "/list/img/i48.jpg", "w": 265, "h": 47, "bx": [13.803, 78.61, 18.288, 1.825]}, {"id": "i49", "n": 49, "s": 2, "sec": "Crisps and biscuits", "r": "Others **", "c": "C", "note": "Anything else he spots.", "k": "note", "img": "/list/img/i49.jpg", "w": 315, "h": 57, "bx": [13.803, 80.28, 21.739, 2.213]}, {"id": "i50", "n": 50, "s": 2, "sec": "Soft drinks", "r": "Lemonade", "c": "C", "note": "", "k": "item", "img": "/list/img/i50.jpg", "w": 330, "h": 65, "bx": [70.393, 16.304, 22.774, 2.523]}, {"id": "i51", "n": 51, "s": 2, "sec": "Soft drinks", "r": "Pepsi Max Cherry, 500ml", "c": "C", "note": "", "k": "item", "img": "/list/img/i51.jpg", "w": 435, "h": 70, "bx": [69.358, 17.857, 30.021, 2.717]}, {"id": "i52", "n": 52, "s": 2, "sec": "Soft drinks", "r": "Coke Cherry", "c": "C", "note": "", "k": "item", "img": "/list/img/i52.jpg", "w": 315, "h": 55, "bx": [70.393, 20.186, 21.739, 2.135]}, {"id": "i53", "n": 53, "s": 2, "sec": "Soft drinks", "r": "Pepsi Cherry can ?", "c": "C", "note": "The question mark is his.", "k": "item", "img": "/list/img/i53.jpg", "w": 420, "h": 47, "bx": [66.253, 21.933, 28.986, 1.825]}, {"id": "i54", "n": 54, "s": 2, "sec": "Soft drinks", "r": "Coke Zero", "c": "C", "note": "", "k": "item", "img": "/list/img/i54.jpg", "w": 285, "h": 47, "bx": [70.393, 23.602, 19.669, 1.825]}, {"id": "i55", "n": 55, "s": 2, "sec": "Soft drinks", "r": "Dr Pepper can", "c": "C", "note": "", "k": "item", "img": "/list/img/i55.jpg", "w": 355, "h": 52, "bx": [71.774, 25.155, 24.5, 2.019]}, {"id": "i56", "n": 56, "s": 2, "sec": "Soft drinks", "r": "Water, yellow (crossed out)", "c": "L", "note": "Struck through in red. The first word is not Fanta, as his F looks different, so it reads Water.", "k": "crossed", "img": "/list/img/i56.jpg", "w": 325, "h": 54, "bx": [70.393, 27.096, 22.429, 2.096]}, {"id": "i57", "n": 57, "s": 2, "sec": "Soft drinks", "r": "Fruit flavoured water, small", "c": "L", "note": "The ditto mark repeats ‘Water’, so this is likely flavoured water in small bottles. I earlier read it as Fanta Fruit Twist, which I now think is wrong.", "k": "item", "img": "/list/img/i57.jpg", "w": 255, "h": 50, "bx": [75.569, 29.115, 17.598, 1.941]}, {"id": "i58", "n": 58, "s": 2, "sec": "Soft drinks", "r": "Diet Coke 2l", "c": "C", "note": "", "k": "item", "img": "/list/img/i58.jpg", "w": 275, "h": 58, "bx": [71.429, 31.056, 18.979, 2.252]}, {"id": "i59", "n": 59, "s": 2, "sec": "Soft drinks", "r": "Dr Pepper 2l", "c": "C", "note": "", "k": "item", "img": "/list/img/i59.jpg", "w": 310, "h": 52, "bx": [71.774, 32.997, 21.394, 2.019]}, {"id": "i60", "n": 60, "s": 2, "sec": "Soft drinks", "r": "Fanta, yellow, 2l", "c": "C", "note": "The yellow-labelled Fanta. Check the flavour on the shelf.", "k": "item", "img": "/list/img/i60.jpg", "w": 360, "h": 53, "bx": [71.429, 34.744, 24.845, 2.057]}, {"id": "i61", "n": 61, "s": 2, "sec": "Soft drinks", "r": "Sprite 2l", "c": "C", "note": "", "k": "item", "img": "/list/img/i61.jpg", "w": 250, "h": 55, "bx": [74.879, 36.685, 17.253, 2.135]}, {"id": "i62", "n": 62, "s": 2, "sec": "Soft drinks", "r": "Powerade", "c": "C", "note": "", "k": "item", "img": "/list/img/i62.jpg", "w": 255, "h": 55, "bx": [70.393, 39.014, 17.598, 2.135]}, {"id": "i63", "n": 63, "s": 2, "sec": "Soft drinks", "r": "Coke pack", "c": "C", "note": "Multipack.", "k": "item", "img": "/list/img/i63.jpg", "w": 285, "h": 54, "bx": [69.358, 41.071, 19.669, 2.096]}, {"id": "i64", "n": 64, "s": 2, "sec": "Soft drinks", "r": "Euro can pack", "c": "L", "note": "Probably a Euro Shopper energy drink multipack.", "k": "item", "img": "/list/img/i64.jpg", "w": 345, "h": 53, "bx": [68.323, 42.896, 23.81, 2.057]}, {"id": "i65", "n": 65, "s": 2, "sec": "Soft drinks", "r": "Boost Zero, 75p", "c": "C", "note": "75p price marked.", "k": "item", "img": "/list/img/i65.jpg", "w": 400, "h": 55, "bx": [68.668, 44.837, 27.605, 2.135]}, {"id": "i66", "n": 66, "s": 2, "sec": "Soft drinks", "r": "Mountain Dew, large", "c": "C", "note": "", "k": "item", "img": "/list/img/i66.jpg", "w": 310, "h": 53, "bx": [68.668, 47.05, 21.394, 2.057]}, {"id": "i67", "n": 67, "s": 2, "sec": "Soft drinks", "r": "Robinsons Apple and Blackcurrant", "c": "C", "note": "A&BC.", "k": "item", "img": "/list/img/i67.jpg", "w": 420, "h": 65, "bx": [67.288, 50.272, 28.986, 2.523]}, {"id": "i68", "n": 68, "s": 2, "sec": "Soft drinks", "r": "Ribena", "c": "C", "note": "", "k": "item", "img": "/list/img/i68.jpg", "w": 220, "h": 50, "bx": [68.668, 52.601, 15.183, 1.941]}, {"id": "i69", "n": 69, "s": 2, "sec": "Cupboard", "r": "Ketchup, small", "c": "C", "note": "", "k": "item", "img": "/list/img/i69.jpg", "w": 265, "h": 65, "bx": [68.668, 56.677, 18.288, 2.523]}, {"id": "i70", "n": 70, "s": 2, "sec": "Cupboard", "r": "Mayonnaise, small", "c": "C", "note": "", "k": "item", "img": "/list/img/i70.jpg", "w": 385, "h": 55, "bx": [68.668, 58.812, 26.57, 2.135]}, {"id": "i71", "n": 71, "s": 2, "sec": "Cupboard", "r": "Mango chutney", "c": "C", "note": "", "k": "item", "img": "/list/img/i71.jpg", "w": 360, "h": 55, "bx": [67.633, 60.559, 24.845, 2.135]}, {"id": "i72", "n": 72, "s": 2, "sec": "Cupboard", "r": "Garlic paste", "c": "C", "note": "", "k": "item", "img": "/list/img/i72.jpg", "w": 380, "h": 56, "bx": [69.358, 62.578, 26.225, 2.174]}, {"id": "i73", "n": 73, "s": 2, "sec": "Cupboard", "r": "Ginger paste", "c": "C", "note": "", "k": "item", "img": "/list/img/i73.jpg", "w": 345, "h": 47, "bx": [70.738, 64.635, 23.81, 1.825]}, {"id": "i74", "n": 74, "s": 2, "sec": "Cupboard", "r": "Long life milk", "c": "C", "note": "", "k": "item", "img": "/list/img/i74.jpg", "w": 295, "h": 50, "bx": [69.703, 66.576, 20.359, 1.941]}, {"id": "i75", "n": 75, "s": 2, "sec": "Cupboard", "r": "Nescafé coffee", "c": "C", "note": "", "k": "item", "img": "/list/img/i75.jpg", "w": 375, "h": 63, "bx": [66.598, 68.401, 25.88, 2.446]}, {"id": "i76", "n": 76, "s": 2, "sec": "Wine and tobacco", "r": "Yellow Tail Shiraz", "c": "C", "note": "Also on sheet 1.", "k": "item", "img": "/list/img/i76.jpg", "w": 545, "h": 73, "bx": [61.422, 73.952, 37.612, 2.834]}, {"id": "i77", "n": 77, "s": 2, "sec": "Wine and tobacco", "r": "Benson and Hedges Blue, rolling tobacco", "c": "C", "note": "Benson and Hedges Blue rolling tobacco is a real UK product, so the reading fits.", "k": "item", "img": "/list/img/i77.jpg", "w": 544, "h": 64, "bx": [62.457, 77.95, 37.543, 2.484]}, {"id": "i78", "n": 78, "s": 2, "sec": "Wine and tobacco", "r": "Sterling Dual", "c": "C", "note": "JTI’s Sterling Dual range.", "k": "item", "img": "/list/img/i78.jpg", "w": 405, "h": 55, "bx": [63.147, 79.775, 27.95, 2.135]}, {"id": "i79", "n": 79, "s": 2, "sec": "Wine and tobacco", "r": "Benson and Hedges Green", "c": "C", "note": "Probably Benson and Hedges Superkings Green, sold in 20s.", "k": "item", "img": "/list/img/i79.jpg", "w": 390, "h": 58, "bx": [65.217, 81.988, 26.915, 2.252]}];
+const SHEETS = {"1": "/list/img/sheet-1.jpg", "2": "/list/img/sheet-2.jpg"};
+const KEY = "coco-local-list-v1";
+const FKEY = "coco-local-filter-v1";
+const shop = ITEMS.filter(i => i.k === "item");
+
+let got = {};
+try { got = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { got = {}; }
+let filter = "all";
+try { filter = localStorage.getItem(FKEY) || "all"; } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const rowsById = {};
+const secs = [];
+
+function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(got)); } catch (e) {} }
+
+function whenText(ms) {
+  const d = new Date(ms), t = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) + " " + t;
+}
+function confLabel(c) { return c === "L" ? "Likely" : c === "U" ? "Unsure" : ""; }
+
+function build() {
+  const list = $("list");
+  let cur = null;
+  for (const it of ITEMS) {
+    if (!cur || cur.name !== it.sec) {
+      const sec = document.createElement("section");
+      sec.className = "sec";
+      const strip = document.createElement("div");
+      strip.className = "strip";
+      const h2 = document.createElement("h2");
+      h2.textContent = it.sec;
+      const left = document.createElement("span");
+      left.className = "left";
+      strip.append(h2, left);
+      const rows = document.createElement("div");
+      rows.className = "rows";
+      sec.append(strip, rows);
+      list.append(sec);
+      cur = { name: it.sec, el: sec, rows, left, items: [] };
+      secs.push(cur);
+    }
+    cur.items.push(it);
+    cur.rows.append(makeRow(it));
+  }
+}
+
+function makeRow(it) {
+  const row = document.createElement("div");
+  row.className = "row" + (it.k !== "item" ? " aside" : "") + (it.k === "crossed" ? " crossed" : "");
+  const body = document.createElement("div");
+  body.className = "body";
+
+  const reading = document.createElement("div");
+  reading.className = "reading";
+  reading.textContent = it.r;
+
+  const hand = document.createElement("div");
+  hand.className = "hand";
+  hand.style.width = Math.round(it.w * 0.62 + 16) + "px";
+  const img = document.createElement("img");
+  img.src = it.img;
+  img.alt = "Handwriting for line " + it.n;
+  img.width = it.w; img.height = it.h;
+  img.decoding = "async";
+  hand.append(img);
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const code = document.createElement("span");
+  code.className = "code";
+  code.textContent = "#" + String(it.n).padStart(2, "0") + " · SHEET " + it.s;
+  meta.append(code);
+  let when = null;
+  if (it.k === "item") { when = document.createElement("span"); when.className = "when"; meta.append(when); }
+  if (it.k === "heading" || it.k === "note" || it.k === "crossed") {
+    const x = document.createElement("span");
+    x.className = "chip X";
+    x.textContent = it.k === "heading" ? "Heading" : it.k === "crossed" ? "Crossed out" : "Not an item";
+    meta.append(x);
+  } else if (it.c !== "C") {
+    const ch = document.createElement("span");
+    ch.className = "chip " + it.c;
+    ch.textContent = confLabel(it.c);
+    meta.append(ch);
+  }
+  const see = document.createElement("button");
+  see.type = "button";
+  see.className = "see";
+  see.textContent = "See on sheet";
+  see.addEventListener("click", ev => { ev.preventDefault(); ev.stopPropagation(); openSheet(it.s, it); });
+  meta.append(see);
+
+  body.append(reading, hand);
+  if (it.note) {
+    const note = document.createElement("div");
+    note.className = "note";
+    note.textContent = it.note;
+    body.append(note);
+  }
+  body.append(meta);
+
+  if (it.k === "item") {
+    const label = document.createElement("label");
+    label.className = "tap";
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.className = "chk";
+    chk.id = "chk-" + it.id;
+    chk.setAttribute("aria-label", it.r);
+    chk.addEventListener("change", () => setGot(it, chk.checked, true));
+    label.append(chk, body);
+    row.append(label);
+    rowsById[it.id] = { row, chk, it, when };
+  } else {
+    const mark = document.createElement("span");
+    mark.className = "mark";
+    mark.setAttribute("aria-hidden", "true");
+    mark.textContent = it.k === "crossed" ? "×" : "–";
+    row.append(mark, body);
+  }
+  row.dataset.id = it.id;
+  row.dataset.k = it.k;
+  return row;
+}
+
+function visible(it) {
+  if (filter === "all") return true;
+  if (it.k !== "item") return false;
+  if (filter === "left") return !got[it.id];
+  if (filter === "got") return !!got[it.id];
+  if (filter === "check") return it.c === "U";
+  return true;
+}
+
+function render() {
+  const n = shop.length;
+  const g = shop.filter(i => got[i.id]).length;
+  $("tally").textContent = g + " / " + n;
+  $("barfill").style.width = (n ? (g / n) * 100 : 0) + "%";
+  $("c-all").textContent = ITEMS.length;
+  $("c-left").textContent = n - g;
+  $("c-got").textContent = g;
+  $("c-check").textContent = shop.filter(i => i.c === "U").length;
+  for (const b of document.querySelectorAll(".filters button")) b.setAttribute("aria-pressed", String(b.dataset.f === filter));
+
+  for (const id in rowsById) {
+    const r = rowsById[id];
+    const on = !!got[id];
+    r.chk.checked = on;
+    r.row.classList.toggle("got", on);
+    if (r.when) r.when.textContent = on && typeof got[id] === "number" ? "Got " + whenText(got[id]) : "";
+  }
+  let shown = 0;
+  for (const s of secs) {
+    let any = 0;
+    for (const it of s.items) {
+      const el = s.rows.querySelector('[data-id="' + it.id + '"]');
+      const v = visible(it);
+      el.hidden = !v;
+      if (v) any++;
+    }
+    const leftCount = s.items.filter(i => i.k === "item" && !got[i.id]).length;
+    s.left.textContent = leftCount === 0 ? "All got" : leftCount + " left";
+    s.el.hidden = any === 0;
+    shown += any;
+  }
+  const empty = $("empty");
+  if (shown === 0) {
+    empty.hidden = false;
+    empty.innerHTML = "";
+    const b = document.createElement("b");
+    const p = document.createElement("span");
+    if (filter === "left") { b.textContent = "Everything is ticked off"; p.textContent = "Nothing left to get on Dad’s list."; }
+    else if (filter === "got") { b.textContent = "Nothing ticked yet"; p.textContent = "Tap the circle next to an item once it is in the trolley."; }
+    else { b.textContent = "Nothing to show"; p.textContent = "Try another filter."; }
+    empty.append(b, p);
+  } else empty.hidden = true;
+}
+
+/* Toast with undo */
+let toastTimer = null, lastUndo = null;
+function toast(text, undo) {
+  $("toasttext").textContent = text;
+  lastUndo = undo;
+  $("undo").hidden = !undo;
+  $("toast").hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $("toast").hidden = true; lastUndo = null; }, 4000);
+}
+$("undo").addEventListener("click", () => { const u = lastUndo; $("toast").hidden = true; lastUndo = null; if (u) u(); });
+
+function setGot(it, on, user) {
+  if (on) got[it.id] = got[it.id] || Date.now(); else delete got[it.id];
+  saveLocal();
+  queueWrite(it.id, on);
+  render();
+  if (user && filter !== "all") toast((on ? "Ticked " : "Unticked ") + it.r, () => setGot(it, !on, false));
+}
+
+/* Filters */
+for (const b of document.querySelectorAll(".filters button")) {
+  b.addEventListener("click", () => {
+    filter = b.dataset.f;
+    try { localStorage.setItem(FKEY, filter); } catch (e) {}
+    render();
+    window.scrollTo({ top: 0 });
+  });
+}
+
+/* Sheet viewer */
+const viewer = $("viewer");
+function openSheet(s, it) {
+  $("vimg").src = SHEETS[String(s)];
+  $("vimg").alt = "Photo of sheet " + s;
+  $("vtitle").textContent = it ? "Sheet " + s + ", line #" + String(it.n).padStart(2, "0") + ": " + it.r : "Sheet " + s;
+  const hl = $("vhl");
+  if (it) {
+    const [x, y, w, h] = it.bx;
+    hl.style.left = x + "%"; hl.style.top = y + "%"; hl.style.width = w + "%"; hl.style.height = h + "%";
+    hl.hidden = false;
+  } else hl.hidden = true;
+  try { viewer.showModal(); } catch (e) { viewer.setAttribute("open", ""); }
+  const go = () => {
+    const sc = $("vscroll");
+    if (it) {
+      const img = $("vimg");
+      const top = img.offsetHeight * it.bx[1] / 100 + img.offsetHeight * it.bx[3] / 200 - sc.clientHeight / 2;
+      sc.scrollTop = Math.max(0, top);
+    } else sc.scrollTop = 0;
+  };
+  if ($("vimg").complete) requestAnimationFrame(go); else $("vimg").onload = go;
+}
+$("vclose").addEventListener("click", () => viewer.close());
+viewer.addEventListener("click", e => { if (e.target === viewer) viewer.close(); });
+$("open-s1").addEventListener("click", () => openSheet(1, null));
+$("open-s2").addEventListener("click", () => openSheet(2, null));
+$("thumb1").src = SHEETS["1"];
+$("thumb2").src = SHEETS["2"];
+
+/* Reset with an in-page confirmation */
+let armTimer = null;
+$("reset").addEventListener("click", () => {
+  const b = $("reset");
+  if (!b.classList.contains("armed")) {
+    b.classList.add("armed");
+    b.textContent = "Tap again to clear every tick";
+    clearTimeout(armTimer);
+    armTimer = setTimeout(() => { b.classList.remove("armed"); b.textContent = "Clear all ticks for the next trip"; }, 4000);
+    return;
+  }
+  clearTimeout(armTimer);
+  b.classList.remove("armed");
+  b.textContent = "Clear all ticks for the next trip";
+  const before = Object.assign({}, got);
+  got = {};
+  saveLocal();
+  queueReset();
+  render();
+  toast("All ticks cleared", () => { got = before; saveLocal(); queueReset(before); render(); });
+});
+
+/* Live sync: every phone with this page open shares one tick list on the shop's server. */
+const API = "/api/list";
+let live = false, queue = [], sending = false, pollTimer = null, retryTimer = null, failures = 0, remote = {};
+function setMode(mode) {
+  const s = $("status");
+  s.dataset.mode = mode;
+  const t = {
+    connecting: "Connecting…",
+    synced: "Live. Anyone with this page open sees ticks within a few seconds, so you won’t buy the same thing twice.",
+    local: "The shared list isn’t available right now, so ticks save on this phone only.",
+    offline: "No signal right now. Ticks are kept on this phone and will share when you are back online.",
+  }[mode];
+  $("statustext").textContent = t;
+}
+function applyOp(state, op) {
+  if (op.action === "tick") { if (op.got) state[op.id] = state[op.id] || Date.now(); else delete state[op.id]; }
+  else if (op.action === "reset") { for (const k in state) delete state[k]; }
+  else if (op.action === "restore") { for (const k in state) delete state[k]; Object.assign(state, op.ticks); }
+}
+function refresh() {
+  const state = Object.assign({}, remote);
+  for (const op of queue) applyOp(state, op);
+  got = state;
+  saveLocal();
+  render();
+}
+async function api(method, body) {
+  const res = await fetch(API, {
+    method, cache: "no-store",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) { const e = new Error("HTTP " + res.status); e.status = res.status; throw e; }
+  return res.json();
+}
+function noServer(e) { return e && (e.status === 503 || e.status === 404); }
+async function poll() {
+  try {
+    const d = await api("GET");
+    remote = d.ticks || {};
+    live = true; failures = 0;
+    setMode("synced");
+    refresh();
+    if (queue.length) flush();
+  } catch (e) {
+    if (noServer(e)) { live = false; queue = []; setMode("local"); clearInterval(pollTimer); }
+    else setMode("offline");
+  }
+}
+function send(op) {
+  if (!live && $("status").dataset.mode !== "offline") return;
+  queue.push(op);
+  flush();
+}
+async function flush() {
+  if (sending || !queue.length) return;
+  sending = true;
+  while (queue.length) {
+    try {
+      const d = await api("POST", queue[0]);
+      queue.shift();
+      remote = d.ticks || remote;
+      failures = 0;
+      if ($("status").dataset.mode !== "synced") setMode("synced");
+    } catch (e) {
+      if (e.status === 400) { queue.shift(); continue; }
+      if (noServer(e)) { live = false; queue = []; setMode("local"); break; }
+      setMode("offline");
+      failures++;
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(flush, Math.min(15000, 1500 * failures) + Math.random() * 800);
+      break;
+    }
+  }
+  sending = false;
+  refresh();
+}
+function queueWrite(id, on) { send({ action: "tick", id, got: on }); }
+function queueReset(state) { send(state ? { action: "restore", ticks: state } : { action: "reset" }); }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && live) { flush(); poll(); } });
+window.addEventListener("online", () => { flush(); poll(); });
+async function connect() {
+  await poll();
+  if ($("status").dataset.mode !== "local") {
+    pollTimer = setInterval(() => { if (document.visibilityState === "visible") poll(); }, 4000);
+  }
+}
+
+build();
+render();
+setMode("connecting");
+connect();
+</script>
+</body>
+</html>

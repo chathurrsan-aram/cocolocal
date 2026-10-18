@@ -1,0 +1,21 @@
+{
+  "name": "Coco Local cash and carry list",
+  "short_name": "Coco list",
+  "start_url": "/list",
+  "scope": "/list",
+  "display": "standalone",
+  "background_color": "#F2F3F5",
+  "theme_color": "#D4561A",
+  "icons": [
+    {
+      "src": "/list/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/list/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
