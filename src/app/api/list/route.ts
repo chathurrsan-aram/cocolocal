@@ -5,16 +5,15 @@
 // Without Redis the API answers 503 and the page keeps ticks on each phone instead.
 import { Redis } from '@upstash/redis';
 import { NextResponse, type NextRequest } from 'next/server';
+import { ITEM_ID, ticksFromHash, type Ticks } from '@/lib/list/ticks';
 
 export const dynamic = 'force-dynamic';
 
 const KEY = 'coco:list:cash-and-carry:ticks';
-const ITEM_ID = /^i\d{2}$/;
 const MAX_ITEMS = 120;
 const WRITES_PER_MINUTE = 240;
 const noStore = { 'Cache-Control': 'no-store' };
 
-type Ticks = Record<string, number>;
 type Body =
   | { action: 'tick'; id: string; got: boolean }
   | { action: 'reset' }
@@ -29,10 +28,7 @@ function redis() {
 const fail = (error: string, status: number) => NextResponse.json({ ok: false, error }, { status, headers: noStore });
 
 async function readTicks(r: Redis): Promise<Ticks> {
-  const h = await r.hgetall<Record<string, string>>(KEY);
-  const out: Ticks = {};
-  for (const [id, at] of Object.entries(h ?? {})) if (ITEM_ID.test(id)) out[id] = Number(at) || Date.now();
-  return out;
+  return ticksFromHash(await r.hgetall(KEY));
 }
 
 function parse(raw: unknown): Body | null {
