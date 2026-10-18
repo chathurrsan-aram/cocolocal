@@ -121,6 +121,23 @@ h1 {
 .filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .filters button[aria-pressed="true"] .ct { color: inherit; opacity: .75; }
 
+.search { position: relative; display: flex; align-items: center; }
+.search svg { position: absolute; left: 12px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.search input {
+  width: 100%; min-height: 44px; border: 1.5px solid var(--line); border-radius: 10px;
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 16px;
+  padding: 9px 74px 9px 38px; -webkit-appearance: none; appearance: none;
+}
+.search input::placeholder { color: var(--muted); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search input:focus { border-color: var(--ink); outline: none; }
+.search input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.qclear {
+  position: absolute; right: 6px; border: 0; background: var(--line); color: var(--ink);
+  border-radius: 7px; padding: 6px 10px; font-size: 13.5px; font-weight: 700; cursor: pointer;
+}
+.hits { font-size: 13px; color: var(--muted); margin: -2px 0 0; }
+
 /* Sections */
 .list { display: grid; gap: 22px; margin-top: 18px; }
 .sec { display: grid; gap: 0; }
@@ -256,6 +273,12 @@ dialog::backdrop { background: var(--scrim); }
       <button type="button" id="f-got" data-f="got" aria-pressed="false">Got <span class="ct" id="c-got"></span></button>
       <button type="button" id="f-check" data-f="check" aria-pressed="false">Ask Dad <span class="ct" id="c-check"></span></button>
     </nav>
+    <form class="search" id="searchform" role="search" autocomplete="off">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+      <input type="search" id="q" placeholder="Search, e.g. Coke, crisps or #24" enterkeyhint="search" aria-label="Search the list" spellcheck="false">
+      <button type="button" class="qclear" id="qclear" hidden>Clear</button>
+    </form>
+    <p class="hits" id="hits" hidden></p>
   </header>
 
   <main class="list" id="list"></main>
@@ -409,7 +432,12 @@ function makeRow(it) {
   return row;
 }
 
+let query = [];
+function fold(t) { return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9#£.\s]/g, " "); }
+for (const it of ITEMS) it.hay = fold([it.r, it.note, it.sec, "#" + it.n, "#" + String(it.n).padStart(2, "0"), "sheet " + it.s].join(" "));
+function matches(it) { return query.every(w => it.hay.includes(w)); }
 function visible(it) {
+  if (query.length && !matches(it)) return false;
   if (filter === "all") return true;
   if (it.k !== "item") return false;
   if (filter === "left") return !got[it.id];
@@ -450,13 +478,19 @@ function render() {
     s.el.hidden = any === 0;
     shown += any;
   }
+  const hits = $("hits");
+  if (query.length) {
+    hits.hidden = false;
+    hits.textContent = shown === 0 ? "No matches" : shown === 1 ? "1 match" : shown + " matches";
+  } else hits.hidden = true;
   const empty = $("empty");
   if (shown === 0) {
     empty.hidden = false;
     empty.innerHTML = "";
     const b = document.createElement("b");
     const p = document.createElement("span");
-    if (filter === "left") { b.textContent = "Everything is ticked off"; p.textContent = "Nothing left to get on Dad’s list."; }
+    if (query.length) { b.textContent = "Nothing matches \u201c" + $("q").value.trim() + "\u201d"; p.textContent = filter === "all" ? "Try a shorter word, or check the spelling." : "Try a shorter word, or switch to All."; }
+    else if (filter === "left") { b.textContent = "Everything is ticked off"; p.textContent = "Nothing left to get on Dad’s list."; }
     else if (filter === "got") { b.textContent = "Nothing ticked yet"; p.textContent = "Tap the circle next to an item once it is in the trolley."; }
     else { b.textContent = "Nothing to show"; p.textContent = "Try another filter."; }
     empty.append(b, p);
@@ -482,6 +516,15 @@ function setGot(it, on, user) {
   render();
   if (user && filter !== "all") toast((on ? "Ticked " : "Unticked ") + it.r, () => setGot(it, !on, false));
 }
+
+/* Search */
+$("q").addEventListener("input", () => {
+  query = fold($("q").value).split(/\s+/).filter(Boolean);
+  $("qclear").hidden = !$("q").value;
+  render();
+});
+$("qclear").addEventListener("click", () => { $("q").value = ""; query = []; $("qclear").hidden = true; render(); $("q").focus(); });
+$("searchform").addEventListener("submit", e => { e.preventDefault(); $("q").blur(); });
 
 /* Filters */
 for (const b of document.querySelectorAll(".filters button")) {
